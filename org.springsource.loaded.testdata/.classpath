@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="cglibsrc"/>
+	<classpathentry kind="src" path="pluginsrc"/>
+	<classpathentry kind="src" output="superbin" path="supersrc"/>
+	<classpathentry kind="src" output="subbin" path="subsrc"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.springsource.loaded"/>
+	<classpathentry kind="lib" path="lib/cglib-nodep-2.2.jar" sourcepath="lib/cglib-nodep-2.2-sources.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

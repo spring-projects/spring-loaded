@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Specification-Title: SpringLoaded Agent
+Specification-Version: 1.0.0
+Specification-Vendor: SpringSource
+Implementation-Title: org.springsource.loaded
+Implementation-Version: 1.0.0
+Implementation-Vendor: SpringSource
+Premain-Class: org.springsource.loaded.agent.SpringLoadedAgent
+Can-Redefine-Classes: true

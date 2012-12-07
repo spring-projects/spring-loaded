@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.7.1
+Created-By: 11.3-b02 (Sun Microsystems Inc.)
+Specification-Title: SpringLoaded Agent
+Specification-Version: 1.0.0
+Specification-Vendor: SpringSource
+Implementation-Title: org.springsource.loaded
+Implementation-Version: 1.0.0
+Implementation-Vendor: SpringSource
+Premain-Class: org.springsource.loaded.agent.SpringLoadedAgent
+Can-Redefine-Classes: true
+

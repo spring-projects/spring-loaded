@@ -1,0 +1,33 @@
+<project name="springloaded" default="package">
+
+    <property name="VERSION" value="1.1.1-dev"/>
+
+	<!-- if you need this defining, use the jarjar-1.0.jar in this project -->
+    <!-- On my mac I copy it from tools/jarjar-1.0.jar to /usr/share/ant/lib -->
+    <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"/>
+
+	<target name="package" description="Package up the compiled code and necessary dependencies into springloaded.jar">
+		<jar destfile="springloadedtemp.jar" manifest="target/classes/META-INF/MANIFEST.MF">
+			<fileset dir="target/classes"/>
+		</jar>
+		<delete dir="asmsrc"/>
+		<delete file="builds/springloaded-${VERSION}.jar"/>
+	    <jarjar destfile="builds/springloaded-${VERSION}.jar" manifest="target/classes/META-INF/MANIFEST.MF">
+	       <zipfileset src="springloadedtemp.jar"/>
+	       <zipfileset src="asm-3.2/lib/asm-3.2.jar"/>
+	       <zipfileset src="asm-3.2/lib/asm-tree-3.2.jar"/>
+		   <zipfileset src="asm-3.2/lib/asm-commons-3.2.jar"/>
+		   <zipfileset src="asm-3.2/lib/asm-util-3.2.jar"/>
+	       <!-- add SL prefix -->
+	       <rule pattern="org.objectweb.asm.**" result="sl.org.objectweb.asm.@1"/>
+		   <fileset dir="LICENSES" includes="**/LICENSE"/>
+	    </jarjar>
+		<delete file="springloadedtemp.jar"/>
+		<delete file="builds/springloaded-${VERSION}-source.jar"/>
+		<jar destfile="builds/springloaded-${VERSION}-source.jar">
+		  <fileset dir="src/main/java"/>
+		  <fileset dir="LICENSES" includes="**/LICENSE"/>
+		</jar>
+	</target> 
+			
+</project>

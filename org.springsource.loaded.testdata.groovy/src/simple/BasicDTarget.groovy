@@ -1,0 +1,7 @@
+package simple
+
+class BasicDTarget {
+
+	
+	
+}

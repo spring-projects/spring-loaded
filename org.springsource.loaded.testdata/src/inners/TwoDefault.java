@@ -1,0 +1,5 @@
+package inners;
+
+class TwoDefault {
+
+}

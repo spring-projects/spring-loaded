@@ -1,0 +1,5 @@
+package simple
+
+class BasicETarget {
+	
+}

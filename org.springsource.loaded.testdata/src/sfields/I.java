@@ -1,0 +1,5 @@
+package sfields;
+
+interface I {
+
+}
