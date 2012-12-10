@@ -47,7 +47,9 @@ public abstract class MethodProvider {
 				TypeRegistry tr = registry;
 				while (rtype == null) {
 					ClassLoader pcl = tr.getClassLoader().getParent();
-					if (pcl != null) {
+					if (pcl == null) {
+						break;
+					} else {
 						tr = TypeRegistry.getTypeRegistryFor(pcl);
 						if (tr == null) {
 							break;
