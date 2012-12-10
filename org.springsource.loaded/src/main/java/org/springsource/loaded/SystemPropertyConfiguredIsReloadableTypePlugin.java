@@ -16,6 +16,7 @@
 package org.springsource.loaded;
 
 import java.io.File;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
@@ -106,7 +107,8 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			}
 		}
 		try {
-			File file = new File(codeSource.getLocation().toURI());
+			URI uri = codeSource.getLocation().toURI();
+			File file = new File(uri);
 			String path = file.toString();
 
 			for (String exclude : excludes) {
@@ -153,6 +155,17 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			//			}
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
+		} catch (IllegalArgumentException iae) {
+			// grails-9654
+			// On File.<init>() call:
+			// IAE: URI is not hierarchical
+			if (debug) {
+				try {
+					System.out.println("IllegalArgumentException: URI is not hierarchical, uri is "+codeSource.getLocation().toURI());
+				} catch (URISyntaxException use) {
+					System.out.println("IllegalArgumentException: URI is not hierarchical, uri is "+codeSource.getLocation());
+				}
+			}
 		}
 		if (debug) {
 			System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename + " is being PASSed on");
