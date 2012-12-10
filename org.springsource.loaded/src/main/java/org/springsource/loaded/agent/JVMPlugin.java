@@ -157,10 +157,12 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 	}
 
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
-		if (slashedTypeName.equals("java/beans/Introspector")) {
-			introspectorLoaded = true;
-		} else if (slashedTypeName.equals("java/beans/ThreadGroupContext")) {
-			threadGroupContextLoaded = true;
+		if (slashedTypeName!=null) {
+			if (slashedTypeName.equals("java/beans/Introspector")) {
+				introspectorLoaded = true;
+			} else if (slashedTypeName.equals("java/beans/ThreadGroupContext")) {
+				threadGroupContextLoaded = true;
+			}
 		}
 		return false;
 	}
