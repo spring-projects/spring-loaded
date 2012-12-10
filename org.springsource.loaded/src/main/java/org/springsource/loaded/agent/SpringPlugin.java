@@ -63,7 +63,9 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
 		// TODO take classloader into account?
-
+		if (slashedTypeName == null) {
+			return false;
+		}
 		// Just interested in whether this type got loaded
 		if (slashedTypeName.equals("org/springframework/beans/CachedIntrospectionResults")) {
 			cachedIntrospectionResultsClassLoaded = true;

@@ -51,6 +51,9 @@ public class GroovyPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	// implementing LoadtimeInstrumentationPlugin
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
 		// TODO take classloader into account?
+		if (slashedTypeName==null) {
+			return false;
+		}
 		if (!allowCompilableCallSites) {
 			return slashedTypeName.equals("org/codehaus/groovy/runtime/callsite/GroovySunClassLoader")
 					|| slashedTypeName.equals("org/codehaus/groovy/runtime/callsite/CallSiteGenerator");

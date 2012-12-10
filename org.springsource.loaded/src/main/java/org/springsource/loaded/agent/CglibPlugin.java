@@ -32,6 +32,9 @@ public class CglibPlugin implements LoadtimeInstrumentationPlugin {
 
 	// implementing LoadtimeInstrumentationPlugin
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
+		if (slashedTypeName==null) {
+			return false;
+		}
 		return slashedTypeName.equals("net/sf/cglib/core/AbstractClassGenerator");
 		// || slashedTypeName.equals("net/sf/cglib/reflect/FastClass");
 	}
