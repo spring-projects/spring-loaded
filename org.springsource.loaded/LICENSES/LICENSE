@@ -202,9 +202,9 @@
 
 =======================================================================   
 
-Spring Loaded 1.1.0: 
+Spring Loaded 1.1.1: 
 
-Spring Loaded 1.1.0 includes a number of subcomponents with
+Spring Loaded 1.1.1 includes a number of subcomponents with
 separate copyright notices and license terms.  The product that 
 includes this file does not necessarily use all the open source 
 subcomponents referred to below. Your use of the source
@@ -214,9 +214,9 @@ conditions of the following licenses.
 SECTION 1: BSD-STYLE, MIT-STYLE, OR SIMILAR STYLE LICENSES
 
    >>> asm - 3.2
-       >>>  asm-commons - 3.2
-       >>> asm-tree - 3.2
-       >>> asm-util - 3.2
+   >>> asm-commons - 3.2
+   >>> asm-tree - 3.2
+   >>> asm-util - 3.2
 
 -------------SECTION 1: BSD-STYLE, MIT-STYLE, OR SIMILAR STYLE LICENSES------------------------------ 
 
@@ -347,5 +347,5 @@ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
 THE POSSIBILITY OF SUCH DAMAGE.
 
-[SPRINGLOADED110KL072612]
+[SPRINGLOADED111KL092712]
 
