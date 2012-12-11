@@ -185,7 +185,14 @@ public class MethodInvokerRewriter {
 		if (cacheDir.exists()) {
 			recursiveDelete(cacheDir);
 		}
+		versionInIndex=false;
 	}
+	
+	private static final int CACHE_VERSION_1_1_0=1;
+	private static final int CACHE_VERSION_1_1_1=2;
+	private static final int CURRENT_CACHE_VERSION = CACHE_VERSION_1_1_1;
+	
+	private static boolean versionInIndex = false;
 
 	/**
 	 * Load the cache index from the file '&lt;cacheDir&gt;/.index'.
@@ -203,11 +210,25 @@ public class MethodInvokerRewriter {
 				File cacheIndexFile = new File(cacheDir, ".index");
 				if (cacheIndexFile.exists()) {
 					try {
+						boolean clearCache = false;
+						int cacheVersion = CACHE_VERSION_1_1_0; // if no version tag, assume 1.1.0
 						try {
 							FileReader fr = new FileReader(cacheIndexFile);
 							BufferedReader br = new BufferedReader(fr);
 							String line;
+							boolean handledVersionString = false;
 							while ((line = br.readLine()) != null) {
+								if (!handledVersionString) {
+									if (line.startsWith("Version")) {
+										int colon = line.indexOf(":");
+										if (colon!=-1) {
+											cacheVersion = Integer.parseInt(line.substring(colon+1));
+										}
+										
+										handledVersionString = true;
+										continue;
+									}
+								}
 								StringTokenizer st = new StringTokenizer(line, ":");
 								boolean changed = st.nextToken().equals("y");
 								String len = st.nextToken();
@@ -219,6 +240,19 @@ public class MethodInvokerRewriter {
 							fr.close();
 						} catch (IOException ioe) {
 							ioe.printStackTrace();
+						}
+						if (cacheVersion!=CURRENT_CACHE_VERSION) {
+							clearCache=true;
+							versionInIndex=false;
+						} else {
+							versionInIndex=true;
+						}
+						if (clearCache) {
+							if (DEBUG_CACHING) {
+								System.out.println("SpringLoaded: cache looks old (version "+cacheVersion+") - clearing it");
+							}
+							deleteCacheFiles();
+							anyNecessaryCacheCleanupDone = true;							
 						}
 					} catch (NoSuchElementException nsme) {
 						// rogue entry in the cache
@@ -338,6 +372,10 @@ public class MethodInvokerRewriter {
 		try {
 			FileWriter fw = new FileWriter(cacheIndexFile, true);
 			BufferedWriter bw = new BufferedWriter(fw);
+			if (!versionInIndex) {
+				versionInIndex = true;
+				bw.write("Version:"+CURRENT_CACHE_VERSION+"\n");
+			}
 			bw.write((changed ? "y" : "n") + ":" + bytes.length + ":" + slashedclassname + "\n");
 			bw.flush();
 			fw.close();
