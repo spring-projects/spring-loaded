@@ -450,7 +450,7 @@ public class TypeRegistry {
 				StringTokenizer st = new StringTokenizer(value, ",");
 				while (st.hasMoreElements()) {
 					String loaderPrefix = st.nextToken();
-					if (loaderPrefix.toLowerCase().equals("DEFAULT")) {
+					if (loaderPrefix.toLowerCase().equals("default")) {
 						for (String element : STANDARD_EXCLUDED_LOADERS) {
 							loaders.add(element);
 						}
