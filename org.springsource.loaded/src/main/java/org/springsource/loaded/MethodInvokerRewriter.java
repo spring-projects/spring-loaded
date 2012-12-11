@@ -184,6 +184,9 @@ public class MethodInvokerRewriter {
 		File cacheDir = new File(GlobalConfiguration.cacheDir, ".slcache");
 		if (cacheDir.exists()) {
 			recursiveDelete(cacheDir);
+			if (cacheIndex!=null) {
+				cacheIndex.clear();
+			}
 		}
 		versionInIndex=false;
 	}
