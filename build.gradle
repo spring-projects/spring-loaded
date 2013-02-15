@@ -1,3 +1,5 @@
+apply plugin: 'idea'
+
 subprojects {
 	apply plugin: 'java'
 	
@@ -8,6 +10,4 @@ subprojects {
 	repositories {
 		mavenCentral()
 	}
-
-	version = '1.1.1-dev'
 }
