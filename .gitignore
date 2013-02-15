@@ -5,3 +5,7 @@ builds/
 superbin/
 springloaded-*.jar
 .DS_Store
+/.idea
+*.iml
+/.gradle
+build/

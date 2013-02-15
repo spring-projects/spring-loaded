@@ -1,0 +1,18 @@
+dependencies {
+	compile 'asm:asm-all:3.2'
+	tools 'com.googlecode.jarjar:jarjar:1.3'
+	testCompile 'junit:junit:4.11'
+	testCompile project(':org.springsource.loaded.testdata')
+}
+
+test {
+	jvmArgs "-noverify"
+}
+
+task dist(dependsOn: 'build') {
+	ant.taskdef name: "jarjar", classname: "com.tonicsystems.jarjar.JarJarTask", classpath: configurations.tools.asPath
+    ant.jarjar(destfile: "target/springloaded-${project.version}.jar", manifest: "META-INF/MANIFEST.MF") {
+        
+    }
+}
+
