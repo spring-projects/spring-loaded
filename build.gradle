@@ -1,13 +1,16 @@
-apply plugin: 'idea'
+allprojects {
+    apply plugin: 'idea'
+
+    configurations {
+        tools
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
 
 subprojects {
-	apply plugin: 'java'
-	
-	configurations {
-		tools
-	}
-
-	repositories {
-		mavenCentral()
-	}
+    apply plugin: 'java'
 }
+

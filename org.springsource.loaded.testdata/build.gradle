@@ -9,6 +9,7 @@ dependencies {
 	tools "org.aspectj:aspectjtools:$aspectjVersion"
 	compile "cglib:cglib:2.2.2"
 	compile "org.aspectj:aspectjrt:$aspectjVersion"
+    compile 'asm:asm-all:3.2'
 }
 
 sourceSets {
@@ -16,6 +17,8 @@ sourceSets {
 		java {
 			srcDir 'src'
 			srcDir 'cglibsrc'
+			srcDir 'subsrc'
+			srcDir 'supersrc'
 		}
 	}
 }
