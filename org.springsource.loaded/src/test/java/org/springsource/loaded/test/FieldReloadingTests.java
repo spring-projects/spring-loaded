@@ -64,7 +64,7 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		assertEquals(45, runOnInstance(addClazz, addInstance, "getValue").returnValue);
 		assertEquals(45, add.getField(addInstance, "i", false));
 	}
-
+	
 	// Variant of the first test but uses a new instance after reloading
 	@Test
 	public void newFieldAddedInstance() throws Exception {
@@ -949,5 +949,31 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		assertEquals('a', type.getField(rInstance, "c", false));
 		assertEquals((byte) 255, runOnInstance(clazz, rInstance, "getByte").returnValue);
 		assertEquals((byte) 255, type.getField(rInstance, "b", false));
+	}
+
+	@Test
+	public void ctorReloadWithNewField() throws Exception {
+		String y = "ctors.JR";
+		TypeRegistry tr = getTypeRegistry(y);
+		ReloadableType rtype = tr.addType(y, loadBytesForClass(y));
+
+		Class<?> clazz = rtype.getClazz();
+		Object instance = runStaticUnguarded(clazz, "getInstance").returnValue;
+
+		assertEquals("hello", runOnInstance(clazz, instance, "printMessage").returnValue);
+
+		rtype.loadNewVersion("2", retrieveRename(y, y + "2"));
+
+		assertEquals("goodbye", runOnInstance(clazz, instance, "printMessage").returnValue);
+		
+		Object instance2 = runStaticUnguarded(clazz,"getInstance").returnValue;
+		
+		Object ret = runOnInstance(clazz,instance2,"getFieldReflectively").returnValue;
+		assertEquals(34,ret);
+
+		ret = runOnInstance(clazz,instance2,"setFieldReflectively",99).returnValue;
+		 
+		ret = runOnInstance(clazz,instance2,"getFieldReflectively").returnValue;
+		assertEquals(99,ret);
 	}
 }

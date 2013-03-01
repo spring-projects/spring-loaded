@@ -363,8 +363,16 @@ public class FieldReaderWriter {
 			}
 			ISMgr stateManager = (ISMgr) fieldAccessorField.get(instance);
 			if (stateManager == null) {
-				throw new IllegalStateException("The class '" + clazz.getName()
-						+ "' has a null instance state manager object, instance is " + instance);
+				// Looks to not have been initialized yet, this can happen if a non standard ctor was used.
+				// We could push this step into the generated ctors...
+				ISMgr instanceStateManager = new ISMgr(instance, typeDescriptor.getReloadableType());
+				fieldAccessorField.set(instance,instanceStateManager);
+				stateManager = (ISMgr) fieldAccessorField.get(instance);
+				// For some reason it didn't stick!
+				if (stateManager == null) {
+					throw new IllegalStateException("The class '" + clazz.getName()
+							+ "' has a null instance state manager object, instance is " + instance);
+				}
 			}
 			return stateManager;
 		} catch (Exception e) {
