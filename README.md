@@ -13,7 +13,11 @@ used in Grails 2.
 
 # Installation
 
-A dev build of version 1.1.1 is available [here](https://github.com/downloads/SpringSource/spring-loaded/springloaded-1.1.1-dev.jar). The download is the agent jar and needs no further unpacking before use.
+New dev builds of 1.1.2 are available [here ](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.2-dev.jar)
+
+A build of version 1.1.1 is available [here](https://github.com/downloads/SpringSource/spring-loaded/springloaded-1.1.1-dev.jar). 
+
+The download is the agent jar and needs no further unpacking before use.
 
 # Running with reloading
 
