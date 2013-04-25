@@ -1115,7 +1115,37 @@ public class TypeRegistry {
 					.getFromLatestByDescriptor(nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
-				// method has been deleted
+				// method has been deleted or is on a supertype
+				
+				// Search supertypes - block copied from invokespecialSearch below, TODO could refactor into common util
+				Object dispatcherToUse = null;
+				ReloadableType nextCandidate = reloadableType.getTypeRegistry().getReloadableType(reloadableType.getTypeDescriptor().getSupertypeName(),false);
+				boolean found  = false; 
+				while (nextCandidate != null) {
+					MethodMember m = null;
+					if (nextCandidate.hasBeenReloaded()) {
+						m = nextCandidate.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
+						if (m != null && IncrementalTypeDescriptor.wasDeleted(m)) {
+							m = null;
+						}
+						// ignore catchers because the dynamic __execute method wont have an implementation of them, we should
+						// just keep looking for the real thing
+						if (m != null && MethodMember.isCatcher(m)) {
+							m = null;
+						}
+					} else {
+						m = nextCandidate.getMethod(nameAndDescriptor);
+					}
+					if (m != null) {
+						dispatcherToUse = reloadableType.getLatestDispatcherInstance();
+						found = true;
+						break;
+					}
+					nextCandidate = reloadableType.getTypeRegistry().getReloadableType(reloadableType.getTypeDescriptor().getSupertypeName(),false);
+				}
+				if (found) {
+					return dispatcherToUse;
+				}
 				throw new NoSuchMethodError(reloadableType.getBaseName() + "." + nameAndDescriptor);
 			} else if (IncrementalTypeDescriptor.isBrandNewMethod(method)) {
 				// definetly need to use the dispatcher

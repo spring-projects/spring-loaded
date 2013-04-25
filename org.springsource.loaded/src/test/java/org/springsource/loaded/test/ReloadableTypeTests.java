@@ -166,6 +166,70 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		assertEquals(3, runOnInstance(rtype.getClazz(), instance, "getProtectedStaticField").returnValue);
 
 	}
+	
+	
+	// github issue 4
+	@Test
+	public void invokeStaticReloading_gh4_1() throws Exception {
+		TypeRegistry tr = getTypeRegistry("invokestatic..*");
+		ReloadableType A = tr.addType("invokestatic.issue4.A", loadBytesForClass("invokestatic.issue4.A"));
+		ReloadableType B = tr.addType("invokestatic.issue4.B", loadBytesForClass("invokestatic.issue4.B"));
+		
+		Result r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+		
+		B.loadNewVersion(B.bytesInitial);
+
+		r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+	}
+	
+	@Test
+	public void invokeStaticReloading_gh4_2() throws Exception {
+		TypeRegistry tr = getTypeRegistry("invokestatic..*");
+		ReloadableType AA = tr.addType("invokestatic.issue4.AA", loadBytesForClass("invokestatic.issue4.AA"));
+		ReloadableType BB = tr.addType("invokestatic.issue4.BB", loadBytesForClass("invokestatic.issue4.BB"));
+		
+		Result r = runUnguarded(BB.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+		
+		BB.loadNewVersion(BB.bytesInitial);
+
+		r = runUnguarded(BB.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+	}
+	
+	@Test
+	public void invokeStaticReloading_gh4_3() throws Exception {
+		TypeRegistry tr = getTypeRegistry("invokestatic..*");
+		ReloadableType AAA = tr.addType("invokestatic.issue4.AAA", loadBytesForClass("invokestatic.issue4.AAA"));
+		ReloadableType BBB = tr.addType("invokestatic.issue4.BBB", loadBytesForClass("invokestatic.issue4.BBB"));
+		
+		Result r = runUnguarded(BBB.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+		
+		AAA.loadNewVersion(AAA.bytesInitial);
+
+		r = runUnguarded(BBB.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+	}
+	
+	@Test
+	public void invokeStaticReloading_gh4_4() throws Exception {
+		TypeRegistry tr = getTypeRegistry("invokestatic..*");
+		ReloadableType A = tr.addType("invokestatic.issue4.A", loadBytesForClass("invokestatic.issue4.A"));
+		ReloadableType B = tr.addType("invokestatic.issue4.B", loadBytesForClass("invokestatic.issue4.B"));
+		
+		Result r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+
+		A.loadNewVersion(A.bytesInitial);
+		B.loadNewVersion(B.bytesInitial);
+
+		r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("String1",(String)r.returnValue);
+	}
+
 
 	@Test
 	public void protectedFieldAccessors2() throws Exception {
