@@ -17,6 +17,8 @@ package org.springsource.loaded.agent;
 
 import java.beans.BeanInfo;
 import java.beans.Introspector;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
@@ -61,32 +63,7 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 			// In Java7 the AppContext stuff is gone, replaced by a ThreadGroupContext.
 			// This code grabs the contexts map from the ThreadGroupContext object and clears out the bean info for the reloaded clazz
 			if (threadGroupContextLoaded) { // In Java 7
-				try {
-					if (threadGroupContextClass == null) {
-						threadGroupContextClass = Class.forName("java.beans.ThreadGroupContext", true,
-								Introspector.class.getClassLoader());
-					}
-					if (threadGroupContextClass != null) {
-						if (threadGroupContext_contextsField == null) {
-							threadGroupContext_contextsField = threadGroupContextClass.getDeclaredField("contexts");
-							threadGroupContext_removeBeanInfoMethod = threadGroupContextClass.getDeclaredMethod("removeBeanInfo",
-									Class.class);
-						}
-						if (threadGroupContext_contextsField != null) {
-							threadGroupContext_contextsField.setAccessible(true);
-							Map<?, ?> m = (Map<?, ?>) threadGroupContext_contextsField.get(null);
-							Collection<?> threadGroupContexts = m.values();
-							for (Object o : threadGroupContexts) {
-								threadGroupContext_removeBeanInfoMethod.setAccessible(true);
-								threadGroupContext_removeBeanInfoMethod.invoke(o, clazz);
-							}
-							beanInfoCacheCleared = true;
-						}
-					}
-				} catch (Throwable t) {
-					System.err.println("Unexpected problem clearing ThreadGroupContext beaninfo: ");
-					t.printStackTrace();
-				}
+				beanInfoCacheCleared = clearThreadGroupContext(clazz);
 			}
 
 			// GRAILS-9505 - had to introduce the flushFromCaches(). The appcontext we seem to be able to 
@@ -154,6 +131,68 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 				e.printStackTrace();
 			}
 		}
+	}
+
+	private boolean clearThreadGroupContext(Class<?> clazz) {
+		boolean beanInfoCacheCleared = false;
+		try {
+			if (threadGroupContextClass == null) {
+				threadGroupContextClass = Class.forName("java.beans.ThreadGroupContext", true,
+						Introspector.class.getClassLoader());
+			}
+			if (threadGroupContextClass != null) {
+				if (threadGroupContext_contextsField == null) {
+					threadGroupContext_contextsField = threadGroupContextClass.getDeclaredField("contexts");
+					threadGroupContext_removeBeanInfoMethod = threadGroupContextClass.getDeclaredMethod("removeBeanInfo",
+							Class.class);
+				}
+				if (threadGroupContext_contextsField != null) {
+					threadGroupContext_contextsField.setAccessible(true);
+					Object threadGroupContext_contextsField_value = threadGroupContext_contextsField.get(null);
+					if (threadGroupContext_contextsField_value == null) {
+						beanInfoCacheCleared = true;
+					} else {
+						if (threadGroupContext_contextsField_value instanceof Map) {
+							// Indicates Java 7 up to rev21
+							Map<?, ?> m = (Map<?, ?>) threadGroupContext_contextsField_value;
+							Collection<?> threadGroupContexts = m.values();
+							for (Object o : threadGroupContexts) {
+								threadGroupContext_removeBeanInfoMethod.setAccessible(true);
+								threadGroupContext_removeBeanInfoMethod.invoke(o, clazz);
+							}
+							beanInfoCacheCleared = true;
+						} else {
+							// At update Java7u21 it changes
+							Class weakIdentityMapClazz = threadGroupContext_contextsField.getType();
+							Field tableField = weakIdentityMapClazz.getDeclaredField("table");
+							tableField.setAccessible(true);
+							Reference<?>[] refs = (Reference[])tableField.get(threadGroupContext_contextsField_value);
+							Field valueField = null;
+							if (refs!=null) {
+								for (int i=0; i<refs.length; i++) {
+									Reference<?> r = refs[i];
+									Object o = (r==null?null:r.get());
+									if (o!=null) {	
+										if (valueField==null) {
+											valueField = r.getClass().getDeclaredField("value");
+										}
+										valueField.setAccessible(true);
+										Object threadGroupContext = valueField.get(r);
+										threadGroupContext_removeBeanInfoMethod.setAccessible(true);
+										threadGroupContext_removeBeanInfoMethod.invoke(threadGroupContext, clazz);
+									}
+								}
+							}
+							beanInfoCacheCleared = true;
+						}			
+					}
+				}
+			}
+		} catch (Throwable t) {
+			System.err.println("Unexpected problem clearing ThreadGroupContext beaninfo: ");
+			t.printStackTrace();
+		}
+		return beanInfoCacheCleared;
 	}
 
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
