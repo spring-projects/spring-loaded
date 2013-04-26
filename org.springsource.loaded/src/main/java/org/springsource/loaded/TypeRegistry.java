@@ -561,6 +561,9 @@ public class TypeRegistry {
 	 * @return true if the type should be considered reloadable
 	 */
 	private boolean couldBeReloadable(String slashedName) {
+		if (slashedName==null) {
+			return false;
+		}
 		if (slashedName.startsWith("java")) {
 			return false;
 		}

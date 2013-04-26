@@ -409,7 +409,7 @@ public class SpringLoadedPreProcessor implements Constants {
 	}
 
 	private static boolean needsClientSideRewriting(String slashedClassName) {
-		if (slashedClassName.startsWith("org/springsource/loaded")) {
+		if (slashedClassName!=null && slashedClassName.charAt(0)=='o' && slashedClassName.startsWith("org/springsource/loaded")) {
 			return false;
 		}
 		return true;
