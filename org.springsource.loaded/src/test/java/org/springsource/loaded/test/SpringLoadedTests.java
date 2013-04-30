@@ -89,6 +89,7 @@ public abstract class SpringLoadedTests implements Constants {
 	protected String TestDataPath = "../org.springsource.loaded.testdata/bin";
 	protected String GroovyTestDataPath = "../org.springsource.loaded.testdata.groovy/bin";
 	protected String AspectjrtJar = "../org.springsource.loaded.testdata/aspectjrt.jar";
+	protected String CodeJar = "../org.springsource.loaded.testdata/code.jar";
 	protected String GroovyrtJar = "../org.springsource.loaded.testdata.groovy/groovy-1.8.2.jar";
 	protected Result result;
 	protected TypeRegistry registry;
@@ -97,7 +98,7 @@ public abstract class SpringLoadedTests implements Constants {
 	public void setup() throws Exception {
 		SpringLoadedPreProcessor.disabled = true;
 		NameRegistry.reset();
-		binLoader = new TestClassLoader(toURLs(TestDataPath, AspectjrtJar), this.getClass().getClassLoader());
+		binLoader = new TestClassLoader(toURLs(TestDataPath, AspectjrtJar,CodeJar), this.getClass().getClassLoader());
 	}
 
 	@After

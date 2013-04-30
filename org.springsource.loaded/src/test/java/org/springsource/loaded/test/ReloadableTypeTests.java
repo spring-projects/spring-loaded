@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 import org.springsource.loaded.GlobalConfiguration;
@@ -228,6 +229,48 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 
 		r = runUnguarded(B.getClazz(), "getMessage");
 		assertEquals("String1",(String)r.returnValue);
+	}
+	
+	// The supertype is not reloadable,it is in a jar
+	@Test
+	public void invokeStaticReloading_gh4_5() throws Exception {
+		TypeRegistry tr = getTypeRegistry("invokestatic.issue4..*");
+		ReloadableType B = tr.addType("invokestatic.issue4.BBBB", loadBytesForClass("invokestatic.issue4.BBBB"));
+		
+		Result r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("Hello",(String)r.returnValue);
+		
+		ReloadableType thesuper = B.getSuperRtype();
+		assertNull(thesuper);
+		thesuper = tr.getReloadableType("invokestatic/issue4/subpkg/AAAA");
+		assertNull(thesuper);
+	
+		B.loadNewVersion(B.bytesInitial);
+
+		r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("Hello",(String)r.returnValue);
+	}
+	
+	// extra class in the middle: A in jar, subtype AB reloadable, subtype BBBBB reloadable
+	@Test
+	public void invokeStaticReloading_gh4_6() throws Exception {
+		TypeRegistry tr = getTypeRegistry("invokestatic.issue4..*");
+		ReloadableType AB = tr.addType("invokestatic.issue4.AB", loadBytesForClass("invokestatic.issue4.AB"));
+		ReloadableType B = tr.addType("invokestatic.issue4.BBBBB", loadBytesForClass("invokestatic.issue4.BBBBB"));
+		
+		Result r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("Hello",(String)r.returnValue);
+		
+		ReloadableType thesuper = B.getSuperRtype();
+		System.out.println(thesuper);
+		assertNull(thesuper);
+		thesuper = tr.getReloadableType("invokestatic/issue4/subpkg/AAAA");
+		assertNull(thesuper);
+		
+		B.loadNewVersion(B.bytesInitial);
+
+		r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("Hello",(String)r.returnValue);
 	}
 
 

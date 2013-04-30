@@ -1118,33 +1118,47 @@ public class TypeRegistry {
 					.getFromLatestByDescriptor(nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
-				// method has been deleted or is on a supertype
+				// method has been deleted or is on a supertype. Look for it:
 				
-				// Search supertypes - block copied from invokespecialSearch below, TODO could refactor into common util
+				// TODO this block is based on something below in invokespecial handling but this has some
+				// fixes in - should they be migrated down below or a common util method constructed?
+				
 				Object dispatcherToUse = null;
-				ReloadableType nextCandidate = reloadableType.getTypeRegistry().getReloadableType(reloadableType.getTypeDescriptor().getSupertypeName(),false);
-				boolean found  = false; 
-				while (nextCandidate != null) {
-					MethodMember m = null;
-					if (nextCandidate.hasBeenReloaded()) {
-						m = nextCandidate.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
-						if (m != null && IncrementalTypeDescriptor.wasDeleted(m)) {
-							m = null;
+				String supertypename = reloadableType.getTypeDescriptor().getSupertypeName();
+				TypeRegistry reg = reloadableType.getTypeRegistry();
+				boolean found = false;
+				while (supertypename != null) {
+					ReloadableType nextInHierarchy = reg.getReloadableType(supertypename);
+					if (nextInHierarchy == null) {
+						TypeDescriptor td = reg.getDescriptorFor(supertypename);
+						if (td != null) {
+							method = td.getByNameAndDescriptor(nameAndDescriptor);
+							supertypename = td.getSupertypeName();
+						} else {
+							break;
+						}
+					} else if (nextInHierarchy.hasBeenReloaded()) {
+						method = nextInHierarchy.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
+						if (method != null && IncrementalTypeDescriptor.wasDeleted(method)) {
+							method= null;
 						}
 						// ignore catchers because the dynamic __execute method wont have an implementation of them, we should
 						// just keep looking for the real thing
-						if (m != null && MethodMember.isCatcher(m)) {
-							m = null;
+						if (method != null && MethodMember.isCatcher(method)) {
+							method = null;
 						}
 					} else {
-						m = nextCandidate.getMethod(nameAndDescriptor);
-					}
-					if (m != null) {
-						dispatcherToUse = reloadableType.getLatestDispatcherInstance();
+						// it is reloadable but has not been reloaded
+						method = nextInHierarchy.getMethod(nameAndDescriptor);
+					}					
+					if (method != null) {
 						found = true;
 						break;
 					}
-					nextCandidate = reloadableType.getTypeRegistry().getReloadableType(reloadableType.getTypeDescriptor().getSupertypeName(),false);
+					// the nextInHierarchy==null case will have already set the supertypename
+					if (nextInHierarchy != null) {
+						supertypename = nextInHierarchy.getSlashedSupertypeName();
+					}
 				}
 				if (found) {
 					return dispatcherToUse;
