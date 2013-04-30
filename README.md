@@ -13,7 +13,7 @@ used in Grails 2.
 
 # Installation
 
-New dev builds of 1.1.2 are available [here ](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.2.20130524.jar)
+New dev builds of 1.1.2 are available [here ](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.2.20130430.jar)
 
 A build of version 1.1.1 is available [here](https://github.com/downloads/SpringSource/spring-loaded/springloaded-1.1.1-dev.jar). 
 
