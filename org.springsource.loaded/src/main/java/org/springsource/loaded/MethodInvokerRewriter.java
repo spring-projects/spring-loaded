@@ -338,7 +338,10 @@ public class MethodInvokerRewriter {
 		// checkNotTheSame(bs, bytes);
 		if (canCache && classAdaptor.rewroteReflection && !classAdaptor.rewroteOtherKindOfOperation) {
 			if (GlobalConfiguration.isCaching) {
-				cacheOnDisk(classAdaptor.slashedclassname, bytes, bs);
+				// Do not cache generated proxy classes
+				if (!classAdaptor.slashedclassname.startsWith("com/sun/proxy/$Proxy")) {
+					cacheOnDisk(classAdaptor.slashedclassname, bytes, bs);
+				}
 			}
 		}
 		return bs;
