@@ -550,10 +550,14 @@ public class SpringLoadedPreProcessor implements Constants {
 
 	public static List<IsReloadableTypePlugin> getIsReloadableTypePlugins() {
 		if (isReloadableTypePlugins == null) {
-			isReloadableTypePlugins = new ArrayList<IsReloadableTypePlugin>();
-			for (Plugin p : getGlobalPlugins()) {
-				if (p instanceof IsReloadableTypePlugin) {
-					isReloadableTypePlugins.add((IsReloadableTypePlugin) p);
+			synchronized (SpringLoadedPreProcessor.class) {
+				if (isReloadableTypePlugins == null) {
+					isReloadableTypePlugins = new ArrayList<IsReloadableTypePlugin>();
+					for (Plugin p : getGlobalPlugins()) {
+						if (p instanceof IsReloadableTypePlugin) {
+							isReloadableTypePlugins.add((IsReloadableTypePlugin) p);
+						}
+					}
 				}
 			}
 		}
