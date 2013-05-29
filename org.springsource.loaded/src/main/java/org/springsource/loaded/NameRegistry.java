@@ -80,7 +80,7 @@ public class NameRegistry {
 		int id = getIdFor(slashedClassName);
 		if (id == -1) {
 			id = nextTypeId++;
-			if (id >= allocatedIds.length) {
+			if (nextTypeId >= allocatedIds.length) {
 				size = size + 10;
 				// need to make more room
 				String[] newAllocatedIds = new String[size];
