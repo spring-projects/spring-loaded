@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -179,6 +180,7 @@ public class ReflectiveInterceptor {
 		return s.toString();
 	}
 
+	private static int depth = 4;
 	/**
 	 * Get the Class that declares the method calling interceptor method that called this method.
 	 */
@@ -189,7 +191,17 @@ public class ReflectiveInterceptor {
 		//2 = caller of 'getCallerClass' = asAccesibleMethod
 		//3 = caller of 'asAccesibleMethod' = jlrInvoke
 		//4 = caller we are interested in...
-		Class<?> caller = sun.reflect.Reflection.getCallerClass(4);
+		
+		// In jdk17u25 there is an extra frame inserted:
+		// "This also fixes a regression introduced in 7u25 in which
+		// getCallerClass(int) is now a Java method that adds an additional frame
+		// that wasn't taken into account." in http://permalink.gmane.org/gmane.comp.java.openjdk.jdk7u.devel/6573
+		Class<?> caller = sun.reflect.Reflection.getCallerClass(depth); 
+		if (caller==ReflectiveInterceptor.class) {
+			// If this is true we have that extra frame on the stack
+			depth=5;
+			caller = sun.reflect.Reflection.getCallerClass(depth);
+		}
 
 		String callerClassName = caller.getName();
 
