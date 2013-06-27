@@ -79,7 +79,7 @@ public class NameRegistry {
 		// Check again, in case two threads passed the -1 check in the getIdOrAllocateFor method
 		int id = getIdFor(slashedClassName);
 		if (id == -1) {
-			id = nextTypeId++;
+			id = nextTypeId;
 			if (nextTypeId >= allocatedIds.length) {
 				size = size + 10;
 				// need to make more room
@@ -88,6 +88,7 @@ public class NameRegistry {
 				allocatedIds = newAllocatedIds;
 			}
 			allocatedIds[id] = slashedClassName;
+			nextTypeId++; // increase at the end once the value has been set in the array
 		}
 		return id;
 	}
