@@ -895,13 +895,7 @@ public class TypeRegistry {
 		}
 		// expand by 10 if we need to - what is the right increment number here?
 		if (typeId >= reloadableTypes.length) {
-			int extraSpace = (typeId - reloadableTypes.length) + 1;
-			if (extraSpace < 10) {
-				extraSpace = 10;
-			}
-			ReloadableType[] newReloadableTypes = new ReloadableType[reloadableTypes.length + extraSpace];
-			System.arraycopy(reloadableTypes, 0, newReloadableTypes, 0, reloadableTypes.length);
-			reloadableTypes = newReloadableTypes;
+			resizeReloadableTypeArray(typeId);
 		}
 		reloadableTypes[typeId] = rtype;
 		if ((typeId + 1) > reloadableTypesSize) {
@@ -940,6 +934,20 @@ public class TypeRegistry {
 		return rtype;
 	}
 
+	private synchronized void resizeReloadableTypeArray(int typeId) {
+		if (typeId < reloadableTypes.length) {
+			// Another thread already did it
+			return;
+		}
+		int extraSpace = (typeId - reloadableTypes.length) + 1;
+		if (extraSpace < 10) {
+			extraSpace = 10;
+		}
+		ReloadableType[] newReloadableTypes = new ReloadableType[reloadableTypes.length + extraSpace];
+		System.arraycopy(reloadableTypes, 0, newReloadableTypes, 0, reloadableTypes.length);
+		reloadableTypes = newReloadableTypes;
+	}
+
 	public ReloadableType getReloadableType(int typeId) {
 		if (typeId >= reloadableTypesSize) {
 			return null;
@@ -953,13 +961,7 @@ public class TypeRegistry {
 	 */
 	public void rememberReloadableType(int typeId, ReloadableType rtype) {
 		if (typeId >= reloadableTypes.length) {
-			int extraSpace = (typeId - reloadableTypes.length) + 1;
-			if (extraSpace < 10) {
-				extraSpace = 10;
-			}
-			ReloadableType[] newReloadableTypes = new ReloadableType[reloadableTypes.length + extraSpace];
-			System.arraycopy(reloadableTypes, 0, newReloadableTypes, 0, reloadableTypes.length);
-			reloadableTypes = newReloadableTypes;
+			resizeReloadableTypeArray(typeId);
 		}
 		reloadableTypes[typeId] = rtype;
 		if ((typeId + 1) > reloadableTypesSize) {
