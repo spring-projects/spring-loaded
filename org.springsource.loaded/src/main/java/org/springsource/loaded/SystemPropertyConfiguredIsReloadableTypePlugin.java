@@ -76,17 +76,22 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			return ReloadDecision.PASS;
 		} else {
 			if (mostRecentReloadableDirs != reloadableDirs) {
-				includes.clear();
-				excludes.clear();
-				// update our cached information
-				StringTokenizer st = new StringTokenizer(reloadableDirs, ",");
-				while (st.hasMoreTokens()) {
-					String nextDir = st.nextToken();
-					boolean isNot = nextDir.charAt(0) == '!';
-					if (isNot) {
-						excludes.add(nextDir.substring(1));
-					} else {
-						includes.add(nextDir);
+				synchronized (includes) {
+					if (mostRecentReloadableDirs != reloadableDirs) {
+						includes.clear();
+						excludes.clear();
+						// update our cached information
+						StringTokenizer st = new StringTokenizer(reloadableDirs, ",");
+						while (st.hasMoreTokens()) {
+							String nextDir = st.nextToken();
+							boolean isNot = nextDir.charAt(0) == '!';
+							if (isNot) {
+								excludes.add(nextDir.substring(1));
+							} else {
+								includes.add(nextDir);
+							}
+						}
+						mostRecentReloadableDirs = reloadableDirs;
 					}
 				}
 			}
@@ -111,26 +116,28 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			File file = new File(uri);
 			String path = file.toString();
 
-			for (String exclude : excludes) {
-				if (path.contains(exclude)) {
-					if (debug) {
-						System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename
-								+ " is not being made reloadable");
+			synchronized (includes) {
+				for (String exclude : excludes) {
+					if (path.contains(exclude)) {
+						if (debug) {
+							System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename
+									+ " is not being made reloadable");
+						}
+						return ReloadDecision.NO;
 					}
-					return ReloadDecision.NO;
+				}
+	
+				for (String include : includes) {
+					if (path.contains(include)) {
+						if (debug) {
+							System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename
+									+ " is being made reloadable");
+						}
+						return ReloadDecision.YES;
+					}
 				}
 			}
-
-			for (String include : includes) {
-				if (path.contains(include)) {
-					if (debug) {
-						System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename
-								+ " is being made reloadable");
-					}
-					return ReloadDecision.YES;
-				}
-			}
-
+			
 			//			StringTokenizer st = new StringTokenizer(reloadableDirs, ",");
 			//			while (st.hasMoreTokens()) {
 			//				String nextDir = st.nextToken();
