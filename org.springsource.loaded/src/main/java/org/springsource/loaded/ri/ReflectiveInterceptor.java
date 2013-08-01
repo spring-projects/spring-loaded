@@ -54,6 +54,8 @@ import org.springsource.loaded.Utils;
 import org.springsource.loaded.infra.UsedByGeneratedCode;
 import org.springsource.loaded.jvm.JVM;
 
+import sun.reflect.CallerSensitive; 
+import sun.reflect.Reflection;
 
 /**
  * The reflective interceptor is called to rewrite any reflective calls that are found in the bytecode. Intercepting the calls means
@@ -185,24 +187,7 @@ public class ReflectiveInterceptor {
 	 * Get the Class that declares the method calling interceptor method that called this method.
 	 */
 	@SuppressWarnings("restriction")
-	public static Class<?> getCallerClass() {
-		//0 = sun.reflect.Reflection.getCallerClass
-		//1 = this method's frame
-		//2 = caller of 'getCallerClass' = asAccesibleMethod
-		//3 = caller of 'asAccesibleMethod' = jlrInvoke
-		//4 = caller we are interested in...
-		
-		// In jdk17u25 there is an extra frame inserted:
-		// "This also fixes a regression introduced in 7u25 in which
-		// getCallerClass(int) is now a Java method that adds an additional frame
-		// that wasn't taken into account." in http://permalink.gmane.org/gmane.comp.java.openjdk.jdk7u.devel/6573
-		Class<?> caller = sun.reflect.Reflection.getCallerClass(depth); 
-		if (caller==ReflectiveInterceptor.class) {
-			// If this is true we have that extra frame on the stack
-			depth=5;
-			caller = sun.reflect.Reflection.getCallerClass(depth);
-		}
-
+	private static Class<?> getCallerClass(Class<?> caller) {
 		String callerClassName = caller.getName();
 
 		Matcher matcher = Constants.executorClassNamePattern.matcher(callerClassName);
@@ -507,7 +492,7 @@ public class ReflectiveInterceptor {
 	 * If any checks fail, an appropriate exception is raised.
 	 */
 	private static Method asAccessibleMethod(ReloadableType methodDeclaringTypeReloadableType, Method method, Object target,
-			boolean makeAccessibleCopy) throws IllegalAccessException {
+			boolean makeAccessibleCopy, Class<?> caller) throws IllegalAccessException {
 		if (methodDeclaringTypeReloadableType != null && isDeleted(methodDeclaringTypeReloadableType, method)) {
 			throw Exceptions.noSuchMethodError(method);
 		}
@@ -531,7 +516,7 @@ public class ReflectiveInterceptor {
 				//More expensive check not required / copy not required
 			} else {
 				//More expensive check required
-				Class<?> callerClass = getCallerClass();
+				Class<?> callerClass = getCallerClass(caller);
 				JVM.ensureMemberAccess(callerClass, clazz, target, mods);
 				if (makeAccessibleCopy) {
 					method = JVM.copyMethod(method); // copy: we must not change accessible flag on original method!
@@ -542,7 +527,7 @@ public class ReflectiveInterceptor {
 		return makeAccessibleCopy ? method : null;
 	}
 
-	private static Constructor<?> asAccessibleConstructor(Constructor<?> c, boolean makeAccessibleCopy)
+	private static Constructor<?> asAccessibleConstructor(Constructor<?> c, boolean makeAccessibleCopy, Class<?> caller)
 			throws NoSuchMethodException, IllegalAccessException {
 		if (isDeleted(c)) {
 			throw Exceptions.noSuchConstructorError(c);
@@ -553,7 +538,7 @@ public class ReflectiveInterceptor {
 			//More expensive check not required / copy not required
 		} else {
 			//More expensive check required
-			Class<?> callerClass = getCallerClass();
+			Class<?> callerClass = getCallerClass(caller);
 			JVM.ensureMemberAccess(callerClass, clazz, null, mods);
 			if (makeAccessibleCopy) {
 				c = JVM.copyConstructor(c); // copy: we must not change accessible flag on original method!
@@ -571,7 +556,7 @@ public class ReflectiveInterceptor {
 	 * 
 	 * Warning this method is sensitive to stack depth! Should expects to be called DIRECTLY from a jlr redicriction method only!
 	 */
-	private static Field asAccessibleField(Field field, Object target, boolean makeAccessibleCopy) throws IllegalAccessException {
+	private static Field asAccessibleField(Field field, Object target, boolean makeAccessibleCopy, Class<?> caller) throws IllegalAccessException {
 		if (isDeleted(field)) {
 			throw Exceptions.noSuchFieldError(field);
 		}
@@ -581,7 +566,7 @@ public class ReflectiveInterceptor {
 			//More expensive check not required / copy not required
 		} else {
 			//More expensive check required
-			Class<?> callerClass = getCallerClass();
+			Class<?> callerClass = getCallerClass(caller);
 			JVM.ensureMemberAccess(callerClass, clazz, target, mods);
 			if (makeAccessibleCopy) {
 				//TODO: This code is not covered by a test. It needs a non-reloadable type with non-public
@@ -599,7 +584,7 @@ public class ReflectiveInterceptor {
 	 * 
 	 * @throws IllegalAccessException
 	 */
-	private static Field asSetableField(Field field, Object target, Class<?> valueType, Object value, boolean makeAccessibleCopy)
+	private static Field asSetableField(Field field, Object target, Class<?> valueType, Object value, boolean makeAccessibleCopy, Class<?> caller)
 			throws IllegalAccessException {
 		// Must do the checks exactly in the same order as JVM if we want identical error messages.
 
@@ -614,7 +599,7 @@ public class ReflectiveInterceptor {
 			//More expensive check not required / copy not required
 		} else {
 			//More expensive check required
-			Class<?> callerClass = getCallerClass();
+			Class<?> callerClass = getCallerClass(caller);
 			JVM.ensureMemberAccess(callerClass, clazz, target, mods);
 			if (makeAccessibleCopy) {
 				//TODO: This code is not covered by a test. It needs a non-reloadable type with non-public
@@ -953,6 +938,7 @@ public class ReflectiveInterceptor {
 		}
 	}
 
+	@CallerSensitive
 	public static Object jlClassNewInstance(Class<?> clazz) throws SecurityException, NoSuchMethodException,
 			IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		// Note: no special case for non-reloadable types here, because access checks:
@@ -970,10 +956,11 @@ public class ReflectiveInterceptor {
 			e.printStackTrace();
 			throw Exceptions.instantiation(clazz);
 		}
-		c = asAccessibleConstructor(c, true);
+		c = asAccessibleConstructor(c, true, Reflection.getCallerClass());
 		return jlrConstructorNewInstance(c);
 	}
 
+	@CallerSensitive
 	public static Object jlrConstructorNewInstance(Constructor<?> c, Object... params) throws InstantiationException,
 			IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException, NoSuchMethodException {
 		//Note: unlike for methods we don't need to handle the reloadable but not reloaded case specially, that is because there
@@ -982,7 +969,7 @@ public class ReflectiveInterceptor {
 		Class<?> clazz = c.getDeclaringClass();
 		ReloadableType rtype = getReloadableTypeIfHasBeenReloaded(clazz);
 		if (rtype == null) {
-			c = asAccessibleConstructor(c, true);
+			c = asAccessibleConstructor(c, true, Reflection.getCallerClass());
 			//Nothing special to be done
 			return c.newInstance(params);
 		} else {
@@ -992,14 +979,15 @@ public class ReflectiveInterceptor {
 			//			rtype.getTypeDescriptor().getConstructor("").
 			boolean ctorChanged = rtype.getLiveVersion()
 					.hasConstructorChanged(Utils.toConstructorDescriptor(c.getParameterTypes()));
+			Class<?> caller = Reflection.getCallerClass();
 			if (!ctorChanged) {
 				// if we let the getDeclaredConstructor(s) code run as is, it may create invalid ctors, if we want to run the real one we should discover it here and use it.
 				// would it be cheaper to fix up getDeclaredConstructor to always return valid ones if we are going to use them, or should we intercept here? probably the former...
 
-				c = asAccessibleConstructor(c, true);
+				c = asAccessibleConstructor(c, true, caller);
 				return c.newInstance(params);
 			}
-			asAccessibleConstructor(c, false);
+			asAccessibleConstructor(c, false, caller);
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			Method executor = clv.getExecutorMethod(rtype.getCurrentConstructor(Type.getConstructorDescriptor(c)));
 			Constructor<?> magicConstructor = clazz.getConstructor(C.class);
@@ -1031,6 +1019,7 @@ public class ReflectiveInterceptor {
 	//	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@CallerSensitive
 	public static Object jlrMethodInvoke(Method method, Object target, Object... params) throws IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException {
 		//		System.out.println("> jlrMethodInvoke:method=" + method + " target=" + target + " params=" + toString(params));
@@ -1250,18 +1239,19 @@ public class ReflectiveInterceptor {
 
 		// Even though we tinker with the visibility of methods, we don't damage private ones (which would really cause chaos if we tried
 		// to allow the JVM to do the dispatch).  That means this should be OK:
+		Class<?> caller = Reflection.getCallerClass();
 		if (TypeRegistry.nothingReloaded) {
-			method = asAccessibleMethod(null, method, target, true);
+			method = asAccessibleMethod(null, method, target, true, caller);
 			return method.invoke(target, params);
 		}
 		ReloadableType declaringType = getRType(declaringClass);
 		if (declaringType == null) {
 			//Not reloadable...
-			method = asAccessibleMethod(declaringType, method, target, true);
+			method = asAccessibleMethod(declaringType, method, target, true, caller);
 			return method.invoke(target, params);
 		} else {
 			//Reloadable...
-			asAccessibleMethod(declaringType, method, target, false);
+			asAccessibleMethod(declaringType, method, target, false, caller);
 			int mods = method.getModifiers();
 			Invoker invoker;
 			if ((mods & (Modifier.STATIC | Modifier.PRIVATE)) != 0) {
@@ -1275,7 +1265,7 @@ public class ReflectiveInterceptor {
 					System.out.println("GRAILS-7799: Subtype '" + target.getClass().getName() + "' of reloadable type "
 							+ method.getDeclaringClass().getName()
 							+ " is not reloadable: may not see changes reloaded in this hierarchy (please comment on that jira)");
-					method = asAccessibleMethod(declaringType, method, target, true);
+					method = asAccessibleMethod(declaringType, method, target, true, caller);
 					return method.invoke(target, params);
 				}
 				MethodProvider methods = MethodProvider.create(targetType); //use target not declaring type for Dynamic lookkup
@@ -1670,26 +1660,28 @@ public class ReflectiveInterceptor {
 		}
 	}
 
+	@CallerSensitive
 	public static Object jlrFieldGet(Field field, Object target) throws IllegalArgumentException, IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.get(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			return rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 		}
 	}
 
+	@CallerSensitive
 	public static int jlrFieldGetInt(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getInt(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, int.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
@@ -1700,42 +1692,45 @@ public class ReflectiveInterceptor {
 		}
 	}
 
+	@CallerSensitive
 	public static byte jlrFieldGetByte(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getByte(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, byte.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			return ((Number) value).byteValue();
 		}
 	}
 
+	@CallerSensitive
 	public static char jlrFieldGetChar(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getChar(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, char.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			return ((Character) value).charValue();
 		}
 	}
 
+	@CallerSensitive
 	public static short jlrFieldGetShort(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getShort(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, short.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
@@ -1746,14 +1741,15 @@ public class ReflectiveInterceptor {
 		}
 	}
 
+	@CallerSensitive
 	public static double jlrFieldGetDouble(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getDouble(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, double.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
@@ -1764,14 +1760,15 @@ public class ReflectiveInterceptor {
 		}
 	}
 
+	@CallerSensitive
 	public static float jlrFieldGetFloat(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getFloat(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, float.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
@@ -1782,28 +1779,30 @@ public class ReflectiveInterceptor {
 		}
 	}
 
+	@CallerSensitive
 	public static boolean jlrFieldGetBoolean(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getBoolean(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, boolean.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			return ((Boolean) value).booleanValue();
 		}
 	}
 
+	@CallerSensitive
 	public static long jlrFieldGetLong(Field field, Object target) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
-			field = asAccessibleField(field, target, true);
+			field = asAccessibleField(field, target, true, Reflection.getCallerClass());
 			return field.getLong(target);
 		} else {
-			asAccessibleField(field, target, false);
+			asAccessibleField(field, target, false, Reflection.getCallerClass());
 			typeCheckFieldGet(field, long.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
@@ -1821,119 +1820,128 @@ public class ReflectiveInterceptor {
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSet(Field field, Object target, Object value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, valueType(value), value, true);
+			field = asSetableField(field, target, valueType(value), value, true, Reflection.getCallerClass());
 			field.set(target, value);
 		} else {
-			asSetableField(field, target, valueType(value), value, false);
+			asSetableField(field, target, valueType(value), value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetInt(Field field, Object target, int value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, int.class, value, true);
+			field = asSetableField(field, target, int.class, value, true, Reflection.getCallerClass());
 			field.setInt(target, value);
 		} else {
-			asSetableField(field, target, int.class, value, false);
+			asSetableField(field, target, int.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetByte(Field field, Object target, byte value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, byte.class, value, true);
+			field = asSetableField(field, target, byte.class, value, true, Reflection.getCallerClass());
 			field.setByte(target, value);
 		} else {
-			asSetableField(field, target, byte.class, value, false);
+			asSetableField(field, target, byte.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetChar(Field field, Object target, char value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, char.class, value, true);
+			field = asSetableField(field, target, char.class, value, true, Reflection.getCallerClass());
 			field.setChar(target, value);
 		} else {
-			asSetableField(field, target, char.class, value, false);
+			asSetableField(field, target, char.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetShort(Field field, Object target, short value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, short.class, value, true);
+			field = asSetableField(field, target, short.class, value, true, Reflection.getCallerClass());
 			field.setShort(target, value);
 		} else {
-			asSetableField(field, target, short.class, value, false);
+			asSetableField(field, target, short.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetDouble(Field field, Object target, double value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, double.class, value, true);
+			field = asSetableField(field, target, double.class, value, true, Reflection.getCallerClass());
 			field.setDouble(target, value);
 		} else {
-			asSetableField(field, target, double.class, value, false);
+			asSetableField(field, target, double.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetFloat(Field field, Object target, float value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, float.class, value, true);
+			field = asSetableField(field, target, float.class, value, true, Reflection.getCallerClass());
 			field.setFloat(target, value);
 		} else {
-			asSetableField(field, target, float.class, value, false);
+			asSetableField(field, target, float.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetLong(Field field, Object target, long value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, long.class, value, true);
+			field = asSetableField(field, target, long.class, value, true, Reflection.getCallerClass());
 			field.setLong(target, value);
 		} else {
-			asSetableField(field, target, long.class, value, false);
+			asSetableField(field, target, long.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
 
+	@CallerSensitive
 	public static void jlrFieldSetBoolean(Field field, Object target, boolean value) throws IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable
-			field = asSetableField(field, target, boolean.class, value, true);
+			field = asSetableField(field, target, boolean.class, value, true, Reflection.getCallerClass());
 			field.setBoolean(target, value);
 		} else {
-			asSetableField(field, target, boolean.class, value, false);
+			asSetableField(field, target, boolean.class, value, false, Reflection.getCallerClass());
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
 	}
