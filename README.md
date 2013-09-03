@@ -1,4 +1,5 @@
 # Welcome to Spring-Loaded
+[![Build Status](https://drone.io/github.com/stefaneggerstorfer/spring-loaded/status.png)](https://drone.io/github.com/stefaneggerstorfer/spring-loaded/latest)
 
 ## What is Spring Loaded?
 
