@@ -99,7 +99,7 @@ public class GlobalConfiguration {
 
 	public final static boolean interceptReflection = true;
 
-	public static boolean generatedTestsOn = true;
+	public static boolean generatedTestsOn = false;
 
 	public static boolean reloadMessages = false;// can be forced on for testing
 
