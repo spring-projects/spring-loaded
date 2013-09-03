@@ -1,0 +1,16 @@
+allprojects {
+    apply plugin: 'idea'
+
+    configurations {
+        tools
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+}
+

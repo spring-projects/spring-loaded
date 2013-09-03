@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1205,7 +1204,7 @@ public class ReflectiveInterceptor {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetAnnotation((Constructor) target, (Class) params[0]);
 				} else if (target instanceof Method) {
-					return jlClassGetAnnotation((Class) target, (Class) params[0]);
+					return jlrMethodGetAnnotation((Method) target, (Class) params[0]);
 				} else if (target instanceof Field) {
 					return jlrFieldGetAnnotation((Field) target, (Class) params[0]);
 				}
@@ -1241,7 +1240,7 @@ public class ReflectiveInterceptor {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetAnnotation((Constructor) target, (Class) params[0]);
 				} else if (target instanceof Method) {
-					return jlClassGetAnnotation((Class) target, (Class) params[0]);
+					return jlrMethodGetAnnotation((Method) target, (Class) params[0]);
 				} else if (target instanceof Field) {
 					return jlrFieldGetAnnotation((Field) target, (Class) params[0]);
 				}

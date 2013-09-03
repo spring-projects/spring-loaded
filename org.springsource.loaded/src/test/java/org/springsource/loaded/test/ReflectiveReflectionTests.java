@@ -551,6 +551,30 @@ public class ReflectiveReflectionTests extends SpringLoadedTests {
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("null @java.lang.Deprecated()", result.returnValue);
 	}
+	
+	@Test
+	public void testJRMethodGetAnnotationViaAccessibleObject() throws Exception {
+		String t = "iri.JLRMGetAnnotationViaAccessibleObject";
+		TypeRegistry r = getTypeRegistry(t);
+		ReloadableType rtype = r.addType(t, loadBytesForClass(t));
+		result = runUnguarded(rtype.getClazz(), "run");
+		assertEquals("@reflection.AnnoT() null", result.returnValue);
+		rtype.loadNewVersion(retrieveRenameRetarget(t));
+		result = runUnguarded(rtype.getClazz(), "run");
+		assertEquals("null @java.lang.Deprecated()", result.returnValue);
+	}
+	
+	@Test
+	public void testGetAnnotationViaAnnotatedElement() throws Exception {
+		String t = "iri.JLRMGetAnnotationViaAnnotatedElement";
+		TypeRegistry r = getTypeRegistry(t);
+		ReloadableType rtype = r.addType(t, loadBytesForClass(t));
+		result = runUnguarded(rtype.getClazz(), "run");
+		assertEquals("@reflection.AnnoT() null", result.returnValue);
+		rtype.loadNewVersion(retrieveRenameRetarget(t));
+		result = runUnguarded(rtype.getClazz(), "run");
+		assertEquals("null @java.lang.Deprecated()", result.returnValue);
+	}
 
 	// general
 
