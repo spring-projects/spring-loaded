@@ -31,6 +31,7 @@ import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils;
 import org.springsource.loaded.agent.SpringLoadedPreProcessor;
+import org.springsource.loaded.test.TestUtils;
 
 
 /**
@@ -47,7 +48,7 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 
 	// @formatter:off
 	static String[] folders = new String[] { 
-		"../org.springsource.loaded.testdata.groovy/bin" 
+		TestUtils.getPathToClasses("../org.springsource.loaded.testdata.groovy") 
 		};
 	static String[] jars = new String[] { 
 		"../org.springsource.loaded.testdata.groovy/groovy-1.8.2.jar"
@@ -67,10 +68,11 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 	}
 
 	public TestClassloaderWithRewriting(String metainfFolder, boolean b) {
-		String[] newFolders = new String[3];
+		String[] newFolders = new String[4];
 		newFolders[0] = folders[0];
 		newFolders[1] = "../org.springsource.loaded.testdata/" + metainfFolder;
-		newFolders[2] = "../org.springsource.loaded.testdata/bin";
+		newFolders[2] = TestUtils.getPathToClasses("../org.springsource.loaded.testdata");
+		newFolders[3] = TestUtils.getPathToClasses("../org.springsource.loaded.testdata.plugin");
 		folders = newFolders;
 		jars = new String[] { "../org.springsource.loaded.testdata.groovy/groovy-1.8.2.jar" };
 	}
@@ -80,7 +82,7 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 		String[] newFolders = new String[3];
 		newFolders[0] = folders[0];
 		newFolders[1] = "../org.springsource.loaded.testdata/" + metainfFolder;
-		newFolders[2] = "../org.springsource.loaded.testdata/bin";
+		newFolders[2] = TestUtils.getPathToClasses("../org.springsource.loaded.testdata");
 		folders = newFolders;
 		this.useRegistry = useRegistry;
 		jars = new String[] { "../org.springsource.loaded.testdata.groovy/groovy-1.8.2.jar" };
@@ -89,7 +91,7 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 	public TestClassloaderWithRewriting(boolean b, boolean useRegistry, boolean addCglib) {
 		String[] newFolders = new String[2];
 		newFolders[0] = folders[0];
-		newFolders[1] = "../org.springsource.loaded.testdata/bin";
+		newFolders[1] = TestUtils.getPathToClasses("../org.springsource.loaded.testdata");
 		folders = newFolders;
 		this.useRegistry = useRegistry;
 		jars = new String[] { "../org.springsource.loaded.testdata/lib/cglib-nodep-2.2.jar" };

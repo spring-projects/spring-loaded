@@ -1,2 +1,6 @@
 include "org.springsource.loaded"
 include "org.springsource.loaded.testdata"
+include "org.springsource.loaded.testdata.groovy"
+include "org.springsource.loaded.testdata.plugin"
+include "org.springsource.loaded.testdata.subloader"
+include "org.springsource.loaded.testdata.superloader"

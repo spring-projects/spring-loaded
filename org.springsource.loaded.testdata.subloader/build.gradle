@@ -1,0 +1,11 @@
+dependencies {
+	compile project(":org.springsource.loaded.testdata.superloader")
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+	}
+}

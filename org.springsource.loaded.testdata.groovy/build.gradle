@@ -1,0 +1,13 @@
+apply plugin: "groovy"
+
+dependencies {
+	compile files("groovy-1.8.2.jar")
+}
+
+sourceSets {
+	main {
+		groovy {
+			srcDir 'src'
+		}
+	}
+}

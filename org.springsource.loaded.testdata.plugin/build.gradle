@@ -1,0 +1,11 @@
+dependencies {
+	compile project(":org.springsource.loaded")
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+	}
+}

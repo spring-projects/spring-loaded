@@ -33,7 +33,7 @@ public class ReloadingJVM {
 	private ReloadingJVM() {
 		try {
 			javaclasspath = System.getProperty("java.class.path");
-			javaclasspath = javaclasspath + File.pathSeparator + "../org.springsource.loaded.testdata/bin";
+			javaclasspath = javaclasspath + File.pathSeparator + TestUtils.getPathToClasses("../org.springsource.loaded.testdata");
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) Classpath for JVM that is being launched: " + javaclasspath);
 			}

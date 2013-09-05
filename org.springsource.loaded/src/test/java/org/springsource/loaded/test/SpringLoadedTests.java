@@ -86,8 +86,8 @@ public abstract class SpringLoadedTests implements Constants {
 	 */
 	protected ClassLoader binLoader;
 
-	protected String TestDataPath = "../org.springsource.loaded.testdata/bin";
-	protected String GroovyTestDataPath = "../org.springsource.loaded.testdata.groovy/bin";
+	protected String TestDataPath = TestUtils.getPathToClasses("../org.springsource.loaded.testdata");
+	protected String GroovyTestDataPath = TestUtils.getPathToClasses("../org.springsource.loaded.testdata.groovy");
 	protected String AspectjrtJar = "../org.springsource.loaded.testdata/aspectjrt.jar";
 	protected String CodeJar = "../org.springsource.loaded.testdata/code.jar";
 	protected String GroovyrtJar = "../org.springsource.loaded.testdata.groovy/groovy-1.8.2.jar";
