@@ -7,19 +7,10 @@ configurations {
 
 dependencies {
 	tools "org.aspectj:aspectjtools:$aspectjVersion"
-	compile "cglib:cglib:2.2.2"
 	compile "org.aspectj:aspectjrt:$aspectjVersion"
+	compile("cglib:cglib:2.2.2") { exclude group: 'asm' } // cglib 2.2.2 depends on asm 3.3
 	compile 'asm:asm-all:3.2'
 	compile files("code.jar")
-}
-
-sourceSets {
-	main {
-		java {
-			srcDir 'src'
-			srcDir 'cglibsrc'
-		}
-	}
 }
 
 compileJava.deleteAllActions()

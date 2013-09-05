@@ -1,7 +1,7 @@
 apply plugin: "groovy"
 
 dependencies {
-	compile files("groovy-1.8.2.jar")
+	compile 'org.codehaus.groovy:groovy:1.8.2'
 }
 
 sourceSets {

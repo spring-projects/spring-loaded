@@ -1,11 +1,3 @@
 dependencies {
-	compile "cglib:cglib:2.2.2"
-}
-
-sourceSets {
-	main {
-		java {
-			srcDir 'src'
-		}
-	}
+	compile("cglib:cglib:2.2.2") { exclude group: 'asm' } // cglib 2.2.2 depends on asm 3.3
 }

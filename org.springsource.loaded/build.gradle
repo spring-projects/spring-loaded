@@ -11,12 +11,16 @@ configurations {
 }
 
 dependencies {
-	compile 'asm:asm-all:3.2'
 	tools 'com.googlecode.jarjar:jarjar:1.3'
+
+	compile 'asm:asm-all:3.2'
+	
 	testCompile 'junit:junit:4.11'
+	
 	testCompileOnly files("../org.springsource.loaded.testdata.groovy/groovy-1.8.2.jar")
 	testCompileOnly project(':org.springsource.loaded.testdata')
 	testCompileOnly project(':org.springsource.loaded.testdata.groovy')
+	testCompileOnly project(':org.springsource.loaded.testdata.plugin')
 	testCompileOnly project(':org.springsource.loaded.testdata.subloader')
 	testCompileOnly project(':org.springsource.loaded.testdata.superloader')
 }
@@ -30,20 +34,31 @@ sourceSets {
 test {
 	jvmArgs "-noverify"
 	//debug true
-	//include "**/*PluginTests*"
 	systemProperties["springloaded.tests.useGradleBuildDir"] = true
+	systemProperties["springloaded.tests.generatedTests"] = false
 }
 
 task jarAll(type: Jar, dependsOn: jar) {
-    def metaInfDir = "$projectDir/META-INF"
+	manifest {
+		attributes(
+				"Specification-Vendor": "SpringSource",
+				"Specification-Title": "SpringLoaded Agent",
+				"Specification-Version": version,
+				"Implementation-Vendor": "SpringSource",
+				"Implementation-Title": "org.springsource.loaded",
+				"Implementation-Version": version,
+				"Premain-Class": "org.springsource.loaded.agent.SpringLoadedAgent",
+				"Can-Redefine-Classes": "true"
+				)
+	}
+	
     inputs.files jar.archivePath
-    inputs.dir metaInfDir
     classifier = 'agent'
+	
     doLast {
         project.ant {
             taskdef name: "jarjar", classname: "com.tonicsystems.jarjar.JarJarTask", classpath: configurations.tools.asPath
-            jarjar(jarfile: archivePath, manifest: "$metaInfDir/MANIFEST.MF") {
-                zipfileset(dir: "$metaInfDir", prefix: 'META-INF')
+            jarjar(jarfile: archivePath, manifest: "$temporaryDir/MANIFEST.MF") {
                 zipfileset(src: jar.archivePath)
                 configurations.compile.files.each { jarjarFile ->
                     zipfileset(src: jarjarFile)
