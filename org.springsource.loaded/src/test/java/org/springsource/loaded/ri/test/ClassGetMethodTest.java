@@ -22,8 +22,7 @@ import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.objectweb.asm.Type;
 import org.springsource.loaded.test.infra.Result;

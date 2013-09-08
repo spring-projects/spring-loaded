@@ -33,7 +33,7 @@ sourceSets {
 
 test {
 	jvmArgs "-noverify"
-	//debug true
+	ignoreFailures true
 	systemProperties["springloaded.tests.useGradleBuildDir"] = true
 	systemProperties["springloaded.tests.generatedTests"] = System.getProperty("generatedTests", "false")
 }

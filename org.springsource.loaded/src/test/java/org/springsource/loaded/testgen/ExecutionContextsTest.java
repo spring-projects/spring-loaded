@@ -17,8 +17,7 @@ package org.springsource.loaded.testgen;
 
 import java.lang.reflect.Method;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.ri.ReflectiveInterceptor;

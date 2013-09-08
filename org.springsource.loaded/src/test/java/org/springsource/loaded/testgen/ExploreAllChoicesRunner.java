@@ -19,14 +19,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.InitializationError;
-import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.test.infra.IResult;
 import org.springsource.loaded.test.infra.ResultException;
 
@@ -41,6 +39,7 @@ import org.springsource.loaded.test.infra.ResultException;
  * @author kdvolder
  */
 public class ExploreAllChoicesRunner extends ParentRunner<GeneratedTest> {
+	private static boolean generatedTestsOn = Boolean.parseBoolean(System.getProperty("springloaded.tests.generatedTests", "true"));
 
 	private Class<? extends GenerativeSpringLoadedTest> testClass;
 	private List<GeneratedTest> children = null;
@@ -54,7 +53,7 @@ public class ExploreAllChoicesRunner extends ParentRunner<GeneratedTest> {
 
 	@Override
 	protected List<GeneratedTest> getChildren() {
-		if (!GlobalConfiguration.generatedTestsOn)
+		if (!generatedTestsOn)
 			return Collections.emptyList();
 		if (children != null)
 			return children;

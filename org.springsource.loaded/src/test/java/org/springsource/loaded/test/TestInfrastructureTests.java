@@ -17,8 +17,7 @@ package org.springsource.loaded.test;
 
 import java.net.URL;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 import org.springsource.loaded.Utils;
 import org.springsource.loaded.test.infra.TestClassLoader;

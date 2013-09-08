@@ -27,8 +27,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.HashSet;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.springsource.loaded.test.infra.Result;
 import org.springsource.loaded.test.infra.ResultException;

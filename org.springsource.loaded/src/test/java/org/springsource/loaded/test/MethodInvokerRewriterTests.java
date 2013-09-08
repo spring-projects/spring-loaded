@@ -22,8 +22,7 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 import org.springsource.loaded.ClassRenamer;
 import org.springsource.loaded.MethodInvokerRewriter;

@@ -15,12 +15,13 @@
  */
 package org.springsource.loaded.testgen;
 
+import org.junit.Assert;
 import org.springsource.loaded.MethodInvokerRewriter;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.test.SpringLoadedTests;
 
-import junit.framework.Assert;
+
 
 
 /**

@@ -99,8 +99,6 @@ public class GlobalConfiguration {
 
 	public final static boolean interceptReflection = true;
 
-	public static boolean generatedTestsOn = Boolean.parseBoolean(System.getProperty("springloaded.tests.generatedTests", "true"));
-
 	public static boolean reloadMessages = false;// can be forced on for testing
 
 	/**

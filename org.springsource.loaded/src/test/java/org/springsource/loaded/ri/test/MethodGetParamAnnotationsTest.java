@@ -23,8 +23,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.springsource.loaded.test.infra.Result;
 import org.springsource.loaded.test.infra.ResultException;

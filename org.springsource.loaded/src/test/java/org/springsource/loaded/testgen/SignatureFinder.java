@@ -18,8 +18,7 @@ package org.springsource.loaded.testgen;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 import org.springsource.loaded.MethodMember;
 import org.springsource.loaded.TypeDescriptor;

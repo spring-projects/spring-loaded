@@ -17,9 +17,10 @@ package org.springsource.loaded.testgen;
 
 import java.util.List;
 
+import org.junit.Assert;
 import org.springsource.loaded.test.infra.IResult;
 
-import junit.framework.Assert;
+
 
 
 /**
