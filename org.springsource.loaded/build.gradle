@@ -35,7 +35,7 @@ test {
 	jvmArgs "-noverify"
 	//debug true
 	systemProperties["springloaded.tests.useGradleBuildDir"] = true
-	systemProperties["springloaded.tests.generatedTests"] = false
+	systemProperties["springloaded.tests.generatedTests"] = System.getProperty("generatedTests", "false")
 }
 
 task jarAll(type: Jar, dependsOn: jar) {
