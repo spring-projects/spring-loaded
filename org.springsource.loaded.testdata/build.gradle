@@ -1,0 +1,44 @@
+def aspectjVersion = "1.7.1"
+
+configurations {
+	aspects
+	ajInpath
+}
+
+dependencies {
+	tools "org.aspectj:aspectjtools:$aspectjVersion"
+	compile "cglib:cglib:2.2.2"
+	compile "org.aspectj:aspectjrt:$aspectjVersion"
+    compile 'asm:asm-all:3.2'
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+			srcDir 'cglibsrc'
+			srcDir 'subsrc'
+			srcDir 'supersrc'
+		}
+	}
+}
+
+task compileJava(dependsOn: JavaPlugin.PROCESS_RESOURCES_TASK_NAME, overwrite: true)  {
+    dependsOn configurations.tools.getTaskDependencyFromProjectDependency(true, "compileJava")
+    def srcDirs = sourceSets.main.java.srcDirs
+    srcDirs.each { inputs.dir it }
+    def destDir = sourceSets.main.output.classesDir
+    outputs.dir destDir
+    doLast {
+        ant.taskdef(resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties", classpath: configurations.tools.asPath)
+        
+        ant.iajc(source:sourceCompatibility, target:targetCompatibility, destDir: destDir.absolutePath, maxmem:"512m", fork:"true",
+                aspectPath: configurations.aspects.asPath, inpath:configurations.ajInpath.asPath, sourceRootCopyFilter:"**/.svn/*,**/*.java",classpath:configurations.compile.asPath ){
+            sourceroots {
+                srcDirs.each {
+                    	if (it.exists()) pathelement location: it.absolutePath
+                }
+            }
+        }
+    }
+}

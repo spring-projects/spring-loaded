@@ -1,0 +1,2 @@
+include "org.springsource.loaded"
+include "org.springsource.loaded.testdata"
