@@ -56,7 +56,6 @@ Q. What's the state of the codebase?
 A. The technology is successfully being used by Grails for reloading. It does need some performance
 work and a few smacks with a refactoring hammer. It needs upgrading here and there to tolerate
 the invokedynamic instruction and associated new constant pool entries that arrived in Java 7.
-It could also use a proper (gradle probably) build process.
 
 # Working with the code
 
