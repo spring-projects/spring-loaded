@@ -1,5 +1,5 @@
 # Welcome to Spring-Loaded
-[![Build Status](https://drone.io/github.com/stefaneggerstorfer/spring-loaded/status.png)](https://drone.io/github.com/stefaneggerstorfer/spring-loaded/latest)
+[![Build Status](https://stefaneggerstorfer.ci.cloudbees.com/buildStatus/icon?job=spring-loaded)](https://stefaneggerstorfer.ci.cloudbees.com/job/spring-loaded/)
 
 ## What is Spring Loaded?
 
