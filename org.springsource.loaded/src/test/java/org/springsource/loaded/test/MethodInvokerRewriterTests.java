@@ -314,29 +314,29 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeInterface1() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleIClass,target.SimpleI");
-		ReloadableType intface = typeRegistry.addType("target.SimpleI", loadBytesForClass("target.SimpleI"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleIClass,tgt.SimpleI");
+		ReloadableType intface = typeRegistry.addType("tgt.SimpleI", loadBytesForClass("tgt.SimpleI"));
 		//		ReloadableType impl =
-		typeRegistry.addType("target.SimpleIClass", loadBytesForClass("target.SimpleIClass"));
+		typeRegistry.addType("tgt.SimpleIClass", loadBytesForClass("tgt.SimpleIClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticICaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticICaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticICaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticICaller", rewrittenBytes);
 
 		// run the original
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
-		intface.loadNewVersion("2", retrieveRename("target.SimpleI", "target.SimpleI002"));
+		intface.loadNewVersion("2", retrieveRename("tgt.SimpleI", "tgt.SimpleI002"));
 
 		// run the original working thing post-reload - check it is still ok
 		result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
-		callerbytes = loadBytesForClass("target.StaticICaller002");
-		callerbytes = ClassRenamer.rename("target.StaticICaller002", callerbytes, "target.SimpleI002:target.SimpleI");
+		callerbytes = loadBytesForClass("tgt.StaticICaller002");
+		callerbytes = ClassRenamer.rename("tgt.StaticICaller002", callerbytes, "tgt.SimpleI002:tgt.SimpleI");
 		rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz002 = loadit("target.StaticICaller002", rewrittenBytes);
+		Class<?> callerClazz002 = loadit("tgt.StaticICaller002", rewrittenBytes);
 
 		result = runUnguarded(callerClazz002, "run");
 		assertEquals("42", result.returnValue);
@@ -347,30 +347,30 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeInterface3() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleIClass,target.SimpleI");
-		ReloadableType intface = typeRegistry.addType("target.SimpleI", loadBytesForClass("target.SimpleI"));
-		ReloadableType impl = typeRegistry.addType("target.SimpleIClass", loadBytesForClass("target.SimpleIClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleIClass,tgt.SimpleI");
+		ReloadableType intface = typeRegistry.addType("tgt.SimpleI", loadBytesForClass("tgt.SimpleI"));
+		ReloadableType impl = typeRegistry.addType("tgt.SimpleIClass", loadBytesForClass("tgt.SimpleIClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticICaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticICaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticICaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticICaller", rewrittenBytes);
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
 		// new interface on method and new implementation in the implementing class
-		intface.loadNewVersion("2", retrieveRename("target.SimpleI", "target.SimpleI003"));
+		intface.loadNewVersion("2", retrieveRename("tgt.SimpleI", "tgt.SimpleI003"));
 		impl.loadNewVersion("2",
-				retrieveRename("target.SimpleIClass", "target.SimpleIClass003", "target.SimpleI003:target.SimpleI"));
+				retrieveRename("tgt.SimpleIClass", "tgt.SimpleIClass003", "tgt.SimpleI003:tgt.SimpleI"));
 
 		// run the original working thing post-reload - check it is still ok
 		result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
-		callerbytes = loadBytesForClass("target.StaticICaller003");
-		callerbytes = ClassRenamer.rename("target.StaticICaller003", callerbytes, "target.SimpleI003:target.SimpleI",
-				"target.SimpleIClass003:target.SimpleIClass");
+		callerbytes = loadBytesForClass("tgt.StaticICaller003");
+		callerbytes = ClassRenamer.rename("tgt.StaticICaller003", callerbytes, "tgt.SimpleI003:tgt.SimpleI",
+				"tgt.SimpleIClass003:tgt.SimpleIClass");
 		rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz003 = loadit("target.StaticICaller003", rewrittenBytes);
+		Class<?> callerClazz003 = loadit("tgt.StaticICaller003", rewrittenBytes);
 
 		result = runUnguarded(callerClazz003, "run");
 		assertEquals("2.01232768false", result.returnValue);
@@ -381,18 +381,18 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeInterface4_methodDeletion() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleIClass,target.SimpleI");
-		ReloadableType intface = typeRegistry.addType("target.SimpleI", loadBytesForClass("target.SimpleI"));
-		typeRegistry.addType("target.SimpleIClass", loadBytesForClass("target.SimpleIClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleIClass,tgt.SimpleI");
+		ReloadableType intface = typeRegistry.addType("tgt.SimpleI", loadBytesForClass("tgt.SimpleI"));
+		typeRegistry.addType("tgt.SimpleIClass", loadBytesForClass("tgt.SimpleIClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticICaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticICaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticICaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticICaller", rewrittenBytes);
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
 		// new interface version has method removed
-		intface.loadNewVersion("2", retrieveRename("target.SimpleI", "target.SimpleI004"));
+		intface.loadNewVersion("2", retrieveRename("tgt.SimpleI", "tgt.SimpleI004"));
 
 		try {
 			// run the original working thing post-reload - check it is still ok
@@ -404,7 +404,7 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		}
 
 		// new interface version has method re-added
-		intface.loadNewVersion("3", retrieveRename("target.SimpleI", "target.SimpleI"));
+		intface.loadNewVersion("3", retrieveRename("tgt.SimpleI", "tgt.SimpleI"));
 
 		result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
@@ -415,26 +415,26 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeInterface5_paramsChanged() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleIClass,target.SimpleI");
-		ReloadableType intface = typeRegistry.addType("target.SimpleI", loadBytesForClass("target.SimpleI"));
-		ReloadableType impl = typeRegistry.addType("target.SimpleIClass", loadBytesForClass("target.SimpleIClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleIClass,tgt.SimpleI");
+		ReloadableType intface = typeRegistry.addType("tgt.SimpleI", loadBytesForClass("tgt.SimpleI"));
+		ReloadableType impl = typeRegistry.addType("tgt.SimpleIClass", loadBytesForClass("tgt.SimpleIClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticICaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticICaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticICaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticICaller", rewrittenBytes);
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
 		// new interface version has method removed
-		intface.loadNewVersion("2", retrieveRename("target.SimpleI", "target.SimpleI005"));
+		intface.loadNewVersion("2", retrieveRename("tgt.SimpleI", "tgt.SimpleI005"));
 		impl.loadNewVersion("2",
-				retrieveRename("target.SimpleIClass", "target.SimpleIClass005", "target.SimpleI005:target.SimpleI"));
+				retrieveRename("tgt.SimpleIClass", "tgt.SimpleIClass005", "tgt.SimpleI005:tgt.SimpleI"));
 
-		callerbytes = loadBytesForClass("target.StaticICaller005");
-		callerbytes = ClassRenamer.rename("target.StaticICaller005", callerbytes, "target.SimpleI005:target.SimpleI",
-				"target.SimpleIClass005:target.SimpleIClass", "target.SimpleIClass005:target.SimpleIClass");
+		callerbytes = loadBytesForClass("tgt.StaticICaller005");
+		callerbytes = ClassRenamer.rename("tgt.StaticICaller005", callerbytes, "tgt.SimpleI005:tgt.SimpleI",
+				"tgt.SimpleIClass005:tgt.SimpleIClass", "tgt.SimpleIClass005:tgt.SimpleIClass");
 		rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		callerClazz = loadit("target.StaticICaller005", rewrittenBytes);
+		callerClazz = loadit("tgt.StaticICaller005", rewrittenBytes);
 
 		result = runUnguarded(callerClazz, "run");
 		assertEquals(72, result.returnValue);
@@ -445,27 +445,27 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeInterface6_returnTypeChanged() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleIClass,target.SimpleI");
-		ReloadableType intface = typeRegistry.addType("target.SimpleI", loadBytesForClass("target.SimpleI"));
-		ReloadableType impl = typeRegistry.addType("target.SimpleIClass", loadBytesForClass("target.SimpleIClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleIClass,tgt.SimpleI");
+		ReloadableType intface = typeRegistry.addType("tgt.SimpleI", loadBytesForClass("tgt.SimpleI"));
+		ReloadableType impl = typeRegistry.addType("tgt.SimpleIClass", loadBytesForClass("tgt.SimpleIClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticICaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticICaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticICaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticICaller", rewrittenBytes);
 		Result result = runUnguarded(callerClazz, "run2");
 		assertEquals(111, result.returnValue);
 		assertTrue(result.returnValue instanceof Integer);
 
 		// new interface version has method removed
-		intface.loadNewVersion("2", retrieveRename("target.SimpleI", "target.SimpleI005"));
+		intface.loadNewVersion("2", retrieveRename("tgt.SimpleI", "tgt.SimpleI005"));
 		impl.loadNewVersion("2",
-				retrieveRename("target.SimpleIClass", "target.SimpleIClass005", "target.SimpleI005:target.SimpleI"));
+				retrieveRename("tgt.SimpleIClass", "tgt.SimpleIClass005", "tgt.SimpleI005:tgt.SimpleI"));
 
-		callerbytes = loadBytesForClass("target.StaticICaller005");
-		callerbytes = ClassRenamer.rename("target.StaticICaller005", callerbytes, "target.SimpleI005:target.SimpleI",
-				"target.SimpleIClass005:target.SimpleIClass", "target.SimpleIClass005:target.SimpleIClass");
+		callerbytes = loadBytesForClass("tgt.StaticICaller005");
+		callerbytes = ClassRenamer.rename("tgt.StaticICaller005", callerbytes, "tgt.SimpleI005:tgt.SimpleI",
+				"tgt.SimpleIClass005:tgt.SimpleIClass", "tgt.SimpleIClass005:tgt.SimpleIClass");
 		rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		callerClazz = loadit("target.StaticICaller005", rewrittenBytes);
+		callerClazz = loadit("tgt.StaticICaller005", rewrittenBytes);
 
 		result = runUnguarded(callerClazz, "run2");
 		assertEquals("abc", result.returnValue);
@@ -477,16 +477,16 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeStatic() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleClass");
-		ReloadableType r = typeRegistry.addType("target.SimpleClass", loadBytesForClass("target.SimpleClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleClass");
+		ReloadableType r = typeRegistry.addType("tgt.SimpleClass", loadBytesForClass("tgt.SimpleClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticCaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 		// @formatter:off
 		checkMethod(callerbytes, 
 				"run", 
 				" L0\n"+
 				"    LDC 123\n"+
-				"    INVOKESTATIC target/SimpleClass.toInt(Ljava/lang/String;)I\n"+
+				"    INVOKESTATIC tgt/SimpleClass.toInt(Ljava/lang/String;)I\n"+
 				"    IRETURN\n"+
 				" L1\n");
 		// @formatter:on
@@ -504,7 +504,7 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 				"    INVOKESTATIC org/springsource/loaded/TypeRegistry.istcheck(ILjava/lang/String;)Ljava/lang/Object;\n"+
 				"    DUP\n"+
 				"    IFNULL L1\n"+
-				"    CHECKCAST target/SimpleClass__I\n"+
+				"    CHECKCAST tgt/SimpleClass__I\n"+
 				"    ASTORE 1\n"+ // store the dispatcher to call in 1
 				
 				// Can we reduce this by calling some kind of pack method, if we make a static call then whatever is
@@ -526,18 +526,18 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 				"    SWAP\n"+ // put the target at the bottom
 				"    ACONST_NULL\n"+ // load the instance (static call so null)
 				"    LDC toInt(Ljava/lang/String;)I\n"+ // load the name+descriptor
-				"    INVOKEINTERFACE target/SimpleClass__I.__execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"+
+				"    INVOKEINTERFACE tgt/SimpleClass__I.__execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"+
 				"    CHECKCAST java/lang/Integer\n"+
 				"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n"+
 				"    GOTO L2\n"+
 				" L1\n"+
 				"    POP\n"+
-				"    INVOKESTATIC target/SimpleClass.toInt(Ljava/lang/String;)I\n"+
+				"    INVOKESTATIC tgt/SimpleClass.toInt(Ljava/lang/String;)I\n"+
 				" L2\n"+
 				"    IRETURN\n"+
 				" L3\n");
 		// @formatter:on
-		Class<?> callerClazz = loadit("target.StaticCaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 		//		ClassPrinter.print(r.bytesLoaded);
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
@@ -548,31 +548,31 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeInterface2() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleIClassTwo,target.SimpleITwo");
-		ReloadableType intface = typeRegistry.addType("target.SimpleITwo", loadBytesForClass("target.SimpleITwo"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleIClassTwo,tgt.SimpleITwo");
+		ReloadableType intface = typeRegistry.addType("tgt.SimpleITwo", loadBytesForClass("tgt.SimpleITwo"));
 		//		ReloadableType impl =
-		typeRegistry.addType("target.SimpleIClassTwo", loadBytesForClass("target.SimpleIClassTwo"));
+		typeRegistry.addType("tgt.SimpleIClassTwo", loadBytesForClass("tgt.SimpleIClassTwo"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticICallerTwo");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticICallerTwo");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticICallerTwo", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticICallerTwo", rewrittenBytes);
 
 		// run the original
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
-		intface.loadNewVersion("2", retrieveRename("target.SimpleITwo", "target.SimpleITwo002"));
+		intface.loadNewVersion("2", retrieveRename("tgt.SimpleITwo", "tgt.SimpleITwo002"));
 
 		result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
-		callerbytes = loadBytesForClass("target.StaticICallerTwo002");
-		callerbytes = ClassRenamer.rename("target.StaticICallerTwo002", callerbytes, "target.SimpleITwo002:target.SimpleITwo");
+		callerbytes = loadBytesForClass("tgt.StaticICallerTwo002");
+		callerbytes = ClassRenamer.rename("tgt.StaticICallerTwo002", callerbytes, "tgt.SimpleITwo002:tgt.SimpleITwo");
 		rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz002 = loadit("target.StaticICallerTwo002", rewrittenBytes);
+		Class<?> callerClazz002 = loadit("tgt.StaticICallerTwo002", rewrittenBytes);
 		//		ClassPrinter.print(rewrittenBytes);
 
-		//		callee.loadNewVersion("2", retrieveRename("target.SimpleClass", "target.SimpleClass002"));
+		//		callee.loadNewVersion("2", retrieveRename("tgt.SimpleClass", "tgt.SimpleClass002"));
 		result = runUnguarded(callerClazz002, "run");
 		assertEquals("27", result.returnValue);
 	}
@@ -736,23 +736,23 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeStatic2() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleClass");
-		ReloadableType callee = typeRegistry.addType("target.SimpleClass", loadBytesForClass("target.SimpleClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleClass");
+		ReloadableType callee = typeRegistry.addType("tgt.SimpleClass", loadBytesForClass("tgt.SimpleClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticCaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticCaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 		//		ClassPrinter.print(callee.bytesLoaded);
 		// run the original
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
-		callerbytes = loadBytesForClass("target.StaticCaller002");
-		callerbytes = ClassRenamer.rename("target.StaticCaller002", callerbytes, "target.SimpleClass002:target.SimpleClass");
+		callerbytes = loadBytesForClass("tgt.StaticCaller002");
+		callerbytes = ClassRenamer.rename("tgt.StaticCaller002", callerbytes, "tgt.SimpleClass002:tgt.SimpleClass");
 		rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz002 = loadit("target.StaticCaller002", rewrittenBytes);
+		Class<?> callerClazz002 = loadit("tgt.StaticCaller002", rewrittenBytes);
 
-		callee.loadNewVersion("2", retrieveRename("target.SimpleClass", "target.SimpleClass002"));
+		callee.loadNewVersion("2", retrieveRename("tgt.SimpleClass", "tgt.SimpleClass002"));
 		result = runUnguarded(callerClazz002, "run2");
 		assertEquals("456", result.returnValue);
 	}
@@ -762,22 +762,22 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeStatic3() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleClass");
-		ReloadableType callee = typeRegistry.addType("target.SimpleClass", loadBytesForClass("target.SimpleClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleClass");
+		ReloadableType callee = typeRegistry.addType("tgt.SimpleClass", loadBytesForClass("tgt.SimpleClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticCaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticCaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 
 		// run the original
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
-		callerbytes = loadBytesForClass("target.StaticCaller003");
-		callerbytes = ClassRenamer.rename("target.StaticCaller003", callerbytes, "target.SimpleClass003:target.SimpleClass");
+		callerbytes = loadBytesForClass("tgt.StaticCaller003");
+		callerbytes = ClassRenamer.rename("tgt.StaticCaller003", callerbytes, "tgt.SimpleClass003:tgt.SimpleClass");
 		rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz002 = loadit("target.StaticCaller003", rewrittenBytes);
-		callee.loadNewVersion("3", retrieveRename("target.SimpleClass", "target.SimpleClass003"));
+		Class<?> callerClazz002 = loadit("tgt.StaticCaller003", rewrittenBytes);
+		callee.loadNewVersion("3", retrieveRename("tgt.SimpleClass", "tgt.SimpleClass003"));
 		result = runUnguarded(callerClazz002, "run3");
 		assertEquals("42", result.returnValue);
 	}
@@ -787,19 +787,19 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeStatic4() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleClass");
-		ReloadableType callee = typeRegistry.addType("target.SimpleClass", loadBytesForClass("target.SimpleClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleClass");
+		ReloadableType callee = typeRegistry.addType("tgt.SimpleClass", loadBytesForClass("tgt.SimpleClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticCaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticCaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 
 		// run the original
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
 		// new version of SimpleClass always returns 256
-		callee.loadNewVersion("4", retrieveRename("target.SimpleClass", "target.SimpleClass004"));
+		callee.loadNewVersion("4", retrieveRename("tgt.SimpleClass", "tgt.SimpleClass004"));
 		result = runUnguarded(callerClazz, "run");
 		assertEquals(256, result.returnValue);
 	}
@@ -816,19 +816,19 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeStatic5() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleClass");
-		ReloadableType callee = typeRegistry.addType("target.SimpleClass", loadBytesForClass("target.SimpleClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleClass");
+		ReloadableType callee = typeRegistry.addType("tgt.SimpleClass", loadBytesForClass("tgt.SimpleClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticCaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticCaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 
 		// run the original
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
 		// new version of SimpleClass where target static method has been removed
-		callee.loadNewVersion("5", retrieveRename("target.SimpleClass", "target.SimpleClass005"));
+		callee.loadNewVersion("5", retrieveRename("tgt.SimpleClass", "tgt.SimpleClass005"));
 		try {
 			result = runUnguarded(callerClazz, "run");
 			Assert.fail();
@@ -849,19 +849,19 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	 */
 	@Test
 	public void rewriteInvokeStatic6() throws Exception {
-		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleClass");
-		ReloadableType callee = typeRegistry.addType("target.SimpleClass", loadBytesForClass("target.SimpleClass"));
+		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleClass");
+		ReloadableType callee = typeRegistry.addType("tgt.SimpleClass", loadBytesForClass("tgt.SimpleClass"));
 
-		byte[] callerbytes = loadBytesForClass("target.StaticCaller");
+		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-		Class<?> callerClazz = loadit("target.StaticCaller", rewrittenBytes);
+		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 
 		// run the original
 		Result result = runUnguarded(callerClazz, "run");
 		assertEquals(123, result.returnValue);
 
 		// new version of SimpleClass where target static method has been made non-static
-		callee.loadNewVersion("6", retrieveRename("target.SimpleClass", "target.SimpleClass006"));
+		callee.loadNewVersion("6", retrieveRename("tgt.SimpleClass", "tgt.SimpleClass006"));
 		try {
 			result = runUnguarded(callerClazz, "run");
 			Assert.fail();
@@ -887,18 +887,18 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	//	 */
 	//	@Test
 	//	public void rewriteInvokeStatic7() throws Exception {
-	//		TypeRegistry typeRegistry = getTypeRegistry("target.SimpleClass");
-	//		ReloadableType callee = typeRegistry.addType("target.SimpleClass", loadBytesForClass("target.SimpleClass"));
+	//		TypeRegistry typeRegistry = getTypeRegistry("tgt.SimpleClass");
+	//		ReloadableType callee = typeRegistry.addType("tgt.SimpleClass", loadBytesForClass("tgt.SimpleClass"));
 	//
-	//		byte[] callerbytes = loadBytesForClass("target.StaticCaller");
+	//		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 	//		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-	//		Class<?> callerClazz = loadit("target.StaticCaller", rewrittenBytes);
+	//		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 	//
 	//		Result result = runUnguarded(callerClazz, "run");
 	//		assertEquals(123, result.returnValue);
 	//
 	//		// new version of SimpleClass where target static method has been made private
-	//		callee.loadNewVersion("7", retrieveRename("target.SimpleClass", "target.SimpleClass007"));
+	//		callee.loadNewVersion("7", retrieveRename("tgt.SimpleClass", "tgt.SimpleClass007"));
 	//
 	//		try {
 	//			ClassPrinter.print(rewrittenBytes);
