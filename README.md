@@ -72,9 +72,11 @@ Groovy-Eclipse: update site: `http://dist.springsource.org/snapshot/GRECLIPSE/e4
 
 After importing them you can run the tests.  There are two kinds of tests, hand crafted and
 generated.  Running all the tests including the generated ones can take a while.
-To run just the hand crafted ones change `GlobalConfiguration.generatedTestsOn=false`.  To run the
-tests create a Run Configuration of type JUnit for the project org.springsource.loaded and on the
-arguments tab set `VM arguments` to `-noverify` - then click run.
+To run just the hand crafted ones supply this to the JVM when launching the tests:
+
+    -Dspringloaded.tests.generatedTests=false
+
+NOTE: When running the tests you need to pass -noverify to the JVM also.
 
 To build a new version of the agent jar, just run `ant` in the org.springsource.loaded project,
 this will create a new springloaded-dev.jar in the builds folder using the compiled eclipse
