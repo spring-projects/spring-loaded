@@ -1820,7 +1820,12 @@ public class TypeRegistry {
 	}
 
 	public TypeRegistry getParentRegistry() {
-		return TypeRegistry.getTypeRegistryFor(classLoader.get().getParent());
+		ClassLoader cl = classLoader.get();
+		if (cl == null) { // GRAILS-10134
+			return null; 
+		} else {
+			return TypeRegistry.getTypeRegistryFor(cl.getParent());
+		}
 	}
 
 	public ReloadableType[] getReloadableTypes() {
