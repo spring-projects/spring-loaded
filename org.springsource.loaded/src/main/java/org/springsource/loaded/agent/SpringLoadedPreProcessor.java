@@ -18,6 +18,7 @@ package org.springsource.loaded.agent;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
@@ -444,7 +445,17 @@ public class SpringLoadedPreProcessor implements Constants {
 					if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINEST)) {
 						log.finest("Codesource.getLocation()=" + codeSource.getLocation());
 					}
-					File file = new File(codeSource.getLocation().toURI());
+					// A 'URI is not hierarchical' message can come out when the File ctor is called. Cases seen
+					// so far: 
+					// GRAILS-10384: relative URL file:../foo/bar - should have built it with new File().toURI.toURL() and not just new URL()
+					File file = null;
+					try {
+						URI uri = codeSource.getLocation().toURI();
+						file = new File(uri);
+					} catch (IllegalArgumentException iae) {
+						System.out.println("Unable to watch file: classname = "+slashedClassName+" codesource location = "+codeSource.getLocation()+" ex = "+iae.toString());
+						return null;
+					}
 					if (file.isDirectory()) {
 						file = new File(file, slashedClassName + ".class");
 					} else if (file.getName().endsWith(".class")) {
