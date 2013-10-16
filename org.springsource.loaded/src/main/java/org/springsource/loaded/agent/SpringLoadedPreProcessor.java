@@ -449,12 +449,28 @@ public class SpringLoadedPreProcessor implements Constants {
 					// so far: 
 					// GRAILS-10384: relative URL file:../foo/bar - should have built it with new File().toURI.toURL() and not just new URL()
 					File file = null;
+					URI uri = null;
 					try {
-						URI uri = codeSource.getLocation().toURI();
+						uri = codeSource.getLocation().toURI();
 						file = new File(uri);
 					} catch (IllegalArgumentException iae) {
-						System.out.println("Unable to watch file: classname = "+slashedClassName+" codesource location = "+codeSource.getLocation()+" ex = "+iae.toString());
-						return null;
+						boolean recovered = false;
+						if (iae.toString().indexOf("URI is not hierarchical")!=-1) {
+							// try another approach...
+							String uristring = uri.toString();
+							if (uristring.startsWith("file:../")) {
+								file = new File(uristring.substring(8)).getAbsoluteFile();
+							} else if (uristring.startsWith("file:./")) {
+								file = new File(uristring.substring(7)).getAbsoluteFile();
+							}
+							if (file.exists()) {
+								recovered = true;
+							}
+						}
+						if (!recovered) {
+							System.out.println("Unable to watch file: classname = "+slashedClassName+" codesource location = "+codeSource.getLocation()+" ex = "+iae.toString());
+							return null;
+						}
 					}
 					if (file.isDirectory()) {
 						file = new File(file, slashedClassName + ".class");
