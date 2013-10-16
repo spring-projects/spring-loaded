@@ -1,6 +1,6 @@
 group = "org.springsource.loaded"
 version = '1.1.4-dev'
-jar.baseName = 'spring-loaded'
+jar.baseName = 'springloaded'
 
 compileJava {
 	options.debug = true
@@ -10,10 +10,15 @@ configurations {
 	testCompileOnly
 }
 
+task wrapper(type: Wrapper) {
+	gradleVersion = '1.8'
+}
+
 dependencies {
 	tools 'com.googlecode.jarjar:jarjar:1.3'
 
-	compile 'asm:asm-all:3.2'
+	compile 'asm:asm:3.2'
+	compile 'asm:asm-tree:3.2'
 	
 	testCompile 'junit:junit:4.11'
 	
@@ -51,7 +56,10 @@ task jarAll(type: Jar, dependsOn: jar) {
 				"Can-Redefine-Classes": "true"
 				)
 	}
-	
+
+    // What is the syntax here to include the license in the jar? this doesn't work
+    // from '.' include 'LICENSES/LICENSE'
+
     inputs.files jar.archivePath
     classifier = 'agent'
 	
