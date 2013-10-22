@@ -14,9 +14,9 @@ used in Grails 2.
 
 # Installation
 
-New dev builds of 1.1.2 are available [here ](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.2.20130430.jar)
+1.1.5 dev build: [springloaded-1.1.5-dev.jar](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.5-dev.jar)
 
-A build of version 1.1.1 is available [here](https://github.com/downloads/SpringSource/spring-loaded/springloaded-1.1.1-dev.jar). 
+1.1.4 release build: [springloaded-1.1.4.jar](http://dist.springframework.org/release/LOADED/springloaded-1.1.4.jar)
 
 The download is the agent jar and needs no further unpacking before use.
 
