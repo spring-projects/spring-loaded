@@ -70,9 +70,9 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		if (slashedTypeName.equals("org/springframework/beans/CachedIntrospectionResults")) {
 			cachedIntrospectionResultsClassLoaded = true;
 		}
-		return slashedTypeName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter")
-		// 3.1 support|| slashedTypeName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")
-				|| (support305 && slashedTypeName
+		return slashedTypeName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter") ||
+				slashedTypeName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping") || // 3.1
+				(support305 && slashedTypeName
 						.equals("org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"));
 	}
 
@@ -83,10 +83,10 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		if (slashedClassName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter")) {
 			return bytesWithInstanceCreationCaptured(bytes, "org/springsource/loaded/agent/SpringPlugin",
 					"recordAnnotationMethodHandlerAdapterInstance");
-			//		} else if (slashedClassName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")) {
-			//			// springmvc spring 3.1 - doesnt work on 3.1 post M2 snapshots
-			//			return bytesWithInstanceCreationCaptured(bytes, "org/springsource/loaded/agent/SpringPlugin",
-			//					"recordRequestMappingHandlerMappingInstance");
+					} else if (slashedClassName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")) {
+						// springmvc spring 3.1 - doesnt work on 3.1 post M2 snapshots
+						return bytesWithInstanceCreationCaptured(bytes, "org/springsource/loaded/agent/SpringPlugin",
+								"recordRequestMappingHandlerMappingInstance");
 		} else { // "org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"
 			// springmvc spring 3.0
 			return bytesWithInstanceCreationCaptured(bytes, "org/springsource/loaded/agent/SpringPlugin",
@@ -117,7 +117,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		removeClazzFromMethodResolverCache(clazz);
 		clearCachedIntrospectionResults(clazz);
 		reinvokeDetectHandlers(); // Spring 3.0
-		//		reinvokeInitHandlerMethods(); // Spring 3.1
+				reinvokeInitHandlerMethods(); // Spring 3.1
 	}
 
 	private void removeClazzFromMethodResolverCache(Class<?> clazz) {
@@ -195,7 +195,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				System.out.println("Invoking initHandlerMethods on instance of RequestMappingHandlerMapping");
 			}
 			try {
-				Class<?> clazz_AbstractHandlerMethodMapping = o.getClass().getSuperclass();
+				Class<?> clazz_AbstractHandlerMethodMapping = o.getClass().getSuperclass().getSuperclass();
 
 				// private final Map<T, HandlerMethod> handlerMethods = new LinkedHashMap<T, HandlerMethod>();
 				Field field_handlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredField("handlerMethods");
