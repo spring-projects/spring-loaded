@@ -97,6 +97,22 @@ public class ClassRenamer {
 		}
 
 		@Override
+		public void visitInnerClass(String name, String outername, String innerName, int access) {
+			super.visitInnerClass(renameRetargetIfNecessary(name), renameRetargetIfNecessary(outername), renameRetargetIfNecessary(innerName), access);
+		}
+		
+		private String renameRetargetIfNecessary(String string) {
+			String value = retargets.get(string);
+			if (value!=null) {
+				return value;
+			}
+			if (string.indexOf(oldname) != -1) {
+				return string.replace(oldname, newname);
+			}
+			return string;
+		}
+
+		@Override
 		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
 			if (descriptor.indexOf(oldname) != -1) {
 				descriptor = descriptor.replace(oldname, newname);

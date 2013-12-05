@@ -21,6 +21,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
 
+import java.lang.reflect.Modifier;
+
 import org.junit.Test;
 import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.ReloadableType;
@@ -432,5 +434,27 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		rc = SpringLoaded.loadNewVersionOfType(rtype.getClazz().getClassLoader(), "a.b.C",
 				retrieveRename("basic.Basic", "basic.Basic003"));
 		assertEquals(2, rc);
+	}
+	
+	@Test
+	public void innerTypesLosingStaticModifier() throws Exception {
+		TypeRegistry typeRegistry = getTypeRegistry("inners.Outer$Inner");
+		byte[] sc = loadBytesForClass("inners.Outer$Inner");
+		ReloadableType rtype = typeRegistry.addType("inners.Outer$Inner", sc);
+				
+		Class<?> simpleClass = rtype.getClazz();
+		Result r = null;
+		
+		r = runUnguarded(simpleClass, "foo");
+		assertEquals("foo!", r.returnValue);
+		assertTrue(Modifier.isPublic((Integer)runUnguarded(simpleClass, "getModifiers").returnValue));
+		assertTrue(Modifier.isStatic((Integer)runUnguarded(simpleClass, "getModifiers").returnValue));
+
+		rtype.loadNewVersion("002", retrieveRename("inners.Outer$Inner", "inners.Outer2$Inner2"));
+
+		r = runUnguarded(simpleClass, "foo");
+		assertEquals("bar!", r.returnValue);
+		assertTrue(Modifier.isPublic((Integer)runUnguarded(simpleClass, "getModifiers").returnValue));
+		assertTrue(Modifier.isStatic((Integer)runUnguarded(simpleClass, "getModifiers").returnValue));
 	}
 }

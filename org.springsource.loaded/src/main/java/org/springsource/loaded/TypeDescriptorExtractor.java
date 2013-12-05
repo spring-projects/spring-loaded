@@ -66,10 +66,11 @@ public class TypeDescriptorExtractor {
 		private List<FieldMember> fieldsRequiringAccessors = new ArrayList<FieldMember>();
 		private List<FieldMember> fields = new ArrayList<FieldMember>();
 		private List<String> finalInHierarchy = new ArrayList<String>();
-
+		
 		public ExtractionVisitor(boolean isReloadableType) {
 			this.isReloadableType = isReloadableType;
 		}
+		
 
 		public TypeDescriptor getTypeDescriptor() {
 			if (isReloadableType) {
@@ -270,7 +271,13 @@ public class TypeDescriptorExtractor {
 			return null;
 		}
 
-		public void visitAttribute(Attribute arg0) {
+		public void visitAttribute(Attribute attribute) {
+		}
+		
+		public void visitInnerClass(String name, String outername, String innerName, int access) {
+			if (name.equals(typename)) {
+				this.flags = access;
+			}
 		}
 
 		public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
@@ -280,10 +287,6 @@ public class TypeDescriptorExtractor {
 			}
 			return null;
 		}
-
-		public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) {
-		}
-
 		// For each method, copy it into the new class making appropriate adjustments
 		/**
 		 * Visit a method in the class and build an appropriate representation for it to include in the extracted output.
