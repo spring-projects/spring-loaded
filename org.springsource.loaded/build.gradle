@@ -1,5 +1,5 @@
 group = "org.springsource.loaded"
-version = '1.1.4-dev'
+version = '1.1.5.BUILD-SNAPSHOT'
 jar.baseName = 'springloaded'
 
 compileJava {
@@ -43,25 +43,39 @@ test {
 	systemProperties["springloaded.tests.generatedTests"] = System.getProperty("generatedTests", "false")
 }
 
-task jarAll(type: Jar, dependsOn: jar) {
-	manifest {
-		attributes(
-				"Specification-Vendor": "SpringSource",
-				"Specification-Title": "SpringLoaded Agent",
-				"Specification-Version": version,
-				"Implementation-Vendor": "SpringSource",
-				"Implementation-Title": "org.springsource.loaded",
-				"Implementation-Version": version,
-				"Premain-Class": "org.springsource.loaded.agent.SpringLoadedAgent",
-				"Can-Redefine-Classes": "true"
-				)
-	}
+// org.springsource.loaded-VERSION.jar
+jar {
+    from 'LICENSES/LICENSE'
+    baseName = 'org.springsource.loaded'
+}
 
-    // What is the syntax here to include the license in the jar? this doesn't work
-    // from '.' include 'LICENSES/LICENSE'
+// org.springsource.loaded-VERSION-sources.jar
+task sourcesJar(type: Jar, dependsOn:classes) {     
+    baseName = 'org.springsource.loaded'
+	classifier = 'sources'     
+	from sourceSets.main.allSource 
+}
+
+task agentSourcesJar(type: Jar, dependsOn:classes) {
+    baseName = 'springloaded'
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task agentjar(type: Jar, dependsOn: jar) {
+    manifest {
+        from('src/main/java/META-INF/MANIFEST.MF') {
+            eachEntry { details ->
+		        if (details.key == 'Specification-Version' ||
+                    details.key == 'Implementation-Version') {
+                    details.value = version;
+                }
+            }
+        }
+    }
 
     inputs.files jar.archivePath
-    classifier = 'agent'
+    baseName = 'springloaded'
 	
     doLast {
         project.ant {
@@ -77,13 +91,12 @@ task jarAll(type: Jar, dependsOn: jar) {
     }
 }
 
-task sourcesJar(type: Jar, dependsOn:classes) {     
-	classifier = 'sources'     
-	from sourceSets.main.allSource 
-}
 
 // add the jars as artifacts
 artifacts {      
+
 	archives sourcesJar      
-	archives jarAll
+
+	archives agentjar
+	archives agentSourcesJar      
 }
