@@ -6,4 +6,5 @@ Implementation-Title: org.springsource.loaded
 Implementation-Version: 1.0.0
 Implementation-Vendor: SpringSource
 Premain-Class: org.springsource.loaded.agent.SpringLoadedAgent
+Agent-Class: org.springsource.loaded.agent.SpringLoadedAgent
 Can-Redefine-Classes: true

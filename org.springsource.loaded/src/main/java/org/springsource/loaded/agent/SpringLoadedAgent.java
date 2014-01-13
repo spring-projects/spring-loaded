@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2012 VMware and contributors
+ * Copyright 2010-2014 VMware and contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 
 /**
- * Java 1.5 preMain agent to hook in the class pre processor.This agent is declared in the META-INF/MANIFEST.MF file - that is how
+ * Basic agent implementation. This agent is declared in the META-INF/MANIFEST.MF file - that is how
  * it is 'plugged in' to the JVM when '-javaagent:springloaded.jar' is used.
  * 
  * @author Andy Clement
@@ -31,15 +31,19 @@ public class SpringLoadedAgent {
 
 	private static Instrumentation instrumentation;
 
-	/**
-	 * Agent entry method
-	 */
 	public static void premain(String options, Instrumentation inst) {
 		// Handle duplicate agents
 		if (instrumentation != null) {
 			return;
 		}
-		//		Printer.sysout("Agent based reloading is active");
+		instrumentation = inst;
+		instrumentation.addTransformer(transformer);
+	}
+	
+	public static void agentmain(String options, Instrumentation inst) {
+		if (instrumentation != null) {
+			return;
+		}
 		instrumentation = inst;
 		instrumentation.addTransformer(transformer);
 	}
