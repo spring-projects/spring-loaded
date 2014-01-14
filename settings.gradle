@@ -4,3 +4,5 @@ include "org.springsource.loaded.testdata.groovy"
 include "org.springsource.loaded.testdata.plugin"
 include "org.springsource.loaded.testdata.subloader"
 include "org.springsource.loaded.testdata.superloader"
+
+findProject(":org.springsource.loaded").name="springloaded-core"

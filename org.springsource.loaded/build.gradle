@@ -1,4 +1,6 @@
 group = "org.springsource.loaded"
+groupId = "org.springsource.loaded"
+artifactId = "springloaded-core"
 version = '1.1.5.BUILD-SNAPSHOT'
 jar.baseName = 'springloaded'
 
