@@ -1,0 +1,11 @@
+dependencies {
+	compile project(":testdata-superloader")
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+	}
+}

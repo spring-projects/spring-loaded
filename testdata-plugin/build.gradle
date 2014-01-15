@@ -1,0 +1,11 @@
+dependencies {
+	compile project(":springloaded-core")
+}
+
+sourceSets {
+	main {
+		java {
+			srcDir 'src'
+		}
+	}
+}
