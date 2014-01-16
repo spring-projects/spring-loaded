@@ -14,7 +14,7 @@ task writeNewPom << {
         }
       }
     }
-  }.writeTo("$buildDir/pom.xml");
+  }.writeTo("$buildDir/springloaded.pom");
 }
 
 compileJava {
