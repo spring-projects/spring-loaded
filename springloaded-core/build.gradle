@@ -113,3 +113,7 @@ artifacts {
 	archives agentjar
 	archives agentSourcesJar      
 }
+
+configurations.archives.artifacts.removeAll(
+  configurations.archives.allArtifacts.findAll { it.file.toString().indexOf("org.springsource.loaded")!=-1}
+)
