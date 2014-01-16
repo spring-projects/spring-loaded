@@ -77,7 +77,8 @@ task agentSourcesJar(type: Jar, dependsOn:classes) {
     from sourceSets.main.allSource
 }
 
-task agentjar(type: Jar, dependsOn: [jar,writeNewPom]) {
+//task agentjar(type: Jar, dependsOn: [jar,writeNewPom]) {
+task agentjar(type: Jar, dependsOn: jar) {
     manifest {
         from('src/main/java/META-INF/MANIFEST.MF') {
             eachEntry { details ->
