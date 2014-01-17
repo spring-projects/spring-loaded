@@ -1,5 +1,5 @@
 dependencies {
-	compile project(":springloaded-core")
+	compile project(":springloaded")
 }
 
 sourceSets {

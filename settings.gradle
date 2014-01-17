@@ -1,4 +1,4 @@
-include "springloaded-core"
+include "springloaded"
 include "testdata"
 include "testdata-groovy"
 include "testdata-plugin"
