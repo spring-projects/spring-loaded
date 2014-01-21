@@ -17,6 +17,6 @@ subprojects {
 	targetCompatibility = 1.6
 }
 
-configure(subprojects.findAll { it.name=='springloaded-core' }) {
-    apply plugin: 'maven'
+configure(subprojects.findAll { it.name.startsWith('testdata')}) {
+	tasks.findByPath("artifactoryPublish")?.enabled = false
 }
