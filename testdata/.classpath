@@ -2,13 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.ajdt.core.ASPECTJRT_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="con" path="org.springsource.ide.eclipse.gradle.classpathcontainer" exported="true"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.launching.macosx.MacOSXType/Java SE 7 [1.7.0_21]"/>
+	<classpathentry kind="lib" path="code.jar"/>
+	<classpathentry kind="lib" path="lib/cglib-nodep-2.2.jar"/>
+	<classpathentry kind="lib" path="lib/asm-3.2.jar"/>
+	<classpathentry kind="lib" path="lib/asm-tree-3.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry sourcepath="/Users/aclement/.gradle/caches/artifacts-26/filestore/org.aspectj/aspectjrt/1.7.1/source/86aa0e2952b2a370e04db7fc1a76b483909a38f/aspectjrt-1.7.1-sources.jar" kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/org.aspectj/aspectjrt/1.7.1/jar/e9ed47b6e3326c4a6666027978315028275ba8aa/aspectjrt-1.7.1.jar" exported="true"/>
-	<classpathentry sourcepath="/Users/aclement/.gradle/caches/artifacts-26/filestore/cglib/cglib/2.2.2/source/fc1558bebc50419cdb55fbffd81c290e21f058c1/cglib-2.2.2-sources.jar" kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/cglib/cglib/2.2.2/jar/a47a971686474124562bdd4a7ccbd8ac8c3e8b11/cglib-2.2.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/asm/asm/3.2/jar/9bc1511dec6adf302991ced13303e4140fdf9ab7/asm-3.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/asm/asm-tree/3.2/jar/cd792e29c79d170c5d0bdd05adf5807cf6875c90/asm-tree-3.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/gits/spring-loaded/testdata/code.jar" exported="true"/>
 </classpath>

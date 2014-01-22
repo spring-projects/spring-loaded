@@ -1,17 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="con" path="org.springsource.ide.eclipse.gradle.classpathcontainer" exported="true"/>
-	<classpathentry kind="con" path="GROOVY_DSL_SUPPORT" exported="true"/>
-	<classpathentry kind="con" path="GROOVY_SUPPORT" exported="true"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry exported="true" kind="con" path="GROOVY_SUPPORT"/>
 	<classpathentry kind="output" path="bin"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
-	<classpathentry sourcepath="/Users/aclement/.gradle/caches/artifacts-26/filestore/org.codehaus.groovy/groovy/1.8.2/source/671b51fe81fbc6b75de225cf914fd4b6020cb78e/groovy-1.8.2-sources.jar" kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/org.codehaus.groovy/groovy/1.8.2/jar/b8867fd0e6d72fba6188efc9e6cf461894fd7d6b/groovy-1.8.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/antlr/antlr/2.7.7/jar/83cd2cd674a217ade95a4bb83a8a14f351f48bd0/antlr-2.7.7.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/asm/asm/3.2/jar/9bc1511dec6adf302991ced13303e4140fdf9ab7/asm-3.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/asm/asm-tree/3.2/jar/cd792e29c79d170c5d0bdd05adf5807cf6875c90/asm-tree-3.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/asm/asm-commons/3.2/jar/e7a19b8c60589499e35f5d2068d09013030b8891/asm-commons-3.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/asm/asm-util/3.2/jar/37ebfdad34d5f1f45109981465f311bbfbe82dcf/asm-util-3.2.jar" exported="true"/>
-	<classpathentry kind="lib" path="/Users/aclement/.gradle/caches/artifacts-26/filestore/asm/asm-analysis/3.2/jar/c624956db93975b7197699dcd7de6145ca7cf2c8/asm-analysis-3.2.jar" exported="true"/>
 </classpath>
