@@ -103,10 +103,10 @@ public class ClassRenamer {
 		
 		private String renameRetargetIfNecessary(String string) {
 			String value = retargets.get(string);
-			if (value!=null) {
+			if (value != null) {
 				return value;
 			}
-			if (string.indexOf(oldname) != -1) {
+			if (string != null && string.indexOf(oldname) != -1) {
 				return string.replace(oldname, newname);
 			}
 			return string;
