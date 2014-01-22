@@ -20,6 +20,7 @@ used in Grails 2.
 
 The download is the agent jar and needs no further unpacking before use.
 
+
 # Running with reloading
 
 	java -javaagent:<pathTo>/springloaded-{VERSION}.jar -noverify SomeJavaClass
@@ -61,9 +62,9 @@ the invokedynamic instruction and associated new constant pool entries that arri
 
 	git clone https://github.com/SpringSource/spring-loaded
 
-Once cloned there will be three projects suitable for import into eclipse. The main project and
-two containing testdata. One of the test projects is an AspectJ project (containing both Java
-and AspectJ code), the other test project is a Groovy project. To compile these test projects
+Once cloned there will be some projects suitable for import into eclipse. The main project and
+some test projects. One of the test projects is an AspectJ project (containing both Java
+and AspectJ code), and one is a Groovy project. To compile these test projects
 in Eclipse you will need the relevant eclipse plugins:
 
 AJDT: update site: `http://download.eclipse.org/tools/ajdt/42/dev/update`
@@ -77,10 +78,11 @@ To run just the hand crafted ones supply this to the JVM when launching the test
 
 NOTE: When running the tests you need to pass -noverify to the JVM also.
 
-To build a new version of the agent jar, just run `ant` in the org.springsource.loaded project,
-this will create a new springloaded-dev.jar in the builds folder using the compiled eclipse
-output. Note: the jarjar task is used to repackage asm with a prefix (to avoid clashes) -
-so you will need to install the jarjar task (from the project lib folder) into your ant lib folder.
+Two launch configurations are already included if you are importing these projects into eclipse,
+which run with or without the generated tests.
+
+A gradle build script is included, run './gradlew build' to rebuild the agent - it will be created
+as something like: springloaded/build/libs/springloaded-1.1.5.BUILD-SNAPSHOT.jar
 
 # Can I contribute?
 
