@@ -696,8 +696,8 @@ public class TypeRegistry {
 		//		}
 
 		for (IsReloadableTypePlugin plugin : SpringLoadedPreProcessor.getIsReloadableTypePlugins()) {
-			ReloadDecision decision = plugin.shouldBeMadeReloadable(slashedName, protectionDomain, bytes);
-			if (decision == ReloadDecision.YES) {
+			ReloadDecision decision = plugin.shouldBeMadeReloadable(this,slashedName, protectionDomain, bytes);
+			if (decision == ReloadDecision.YES) { 
 				return true;
 			} else if (decision == ReloadDecision.NO) {
 				return false;

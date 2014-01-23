@@ -27,8 +27,8 @@ import org.springsource.loaded.agent.SpringPlugin;
 
 
 /**
- * Captures configurable elements - these are set (to values other than the defaults) in TypeRegistry when the system property
- * springloaded.configuration is processed. It is possible to tweak them during testcases to simplify what is being tested - the
+ * Encapsulates configurable elements - these are set (to values other than the defaults) in TypeRegistry when the system property
+ * springloaded configuration is processed. It is possible to tweak them during testcases to simplify what is being tested - the
  * test should reset them to their original values on completion.
  * 
  * @author Andy Clement
@@ -135,21 +135,37 @@ public class GlobalConfiguration {
 
 	public final static boolean debugplugins;
 
+	
+	private static void printUsage() {
+		System.out.println("SpringLoaded");
+		System.out.println("============");
+		System.out.println();
+		System.out.println("Usage: java -noverify -javaagent:<pathto>/springloaded.jar");
+		System.out.println("Optionally specify configuration through -Dspringloaded=<options>");
+		System.out.println("<options> is a ';' separated list of directives or name=value options");
+		System.out.println("Example: -Dspringloaded=verbose;cacheDir=/tmp");
+		System.out.println();
+		System.out.println("Directives:");
+		System.out.println("  ? - print this usage text");
+		System.out.println("  verbose - the reloader will log important lifecycle events");
+		System.out.println("Options:");
+		System.exit(0);
+	}
+	
 	/**
 	 * Look for a springloaded system property and initialize the 'default system wide' configuration based upon it.
+	 * Support configuration options:
+	 * <ul>
+	 * <li><tt>info</tt> - print usage information on the options
+	 * <li><tt>verbose</tt> - this directive causes SpringLoaded to report on decisions it is making.
+	 * </ul>
 	 */
 	static {
-		//		classesToDump = new ArrayList<String>();
-		//		classesToDump.add("Demo");
 		globalConfigurationProperties = new Properties();
-		// Load global configuration
 		boolean debugPlugins = false;
 		try {
 			boolean specifiedCaching = false;
 			String value = System.getProperty("springloaded");
-			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINEST)) {
-				log.finest("GlobalConfiguration: being configured from '" + value + "'");
-			}
 			// value is a ';' separated list of configuration options which either may be name=value settings or directives (just a name)
 			if (value != null) {
 				StringTokenizer st = new StringTokenizer(value, ";");
@@ -224,8 +240,8 @@ public class GlobalConfiguration {
 							System.out.println("Spring-Loaded logging = (" + GlobalConfiguration.isRuntimeLogging + ","
 									+ GlobalConfiguration.logging + ")");
 						} else if (key.equals("verbose")) {
-							GlobalConfiguration.verboseMode = kv.substring(equals + 1).equalsIgnoreCase("true");
-							GlobalConfiguration.reloadMessages = verboseMode;
+							verboseMode = kv.substring(equals + 1).equalsIgnoreCase("true");
+							reloadMessages = verboseMode;
 						} else if (key.equals("rebasePaths")) {
 							// value is a series of "a=b,c=d,e=f" indicating from and to
 							globalConfigurationProperties.put("rebasePaths", kv.substring(equals + 1));
@@ -243,7 +259,13 @@ public class GlobalConfiguration {
 							}
 						}
 					} else {
-						// directive
+						if (kv.equals("?")) {
+							printUsage();
+						}
+						else if (kv.equals("verbose")) {
+							Log.log("verbose mode on, configuration is:"+value);
+							verboseMode = true;
+						}
 					}
 				}
 			}

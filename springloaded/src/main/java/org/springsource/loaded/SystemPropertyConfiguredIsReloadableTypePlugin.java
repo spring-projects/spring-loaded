@@ -61,7 +61,7 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 	private String mostRecentReloadableDirs = null;
 
 	// TODO need try/catch protection when calling plugins, in case of bad ones
-	public ReloadDecision shouldBeMadeReloadable(String typename, ProtectionDomain protectionDomain, byte[] bytes) {
+	public ReloadDecision shouldBeMadeReloadable(TypeRegistry typeRegistry, String typename, ProtectionDomain protectionDomain, byte[] bytes) {
 		if (debug) {
 			System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: entered, for typename " + typename);
 		}
@@ -106,6 +106,21 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			//				System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename + " does not have a codeSource");
 			//			}
 		} else {
+			// May have to do something special for CGLIB types
+			// These will have a type name of something like: grails/plugin/springsecurity/SpringSecurityService$$EnhancerByCGLIB$$8f956be2
+			// But a codesource location of file:/Users/aclement/.m2/repository/org/springframework/spring-core/3.2.5.RELEASE/spring-core-3.2.5.RELEASE.jar
+			int cglibIndex = typename.indexOf("ByCGLIB$$"); // catches fastclass too
+			if (cglibIndex != -1) {
+				String originalType = typename.substring(0, typename.indexOf("$$")); // assuming first $$ is good enough
+				while (typeRegistry != null) {
+					ReloadableType originalReloadable = typeRegistry.getReloadableType(originalType);
+					if (originalReloadable != null) {
+						return ReloadDecision.YES;
+					}
+					typeRegistry = typeRegistry.getParentRegistry();
+				}
+			}
+
 			if (debug) {
 				System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename + " codeSource.getLocation() is "
 						+ codeSource.getLocation());

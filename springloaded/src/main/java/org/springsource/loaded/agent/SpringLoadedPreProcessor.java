@@ -33,6 +33,7 @@ import org.springsource.loaded.Constants;
 import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.IsReloadableTypePlugin;
 import org.springsource.loaded.LoadtimeInstrumentationPlugin;
+import org.springsource.loaded.Log;
 import org.springsource.loaded.Plugin;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.SystemClassReflectionRewriter;
@@ -158,7 +159,14 @@ public class SpringLoadedPreProcessor implements Constants {
 		// 3. If NO, and nothing in this classloader might be, return the original bytes
 		// 4. If YES, make the type reloadable (including rewriting call sites)
 
-		if (typeRegistry.isReloadableTypeName(slashedClassName, protectionDomain, bytes)) {
+		boolean isReloadableTypeName = typeRegistry.isReloadableTypeName(slashedClassName, protectionDomain, bytes);
+		
+		// logging causes a ClassCircularity problem when reporting on:
+		// SL: Type 'org/codehaus/groovy/grails/cli/logging/GrailsConsolePrintStream' is not being made reloadable
+//		if (GlobalConfiguration.verboseMode && isReloadableTypeName) {
+//			Log.log("Type '"+slashedClassName+"' is preliminarily being considered a reloadable type");
+//		}
+		if (isReloadableTypeName) {
 			if (!firstReloadableTypeHit) {
 				firstReloadableTypeHit = true;
 				// TODO move into the ctor for ReloadableType so that it can't block loading
@@ -186,39 +194,66 @@ public class SpringLoadedPreProcessor implements Constants {
 						if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 							log.info("Appears to be a CGLIB type, checking if type " + originalType + " is reloadable");
 						}
-						if (typeRegistry.isReloadableTypeName(originalType)) {
-							if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-								log.info("Type " + originalType + " is reloadable, so making CGLIB type " + slashedClassName
-										+ " reloadable");
+						TypeRegistry currentRegistry = typeRegistry;
+						while (currentRegistry != null) {
+							ReloadableType originalReloadable = currentRegistry.getReloadableType(originalType);
+							if (originalReloadable != null) {
+								makeReloadableAnyway = true;
+								break;
 							}
-							makeReloadableAnyway = true;
+							currentRegistry = currentRegistry.getParentRegistry();
 						}
+//						if (typeRegistry.isReloadableTypeName(originalType)) {
+//							if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+//								log.info("Type " + originalType + " is reloadable, so making CGLIB type " + slashedClassName
+//										+ " reloadable");
+//							}
+//							makeReloadableAnyway = true;
+//						}
 					}
 
-					int cglibIndex2 = slashedClassName.indexOf("$$FastClassByCGLIB");
+					int cglibIndex2 = makeReloadableAnyway?-1:slashedClassName.indexOf("$$FastClassByCGLIB");
 					if (cglibIndex2 != -1) {
 						String originalType = slashedClassName.substring(0, cglibIndex2);
 						if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 							log.info("Appears to be a CGLIB FastClass type, checking if type " + originalType + " is reloadable");
 						}
-						if (typeRegistry.isReloadableTypeName(originalType)) {
-							if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-								log.info("Type " + originalType + " is reloadable, so making CGLIB type " + slashedClassName
-										+ " reloadable");
+						TypeRegistry currentRegistry = typeRegistry;
+						while (currentRegistry != null) {
+							ReloadableType originalReloadable = currentRegistry.getReloadableType(originalType);
+							if (originalReloadable != null) {
+								makeReloadableAnyway = true;
+								break;
 							}
-							makeReloadableAnyway = true;
+							currentRegistry = currentRegistry.getParentRegistry();
 						}
+//						if (typeRegistry.isReloadableTypeName(originalType)) {
+//							if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+//								log.info("Type " + originalType + " is reloadable, so making CGLIB type " + slashedClassName
+//										+ " reloadable");
+//							}
+//							makeReloadableAnyway = true;
+//						}
 					}
 
-					int proxyIndex = slashedClassName.indexOf("$Proxy");
+					int proxyIndex = makeReloadableAnyway?-1:slashedClassName.indexOf("$Proxy");
 					if (proxyIndex == 0 || (proxyIndex > 0 && slashedClassName.charAt(proxyIndex - 1) == '/')) {
 						// Determine if the interfaces being implemented are reloadable
 						String[] interfacesImplemented = Utils.discoverInterfaces(bytes);
 						if (interfacesImplemented != null) {
 							for (int i = 0; i < interfacesImplemented.length; i++) {
-								if (typeRegistry.isReloadableTypeName(interfacesImplemented[i])) {
-									makeReloadableAnyway = true;
+								TypeRegistry currentRegistry = typeRegistry;
+								while (currentRegistry != null) {
+									ReloadableType originalReloadable = currentRegistry.getReloadableType(interfacesImplemented[i]);
+									if (originalReloadable != null) {
+										makeReloadableAnyway = true;
+										break;
+									}
+									currentRegistry = currentRegistry.getParentRegistry();
 								}
+//								if (typeRegistry.isReloadableTypeName(interfacesImplemented[i])) {
+//									makeReloadableAnyway = true;
+//								}
 							}
 						}
 					}
@@ -234,8 +269,8 @@ public class SpringLoadedPreProcessor implements Constants {
 
 					if (!makeReloadableAnyway) {
 						// can't watch it for updates (it comes from a jar perhaps) so just rewrite call sites and return
-						if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-							log.info("can't watch " + slashedClassName + ": not making it reloadable");
+						if (GlobalConfiguration.verboseMode) {
+							Log.log("Cannot watch "+slashedClassName+": not making it reloadable");
 						}
 						if (needsClientSideRewriting(slashedClassName)) {
 							bytes = typeRegistry.methodCallRewriteUseCacheIfAvailable(slashedClassName, bytes);

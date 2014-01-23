@@ -29,10 +29,11 @@ import org.springsource.loaded.agent.ReloadDecision;
 public interface IsReloadableTypePlugin extends Plugin {
 
 	/**
+	 * @param typeRegistry 
 	 * @param typename slashed type name (e.g. java/lang/String)
 	 * @param protectionDomain
 	 * @param bytes the classfile data
 	 */
-	ReloadDecision shouldBeMadeReloadable(String typename, ProtectionDomain protectionDomain, byte[] bytes);
+	ReloadDecision shouldBeMadeReloadable(TypeRegistry typeRegistry, String typename, ProtectionDomain protectionDomain, byte[] bytes);
 
 }
