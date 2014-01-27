@@ -112,39 +112,41 @@ public class MethodInvokerRewriter {
 		if (DEBUG_CACHING) {
 			System.out.println("cache check for " + slashedClassName);
 		}
-		// Construct cachekey, something like: java/lang/String_3343
-		String cachekey = new StringBuilder(slashedClassName).append("_").append(bytes.length).toString();
-		Boolean b = cacheIndex.get(cachekey);
-		if (DEBUG_CACHING) {
-			System.out.println("was in index? " + b);
-		}
-		if (b != null) {
-			if (b.booleanValue()) { // the type was modified on an earlier run, there should be cached code around
-				String cacheFileName = new StringBuilder(slashedClassName.replace('/', '_')).append("_").append(bytes.length)
-						.append(".bytes").toString();
-				File cacheFile = new File(GlobalConfiguration.cacheDir, ".slcache" + File.separator + cacheFileName);
-				if (DEBUG_CACHING) {
-					System.out.println("Checking for cache file " + cacheFile);
-				}
-				if (cacheFile.exists()) {
-					// load the cached file
+		if (slashedClassName != null) {
+			// Construct cachekey, something like: java/lang/String_3343
+			String cachekey = new StringBuilder(slashedClassName).append("_").append(bytes.length).toString();
+			Boolean b = cacheIndex.get(cachekey);
+			if (DEBUG_CACHING) {
+				System.out.println("was in index? " + b);
+			}
+			if (b != null) {
+				if (b.booleanValue()) { // the type was modified on an earlier run, there should be cached code around
+					String cacheFileName = new StringBuilder(slashedClassName.replace('/', '_')).append("_").append(bytes.length)
+							.append(".bytes").toString();
+					File cacheFile = new File(GlobalConfiguration.cacheDir, ".slcache" + File.separator + cacheFileName);
 					if (DEBUG_CACHING) {
-						System.out.println("loading and returning cached file contents");
+						System.out.println("Checking for cache file " + cacheFile);
 					}
-					try {
-						FileInputStream fis = new FileInputStream(cacheFile);
-						byte[] cachedBytes = Utils.loadBytesFromStream(fis);
-						return cachedBytes;
-					} catch (IOException ioe) {
-						ioe.printStackTrace();
+					if (cacheFile.exists()) {
+						// load the cached file
+						if (DEBUG_CACHING) {
+							System.out.println("loading and returning cached file contents");
+						}
+						try {
+							FileInputStream fis = new FileInputStream(cacheFile);
+							byte[] cachedBytes = Utils.loadBytesFromStream(fis);
+							return cachedBytes;
+						} catch (IOException ioe) {
+							ioe.printStackTrace();
+						}
 					}
+				} else {
+					if (DEBUG_CACHING) {
+						System.out.println("returning unmodified bytes, no need to change");
+					}
+					// wasn't modified before, assume it isn't modified now either!
+					return bytes;
 				}
-			} else {
-				if (DEBUG_CACHING) {
-					System.out.println("returning unmodified bytes, no need to change");
-				}
-				// wasn't modified before, assume it isn't modified now either!
-				return bytes;
 			}
 		}
 		if (DEBUG_CACHING) {
