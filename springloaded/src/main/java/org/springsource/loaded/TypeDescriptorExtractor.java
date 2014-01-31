@@ -74,7 +74,7 @@ public class TypeDescriptorExtractor {
 
 		public TypeDescriptor getTypeDescriptor() {
 			if (isReloadableType) {
-				computeCatchers();
+				computeCatchersAndSuperdispatchers();
 			}
 			computeFieldsRequiringAccessors();
 			computeClashes();
@@ -141,7 +141,7 @@ public class TypeDescriptorExtractor {
 		 * Create catcher methods for methods from our super-hierarchy that we don't yet override (but may after the initial define
 		 * has happened).
 		 */
-		private void computeCatchers() {
+		private void computeCatchersAndSuperdispatchers() {
 			// When walking up the hierarchy we may hit a 'final' method which means we must not catch it.
 			// The 'shouldNotCatch' list stores things we discover like this that should not be caught
 			List<String> shouldNotCatch = new ArrayList<String>();
@@ -151,6 +151,7 @@ public class TypeDescriptorExtractor {
 			if (Modifier.isInterface(this.flags)) {
 				return;
 			}
+			List<String> superDispatcherAddedFor = new ArrayList<String>();
 			while (type != null) {
 				TypeDescriptor supertypeDescriptor = findTypeDescriptor(registry, type);
 				// TODO review the need to create catchers for methods where the supertype is reloadable.  In this situation we are already going to
@@ -158,6 +159,14 @@ public class TypeDescriptorExtractor {
 				// permgen, and simplification of stack traces
 				//				if (!supertypeDescriptor.isReloadable()) {
 				for (MethodMember method : supertypeDescriptor.getMethods()) {
+					if (shouldCreateSuperDispatcherFor(method) && !superDispatcherAddedFor.contains(method.nameAndDescriptor)) {
+						// need a public super dispatcher - so that we can reach that super method
+						// from a reloaded instance of this type
+						MethodMember superdispatcher = method.superDispatcherFor();
+						methods.add(superdispatcher);
+						superDispatcherAddedFor.add(method.nameAndDescriptor);
+					}
+					
 					if (shouldCatchMethod(method) && !shouldNotCatch.contains(method.getNameAndDescriptor())) {
 						// don't need the catcher if method is already defined since when the existing method is rewritten
 						// it will be kind of morphed into a catcher
@@ -201,6 +210,14 @@ public class TypeDescriptorExtractor {
 
 			finalInHierarchy.addAll(shouldNotCatch);
 		}
+
+		// TODO should clone and finalize be in here?
+		private boolean shouldCreateSuperDispatcherFor(MethodMember method) {
+			return method.isProtected() && !(
+					(method.getName().equals("finalize") && method.getDescriptor().equals("()V")) || 
+					(method.getName().equals("clone") && method.getDescriptor().equals("()Ljava/lang/Object;")));
+		}
+
 
 		private void addCatchersForNonImplementedMethodsFrom(String interfacename) {
 			TypeDescriptor interfaceDescriptor = findTypeDescriptor(registry, interfacename);
@@ -257,7 +274,7 @@ public class TypeDescriptorExtractor {
 		 * @return true if it should be caught
 		 */
 		private boolean shouldCatchMethod(MethodMember method) {
-			return !(method.isPrivateStaticFinal() || (method.getName().equals("finalize") && method.getDescriptor().equals("()V")));
+			return !(method.isPrivateStaticFinal() || method.getName().endsWith(Constants.methodSuffixSuperDispatcher) || (method.getName().equals("finalize") && method.getDescriptor().equals("()V")));
 		}
 
 		public void visit(int version, int flags, String name, String signature, String superclassName, String[] interfaceNames) {

@@ -779,7 +779,8 @@ public class GroovyTests extends SpringLoadedTests {
 		String intface = "enums.ExtensibleEnum";
 		String runner = "enums.RunnerA";
 		TypeRegistry typeRegistry = getTypeRegistry(enumtype + "," + intface + "," + runner);
-		ReloadableType rtypeIntface = typeRegistry.addType(intface, loadBytesForClass(intface));
+//		ReloadableType rtypeIntface = 
+		typeRegistry.addType(intface, loadBytesForClass(intface));
 		ReloadableType rtypeEnum = typeRegistry.addType(enumtype, loadBytesForClass(enumtype));
 		ReloadableType rtypeRunner = typeRegistry.addType(runner, loadBytesForClass(runner));
 		result = runUnguarded(rtypeRunner.getClazz(), "run");
@@ -817,7 +818,8 @@ public class GroovyTests extends SpringLoadedTests {
 		String runner = "enums.RunnerB";
 		String closure = "enums.WhatAnEnumB$__clinit__closure1";
 		TypeRegistry typeRegistry = getTypeRegistry(enumtype + "," + intface + "," + runner + "," + closure);
-		ReloadableType rtypeIntface = typeRegistry.addType(intface, loadBytesForClass(intface));
+//		ReloadableType rtypeIntface =
+		typeRegistry.addType(intface, loadBytesForClass(intface));
 		ReloadableType rtypeClosure = typeRegistry.addType(closure, loadBytesForClass(closure));
 		ReloadableType rtypeEnum = typeRegistry.addType(enumtype, loadBytesForClass(enumtype));
 		ReloadableType rtypeRunner = typeRegistry.addType(runner, loadBytesForClass(runner));

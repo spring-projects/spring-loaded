@@ -25,11 +25,10 @@ import java.util.logging.Logger;
 
 import org.springsource.loaded.agent.SpringPlugin;
 
-
 /**
  * Encapsulates configurable elements - these are set (to values other than the defaults) in TypeRegistry when the system property
- * springloaded configuration is processed. It is possible to tweak them during testcases to simplify what is being tested - the
- * test should reset them to their original values on completion.
+ * springloaded configuration is processed. Some of the options are only used by testcases to make the testcases easier to write and
+ * more straightforward.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -59,6 +58,12 @@ public class GlobalConfiguration {
 	 * verbose mode can trigger extra messages. Enable with 'verbose=true'
 	 */
 	public static boolean verboseMode = false;
+	
+	/**
+	 * Can be turned on to enable users to determine the decision process around why
+	 * something is not reloadable.
+	 */
+	public static boolean explainMode = false;
 
 	/**
 	 * Global control for runtime logging
@@ -263,8 +268,12 @@ public class GlobalConfiguration {
 							printUsage();
 						}
 						else if (kv.equals("verbose")) {
-							Log.log("verbose mode on, configuration is:"+value);
+							Log.log("[verbose mode on] Full configuration is:"+value);
 							verboseMode = true;
+						}
+						else if (kv.equals("explain")) {
+							Log.log("[explain mode on] Reporting on the decision making process within SpringLoaded");
+							explainMode = true;
 						}
 					}
 				}

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
 
 
@@ -55,13 +56,13 @@ public class ReloadingJVMCommandProcess {
 					} else if (commandName.equals("echo")) {
 						echoCommand(arguments);
 					} else if (commandName.equals("run")) {
-						runCommand(arguments.get(0));
+						runCommand(arguments.get(0),asArray(arguments,1));
 					} else if (commandName.equals("new")) {
 						newCommand(arguments.get(0), arguments.get(1));
 					} else if (commandName.equals("call")) {
 						callCommand(arguments.get(0), arguments.get(1));
 					} else if (commandName.equals("reload")) {
-						reloadCommand(arguments.get(0), arguments.get(1));
+						reloadCommand(arguments.get(0), arguments.size()==1?null:arguments.get(1));
 					} else {
 						System.out.println("Don't understand command '" + commandName + "' !!");
 					}
@@ -80,6 +81,14 @@ public class ReloadingJVMCommandProcess {
 		}
 	}
 
+	private static String[] asArray(List<String> arguments, int startpos) {
+		String[] result = new String[arguments.size()-startpos];
+		for (int i = startpos;i<arguments.size();i++) {
+			result[i-startpos] = arguments.get(i-startpos);
+		}
+		return result;
+	}
+
 	private static void echoCommand(List<String> arguments) {
 		for (int i = 0, max = arguments.size(); i < max; i++) {
 			if (i > 0) {
@@ -92,8 +101,9 @@ public class ReloadingJVMCommandProcess {
 	/**
 	 * Call the static run() method on the specified class.
 	 */
-	private static void runCommand(String classname) {
+	private static void runCommand(String classname, String[] arguments) {
 		try {
+//			System.out.println("Running the main method on "+classname+" with arguments ["+toString(arguments)+"]");
 			Class<?> clazz = Class.forName(classname);
 			Method m = clazz.getDeclaredMethod("run");
 			m.invoke(null);
@@ -101,6 +111,18 @@ public class ReloadingJVMCommandProcess {
 			e.printStackTrace(System.out);
 		}
 	}
+	
+//	private static String toString(String[] array) {
+//		if (array == null) {
+//			return "null";
+//		}
+//		StringBuilder s = new StringBuilder();
+//		for (String string: array) {
+//			s.append(string);
+//			s.append(" ");
+//		}
+//		return s.toString().trim();
+//	}
 
 	private static Map<String, Object> instances = new HashMap<String, Object>();
 
@@ -120,8 +142,12 @@ public class ReloadingJVMCommandProcess {
 		try {
 			Class<?> clazz = Class.forName(classname);
 			TypeRegistry tr = TypeRegistry.getTypeRegistryFor(clazz.getClassLoader());
-			System.out.println(tr);
-			tr.getReloadableType(clazz).loadNewVersion("2", fromHexString(data));
+			ReloadableType rt = tr.getReloadableType(clazz);
+			byte[] newdata = data!=null?fromHexString(data):rt.bytesInitial;
+			boolean b = rt.loadNewVersion("2", newdata);
+			if (!b) {
+				throw new IllegalStateException("Failed to reload new verion of "+classname);
+			}
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
 		}

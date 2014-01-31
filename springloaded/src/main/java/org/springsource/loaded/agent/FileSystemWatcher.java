@@ -19,10 +19,12 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.springsource.loaded.FileChangeListener;
+import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.TypeRegistry;
-
 
 /**
  * A simple watcher for the file system. Uses a thread to keep an eye on a number of files and calls back registered interested
@@ -95,6 +97,8 @@ public class FileSystemWatcher {
 
 class Watcher implements Runnable {
 
+	private static Logger log = Logger.getLogger(Watcher.class.getName());
+	
 	long lastScanTime;
 
 	// TODO configurable scan interval?
@@ -222,6 +226,9 @@ class Watcher implements Runnable {
 					if (f.isDirectory()) {
 						determineChangesSince(f, lastScanTime);
 					} else {
+						if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+							log.info("file change observed: "+f);
+						}
 						listener.fileChanged(f);
 					}
 				}

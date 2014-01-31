@@ -16,7 +16,10 @@
 package org.springsource.loaded;
 
 import java.io.BufferedInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -731,7 +734,7 @@ public class Utils implements Opcodes, Constants {
 	 * @param dottedclassname the dot separated classname without .class suffix
 	 * @return the byte data defining that class
 	 */
-	public static byte[] loadClassAsBytes(ClassLoader loader, String dottedclassname) {
+	public static byte[] loadDottedClassAsBytes(ClassLoader loader, String dottedclassname) {
 		if (GlobalConfiguration.assertsOn) {
 			if (dottedclassname.endsWith(".class")) {
 				throw new IllegalStateException(".class suffixed name should not be passed:" + dottedclassname);
@@ -755,7 +758,7 @@ public class Utils implements Opcodes, Constants {
 	 * @param slashedclassname the dot separated classname without .class suffix
 	 * @return the byte data defining that class
 	 */
-	public static byte[] loadClassAsBytes2(ClassLoader loader, String slashedclassname) {
+	public static byte[] loadSlashedClassAsBytes(ClassLoader loader, String slashedclassname) {
 		if (GlobalConfiguration.assertsOn) {
 			if (slashedclassname.endsWith(".class")) {
 				throw new IllegalStateException(".class suffixed name should not be passed:" + slashedclassname);
@@ -769,6 +772,29 @@ public class Utils implements Opcodes, Constants {
 			throw new UnableToLoadClassException(slashedclassname);
 		}
 		return Utils.loadBytesFromStream(is);
+	}
+	
+	public static byte[] load(File file) {
+		try {
+			FileInputStream fis = new FileInputStream(file);
+			byte[] data = loadBytesFromStream(fis);
+			fis.close();
+			return data;
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static void write(File file, byte[] data) {
+		try {
+			FileOutputStream fos = new FileOutputStream(file);
+			DataOutputStream dos = new DataOutputStream(fos);
+			dos.write(data);
+			dos.close();
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
+		}		
 	}
 
 	/**

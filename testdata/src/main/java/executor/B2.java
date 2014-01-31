@@ -1,7 +1,7 @@
 package executor;
 
 
-@SuppressWarnings("unused")
+
 public class B2 {
 
 	// annotation removed

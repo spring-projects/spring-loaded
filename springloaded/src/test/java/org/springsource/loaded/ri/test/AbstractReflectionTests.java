@@ -20,7 +20,6 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.InvocationTargetException;
 
 import org.junit.Assert;
-import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.MethodInvokerRewriter;
 import org.springsource.loaded.ReloadException;
 import org.springsource.loaded.ReloadableType;

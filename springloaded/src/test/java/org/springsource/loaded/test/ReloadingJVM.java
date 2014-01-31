@@ -20,48 +20,99 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.StringTokenizer;
 
+import org.springsource.loaded.Utils;
+
+/**
+ * Launches a separate JVM that has the agent attached. This JVM is running the class ReloadingJVMCommandProcess and
+ * can be told to run commands like 'load a class' or 'execute a method'. The aim is this is very similar to testing
+ * a real environment where the agent is attached to a process.
+ *
+ * @author Andy Clement
+ */
 public class ReloadingJVM {
 
-	public final static String agentJarLocation = "../org.springsource.loaded/springloaded-1.0.0.jar";
+	public static String agentJarLocation = null;
 	String javaclasspath;
+	File testdataDirectory;
 	Process process;
 	DataInputStream reader;
 	DataOutputStream writer;
 	DataInputStream readerErrors;
 
-	private ReloadingJVM() {
+	static String search(File where) {
+		File[] fs = where.listFiles();
+		if (fs!=null) {
+			for (File f: fs) {
+				if (f.isDirectory()) {
+					String s = search(f);
+					if (s!=null) {
+						return s;
+					}
+				}
+				else if (f.getName().startsWith("springloaded") && f.getName().endsWith(".jar") && !f.getName().contains("sources")) {
+					return f.getAbsolutePath();
+				}
+			}
+		}
+		return null;
+	}
+	
+	static {
+		// Find the agent
+		File searchLocation = new File("..");
+		agentJarLocation = search(searchLocation);
+	}
+	
+	private ReloadingJVM(String agentOptions) {
 		try {
 			javaclasspath = System.getProperty("java.class.path");
-			javaclasspath = javaclasspath + File.pathSeparator + TestUtils.getPathToClasses("../testdata");
+			
+			// Create a temporary folder where we can load/replace class files for the file watcher to observe
+			testdataDirectory = File.createTempFile("_sl","");
+			testdataDirectory.delete();
+			testdataDirectory.mkdir();
+			if (DEBUG_CLIENT_SIDE) {
+				System.out.println("Found agent at "+agentJarLocation);
+				System.out.println("(client) Test data directory is "+testdataDirectory);
+			}
+			javaclasspath = javaclasspath + File.pathSeparator + testdataDirectory.toString();
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) Classpath for JVM that is being launched: " + javaclasspath);
 			}
-			String OPTS = "JVMOPTS=\"-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=4000,server=y,suspend=y\"";
+			String OPTS = "";//"-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=4000,server=y,suspend=y";
+			String AGENT_OPTION_STRING = "";
+			if (agentOptions!=null && agentOptions.length()>0) {
+				AGENT_OPTION_STRING = "-Dspringloaded="+agentOptions;
+			}
 			process = Runtime.getRuntime().exec(
-					"java -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " "
+					"java -noverify -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " " + AGENT_OPTION_STRING +
+					" "+OPTS+" "
 							+ ReloadingJVMCommandProcess.class.getName(), new String[] { OPTS });
-			// "java -javaagent:../org.springsource.loaded/target/classes -cp " + jcp + " " + TestController.class.getName());
 			writer = new DataOutputStream(process.getOutputStream());
 			reader = new DataInputStream(process.getInputStream());
 			readerErrors = new DataInputStream(process.getErrorStream());
-			System.out.println(waitFor("ReloadingJVM:started"));
+			JVMOutput text = waitFor("ReloadingJVM:started");
+			if (DEBUG_CLIENT_SIDE) {
+				System.out.println(text);
+			}
 		} catch (IOException ioe) {
 			throw new RuntimeException("Unable to launch JVM", ioe);
 		}
 	}
 
-	public static ReloadingJVM launch() {
-		return new ReloadingJVM();
+	public static ReloadingJVM launch(String options) {
+		return new ReloadingJVM(options);
 	}
 
-	private Output waitFor(String message) {
+	private JVMOutput waitFor(String message) {
 		return captureOutput(message);
 	}
 
 	private final static boolean DEBUG_CLIENT_SIDE = true;
 
-	private Output sendAndReceive(String message) {
+	private JVMOutput sendAndReceive(String message) {
 		try {
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) >> sending command '" + message + "'");
@@ -74,23 +125,23 @@ public class ReloadingJVM {
 		return captureOutput("!!");
 	}
 
-	static class Output {
+	static class JVMOutput {
 		public final String stdout;
 		public final String stderr;
 
-		Output(String stdout, String stderr) {
+		JVMOutput(String stdout, String stderr) {
 			this.stdout = stdout;
 			this.stderr = stderr;
 		}
 
 		public String toString() {
 			StringBuilder s = new StringBuilder("==STDOUT==\n").append(stdout).append("\n").append("==STDERR==\n").append(stderr)
-					.append("\n");
+					.append("\n==========\n");
 			return s.toString();
 		}
 	}
 
-	private Output captureOutput(String terminationString) {
+	private JVMOutput captureOutput(String terminationString) {
 		try {
 			long time = System.currentTimeMillis();
 			int timeout = 1000; // 1s timeout
@@ -116,7 +167,7 @@ public class ReloadingJVM {
 				System.out.println("(client) >> received  \n== STDOUT ==\n" + stdout + "\n== STDERR==\n" + stderr);
 			}
 			// append system error
-			return new Output(stdout, stderr);
+			return new JVMOutput(stdout, stderr);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
@@ -125,30 +176,69 @@ public class ReloadingJVM {
 
 	public void shutdown() {
 		System.out.println(sendAndReceive("exit"));
+		deleteIt(testdataDirectory);
 		process.destroy();
 	}
+	
+	/**
+	 * Recursively delete a file (emptying sub-directories if necessary)
+	 */
+	private void deleteIt(File f) {
+		if (f.isDirectory()) {
+			File[] files = f.listFiles();
+			for (File file: files) {
+				deleteIt(file);
+			}
+//			System.out.println("Deleting "+f);
+			f.delete();
+		} else {
+//			System.out.println("Deleting "+f);
+			f.delete();
+		}
+	}
 
-	public Output echo(String string) {
+	public JVMOutput echo(String string) {
 		return sendAndReceive("echo " + string);
 	}
 
 	/**
-	 * Call the static run() method on the specified class.
+	 * Call the static main() method on the specified class.
 	 */
-	public Output run(String classname) {
+	public JVMOutput run(String classname) {
+		copyToTestdataDirectory(classname);
 		return sendAndReceive("run " + classname);
 	}
 
-	public Output newInstance(String instanceName, String classname) {
-		return sendAndReceive("new " + instanceName + " " + classname);
+	public void copyToTestdataDirectory(String classname) {
+		if (DEBUG_CLIENT_SIDE) {
+			System.out.println("(client) copying class to test data directory: "+classname);
+		}
+		String classfile = classname.replaceAll("\\.",File.separator)+".class";
+		File f = new File("../testdata/bin",classfile);
+		byte[] data = Utils.load(f);
+		// Ensure directories exist
+		int dotPos = classname.lastIndexOf(".");
+		if (dotPos!=-1) {
+			new File(testdataDirectory,classname.substring(0,dotPos).replaceAll("\\.",File.separator)).mkdirs();
+		}
+		Utils.write(new File(testdataDirectory,classfile),data);
 	}
 
-	public Output call(String instanceName, String methodname) {
+	public JVMOutput newInstance(String instanceName, String classname) {
+		copyToTestdataDirectory(classname);
+		return sendAndReceive("new " + instanceName + " " + classname);
+	}
+	
+	public JVMOutput reload(String dottedClassname) {
+		return sendAndReceive("reload "+dottedClassname);
+	}
+
+	public JVMOutput call(String instanceName, String methodname) {
 		return sendAndReceive("call " + instanceName + " " + methodname);
 	}
 
 	public void reload(String classname, byte[] newBytes) {
-		Output output = sendAndReceive("reload " + classname + " " + toHexString(newBytes));
+		JVMOutput output = sendAndReceive("reload " + classname + " " + toHexString(newBytes));
 		// assert it is ok
 	}
 
@@ -159,6 +249,11 @@ public class ReloadingJVM {
 			s.append(Integer.toHexString(bs[i] & 0xf));
 		}
 		return s.toString();
+	}
+
+	public void updateClass(String string, byte[] newdata) {
+		String classfile = string.replaceAll("\\.",File.separator)+".class";
+		Utils.write(new File(testdataDirectory,classfile),newdata);
 	}
 
 }

@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
-@SuppressWarnings({ "unchecked" })
 public class FieldInvoker {
 
 	public static boolean callEquals(Field thiz, Object a0) {

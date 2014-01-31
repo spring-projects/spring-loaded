@@ -44,7 +44,8 @@ public abstract class TypeDescriptorMethodProvider extends MethodProvider {
 		MethodMember[] methods = typeDescriptor.getMethods();
 		List<Invoker> invokers = new ArrayList<Invoker>();
 		for (MethodMember method : methods) {
-			if (((MethodMember.BIT_CATCHER | MethodMember.WAS_DELETED) & method.bits) == 0) {
+			// TODO [perf] create constant for this check?
+			if (((MethodMember.BIT_CATCHER | MethodMember.BIT_SUPERDISPATCHER | MethodMember.WAS_DELETED) & method.bits) == 0) {
 				invokers.add(invokerFor(method));
 			}
 		}

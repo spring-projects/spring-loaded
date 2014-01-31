@@ -17,11 +17,11 @@ package org.springsource.loaded.test;
 
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 import org.springsource.loaded.ClassRenamer;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeDescriptor;
 import org.springsource.loaded.TypeRegistry;
-
 
 /**
  * Checking the computation of catchers.
@@ -66,7 +66,7 @@ public class CatcherTests extends SpringLoadedTests {
 
 		reload(rtype, "2");
 	}
-
+	
 	/**
 	 * Exercising the two codepaths for a catcher. The first 'run' will run the super version. The second 'run' will dispatch to our
 	 * new implementation.

@@ -42,7 +42,8 @@ public class GroovyBenchmarkTests extends SpringLoadedTests {
 		TypeRegistry r = getTypeRegistry(t + "," + target);
 
 		ReloadableType rtype = r.addType(t, loadBytesForClass(t));
-		ReloadableType rtypeTarget = r.addType(target, loadBytesForClass(target));
+//		ReloadableType rtypeTarget = 
+		r.addType(target, loadBytesForClass(target));
 
 		//		result = runUnguarded(rtype.getClazz(), "run");
 		//		System.out.println(result.returnValue + "ms");

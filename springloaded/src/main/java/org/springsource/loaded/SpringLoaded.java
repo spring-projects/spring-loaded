@@ -18,9 +18,6 @@ package org.springsource.loaded;
 /**
  * API for directly interacting with SpringLoaded.
  * 
- * <p>
- * tag: API
- * 
  * @author Andy Clement
  * @since 0.8.0
  */
@@ -30,12 +27,12 @@ public class SpringLoaded {
 	 * Force a reload of an existing type.
 	 * 
 	 * @param clazz the class to be reloaded
-	 * @param newbytedata the data bytecode data to reload as the new version
+	 * @param newbytes the data bytecode data to reload as the new version
 	 * @return int return code: 0 is success. 1 is unknown classloader, 2 is unknown type (possibly not yet loaded). 3 is reload
 	 *         event failed. 4 is exception occurred.
 	 */
-	public static int loadNewVersionOfType(Class<?> clazz, byte[] newbytedata) {
-		return loadNewVersionOfType(clazz.getClassLoader(), clazz.getName(), newbytedata);
+	public static int loadNewVersionOfType(Class<?> clazz, byte[] newbytes) {
+		return loadNewVersionOfType(clazz.getClassLoader(), clazz.getName(), newbytes);
 	}
 
 	/**
@@ -43,11 +40,11 @@ public class SpringLoaded {
 	 * 
 	 * @param classLoader the classloader that was used to load the original form of the type
 	 * @param dottedClassname the dotted name of the type being reloaded, e.g. com.foo.Bar
-	 * @param newbytedata the data bytecode data to reload as the new version
+	 * @param newbytes the data bytecode data to reload as the new version
 	 * @return int return code: 0 is success. 1 is unknown classloader, 2 is unknown type (possibly not yet loaded). 3 is reload
 	 *         event failed. 4 is exception occurred.
 	 */
-	public static int loadNewVersionOfType(ClassLoader classLoader, String dottedClassname, byte[] newbytedata) {
+	public static int loadNewVersionOfType(ClassLoader classLoader, String dottedClassname, byte[] newbytes) {
 		try {
 			// Obtain the type registry of interest
 			TypeRegistry typeRegistry = TypeRegistry.getTypeRegistryFor(classLoader);
@@ -61,7 +58,7 @@ public class SpringLoaded {
 			}
 			// Create a unique version tag for this reload attempt
 			String tag = Utils.encode(System.currentTimeMillis());
-			boolean reloaded = reloadableType.loadNewVersion(tag, newbytedata);
+			boolean reloaded = reloadableType.loadNewVersion(tag, newbytes);
 			return reloaded ? 0 : 3;
 		} catch (Exception e) {
 			e.printStackTrace();

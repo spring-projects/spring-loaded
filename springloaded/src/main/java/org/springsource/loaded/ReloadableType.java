@@ -41,9 +41,8 @@ import org.springsource.loaded.infra.UsedByGeneratedCode;
 import org.springsource.loaded.ri.Invoker;
 import org.springsource.loaded.ri.JavaMethodCache;
 
-
 /**
- * Represents a type that is reloadable.
+ * Represents a type that has been processed such that it can be reloaded at runtime.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -51,7 +50,9 @@ import org.springsource.loaded.ri.JavaMethodCache;
 public class ReloadableType {
 
 	// TODO when a field is shadowed or renamed and the old one never accessed again, it may be holding onto something and prevent it from GC.
-	// Thinking about a solution that involves a tag in the FieldAccessor object so that we can check whether a 'repair' is needed on a field accessor (because the type has been reloaded and the map in the accessor hasnt been repaired yet)
+	// Thinking about a solution that involves a tag in the FieldAccessor object so that we can 
+	// check whether a 'repair' is needed on a field accessor (because the type has been reloaded and 
+	// the map in the accessor hasnt been repaired yet)
 	private static Logger log = Logger.getLogger(ReloadableType.class.getName());
 
 	/** The registry maintaining this reloadable type */
@@ -142,6 +143,9 @@ public class ReloadableType {
 			Utils.assertDotted(dottedtypename);
 		}
 		this.id = id;
+		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+			log.info("New reloadable type: "+dottedtypename+ " (allocatedId="+id+") "+typeRegistry.toString());
+		}
 		this.typeRegistry = typeRegistry;
 		this.dottedtypename = dottedtypename;
 		this.slashedtypename = dottedtypename.replace('.', '/');
@@ -269,12 +273,9 @@ public class ReloadableType {
 	 */
 	public boolean loadNewVersion(String versionsuffix, byte[] newbytedata) {
 		javaMethodCache = null;
-		//		int size = newbytedata.length;
-		//		InputStream is = typeRegistry.getClassLoader().getResourceAsStream(this.slashedtypename + ".class");
-		//		byte[] bs = Utils.loadFromStream(is);
-		//
-		//		System.out.println(">> loadNewVersion " + versionsuffix + "   bytesin=" + size
-		//				+ " bytesdiscovered through getResourceAsStream" + bs.length);
+		if (log.isLoggable(Level.INFO)) {
+			log.info("Loading new version of "+slashedtypename+", identifying suffix "+versionsuffix+", new data length is "+newbytedata.length+"bytes");
+		}
 
 		// If we find our parent classloader has a weavingTransformer
 		newbytedata = retransform(newbytedata);
@@ -1023,7 +1024,8 @@ public class ReloadableType {
 				// Did the type originally define it:
 				MethodMember[] mms = rtype.getTypeDescriptor().getMethods();
 				for (MethodMember mm : mms) {
-					if (mm.getNameAndDescriptor().equals(nameAndDescriptor) && !MethodMember.isCatcher(mm)) {
+					// TODO don't need superdispatcher check, name won't match will it...
+					if (mm.getNameAndDescriptor().equals(nameAndDescriptor) && !MethodMember.isCatcher(mm) && !MethodMember.isSuperDispatcher(mm)) {
 						// the original version does implement it
 						found = true;
 						break;

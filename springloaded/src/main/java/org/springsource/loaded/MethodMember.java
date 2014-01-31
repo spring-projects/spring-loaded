@@ -36,9 +36,9 @@ public class MethodMember extends AbstractMember {
 	// computed up front:
 	public final static int BIT_CATCHER = 0x001;
 	public final static int BIT_CLASH = 0x0002;
-
 	// identifies a catcher method placed into an abstract class (where a method from a super interface hasn't been implemented)
 	public final static int BIT_CATCHER_INTERFACE = 0x004;
+	public final static int BIT_SUPERDISPATCHER = 0x0008;
 
 	// computed on incremental members to indicate what changed:
 	public final static int MADE_STATIC = 0x0010;
@@ -170,6 +170,26 @@ public class MethodMember extends AbstractMember {
 		copy.bits |= MethodMember.BIT_CATCHER;
 		return copy;
 	}
+	
+	public MethodMember superDispatcherFor() {
+		int newModifiers = modifiers & ~Modifier.NATIVE;
+		if (name.equals("clone") && (modifiers & Modifier.NATIVE) != 0) {
+			newModifiers = Modifier.PUBLIC;
+		} else if ((modifiers & Modifier.PROTECTED) != 0) {
+			// promote to public
+			// The reason for this is that the executor may try and call these things and as it is not in the hierarchy
+			// it cannot. The necessary knock on effect is that subtypes get their methods promoted to public too...
+			newModifiers = Modifier.PUBLIC;
+		} else if ((modifiers & Constants.ACC_PUBLIC_PRIVATE_PROTECTED) == 0) {
+			// promote to public from default
+			// The reason for this is that the executor may try and call these things and as it is not in the hierarchy
+			// it cannot. The necessary knock on effect is that subtypes get their methods promoted to public too...
+			newModifiers = Modifier.PUBLIC;
+		}
+		MethodMember copy = new MethodMember(newModifiers, name+"_$superdispatcher$", descriptor, signature, exceptions);
+		copy.bits |= MethodMember.BIT_SUPERDISPATCHER;
+		return copy;
+	}
 
 	public MethodMember catcherCopyOfWithAbstractRemoved() {
 		int newModifiers = modifiers & ~(Modifier.NATIVE | Modifier.ABSTRACT);
@@ -221,6 +241,10 @@ public class MethodMember extends AbstractMember {
 	public static boolean isClash(MethodMember method) {
 		return (method.bits & MethodMember.BIT_CLASH) != 0;
 	}
+	
+	public static boolean isSuperDispatcher(MethodMember method) {
+		return (method.bits & BIT_SUPERDISPATCHER) != 0;
+	}
 
 	public static boolean isCatcher(MethodMember method) {
 		return (method.bits & BIT_CATCHER) != 0;
@@ -241,6 +265,9 @@ public class MethodMember extends AbstractMember {
 		}
 		if ((bits & BIT_CLASH) != 0) {
 			s.append("clash ");
+		}
+		if ((bits & BIT_SUPERDISPATCHER) != 0) {
+			s.append("superdispatcher ");
 		}
 		if ((bits & MADE_STATIC) != 0) {
 			s.append("made_static ");

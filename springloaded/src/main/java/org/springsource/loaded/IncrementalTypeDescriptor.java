@@ -120,6 +120,12 @@ public class IncrementalTypeDescriptor implements Constants {
 					latest.bits |= MethodMember.IS_NEW;
 					newOrChangedMethods.add(latest);
 				}
+				// TODO [perf] not convinced this can occur? Think it through
+				if (MethodMember.isSuperDispatcher(original) && !MethodMember.isSuperDispatcher(latest)) {
+					latest.bits |= MethodMember.IS_NEW;
+					newOrChangedMethods.add(latest);
+				}
+				
 				// If it now is a catcher where it didn't used to be, it has been deleted
 				if (MethodMember.isCatcher(latest) && !MethodMember.isCatcher(original)) {
 					latest.bits |= MethodMember.WAS_DELETED;

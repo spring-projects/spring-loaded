@@ -164,7 +164,7 @@ public class DispatcherBuilder {
 			}
 
 			for (MethodMember method : methods) {
-				if (MethodMember.isCatcher(method)) { // for reason above, may also need to consider catchers here - what if an interface is changed to add a toString() method, for example
+				if (MethodMember.isCatcher(method) || MethodMember.isSuperDispatcher(method)) { // for reason above, may also need to consider catchers here - what if an interface is changed to add a toString() method, for example
 					continue;
 					// would the implementation for a catcher call the super catcher?
 				}

@@ -45,7 +45,7 @@ public class TestInfrastructureTests extends SpringLoadedTests {
 	@Test
 	public void loading() {
 		TestClassLoader tcl = new TestClassLoader(toURLs(TestDataPath), this.getClass().getClassLoader());
-		byte[] classdata = Utils.loadClassAsBytes(tcl, "data.SimpleClass");
+		byte[] classdata = Utils.loadDottedClassAsBytes(tcl, "data.SimpleClass");
 		Assert.assertNotNull(classdata);
 		Assert.assertEquals(394, classdata.length);
 	}

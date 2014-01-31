@@ -1389,12 +1389,11 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		string = (String) method.invoke(object);
 		assertEquals("", string);
 
-		// load new version of x with a method in it  'String foo()' that returns "X002.foo"
+		// load new version of X with a method in it: String foo() { return "X002.foo" }
 		x.loadNewVersion("002", retrieveRename("invokespecial.X", "invokespecial.X002"));
 
 		// no difference, no-one is calling foo()!
-		string = (String) method.invoke(object);
-		assertEquals("", string);
+		assertEquals("", method.invoke(object));
 
 		// load new version of Z, this will be calling super.foo() and be accessing the one in X002. Y002 is no different
 		z.loadNewVersion(
@@ -1405,19 +1404,16 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		// run() now calls 'super.foo()' so should return "X002.foo"
 		string = (String) method.invoke(object);
 		assertEquals("X002.foo", string);
-		//		ClassPrinter.print(z.getLatestExecutorBytes());
+
 		// Now reload Y, should make no difference.  Y002 is no different
 		y.loadNewVersion("002", retrieveRename("invokespecial.Y", "invokespecial.Y002", "invokespecial.X002:invokespecial.X"));
-
-		string = (String) method.invoke(object);
-		assertEquals("X002.foo", string);
+		assertEquals("X002.foo", method.invoke(object));
+		
 		// I see it is Ys dispatcher that isn't dispatching to the X.foo() method
 
 		// Now reload Y, Y003 does provide an implementation
 		y.loadNewVersion("003", retrieveRename("invokespecial.Y", "invokespecial.Y003", "invokespecial.X002:invokespecial.X"));
-
-		string = (String) method.invoke(object);
-		assertEquals("Y003.foo", string);
+		assertEquals("Y003.foo", method.invoke(object));
 
 		// Now remove it from Y
 		y.loadNewVersion("004", retrieveRename("invokespecial.Y", "invokespecial.Y"));

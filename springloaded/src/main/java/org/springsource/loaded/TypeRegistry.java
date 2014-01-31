@@ -58,15 +58,15 @@ import org.springsource.loaded.infra.UsedByGeneratedCode;
  * @since 0.5.0
  */
 public class TypeRegistry {
-
-	public static boolean nothingReloaded = true;
-
-	private static Logger log = Logger.getLogger(TypeRegistry.class.getName());
-
 	/**
 	 * Types in these packages are not reloadable by default ('inclusions' must be specified to override this default).
 	 */
 	private final static String[][] ignorablePackagePrefixes;
+
+	private static Logger log = Logger.getLogger(TypeRegistry.class.getName());
+
+	// The first time something gets reloaded this is flipped
+	public static boolean nothingReloaded = true;
 
 	static {
 		ignorablePackagePrefixes = new String[26][];
@@ -80,6 +80,7 @@ public class TypeRegistry {
 	}
 
 	// @formatter:off
+	// These classloaders do not get a type registry (do not load reloadable types!)
 	private final static String[] STANDARD_EXCLUDED_LOADERS = new String[] {
 		// TODO DIFF rules for excluding this loader? is it necessary to usually exclude under tcserver?
 		// sun.misc.Launcher$AppClassLoader
@@ -109,9 +110,8 @@ public class TypeRegistry {
 	private int maxClassDefinitions;
 
 	/**
-	 * Map from a classloader to the type registry created to process reloadable types loaded by it.
-	 * 
-	 * <p>
+	 * Map from each classloader to the type registry responsible for that loader.
+	 * <p><b>Note:</b>
 	 * Notice that this is a WeakHashMap - the keys are 'weak'. That means a reference in the map doesn't prevent GC of the
 	 * ClassLoader. Once the ClassLoader is gone we don't need that TypeRegistry any more. It isn't WeakReference<TypeRegistry>
 	 * because we do need those things around whilst the ClassLoader is around. Although there is a reference from a ReloadableType
@@ -130,6 +130,7 @@ public class TypeRegistry {
 	private Map<String, String> rebasePaths = new HashMap<String, String>();
 
 	private List<String> pluginClassNames = new ArrayList<String>();
+	
 	List<Plugin> localPlugins = new ArrayList<Plugin>();
 
 	/**
@@ -183,7 +184,7 @@ public class TypeRegistry {
 	 * Create a TypeRegistry for a specified classloader. On creation an id number is allocated for the registry which can then be
 	 * used as shorthand reference to the registry in rewritten code. A sub-classloader is created to handle loading generated
 	 * artifacts - by using a child classloader it can be discarded after a number of reloadings have occurred to recover memory.
-	 * This constructor is only used by the factory method getTypeRegistryFor.
+	 * This constructor is only used by the factory method getTypeRegistryFor().
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private TypeRegistry(ClassLoader classloader) {
@@ -296,15 +297,16 @@ public class TypeRegistry {
 		if (cached != null) {
 			return cached;
 		}
+		
+		// TODO cheaper/faster to go up the typeregistry hierarchy?
 
 		// This will not work for a generated class, what should we do in that case?
-		byte[] data = Utils.loadClassAsBytes2(classLoader.get(), slashedname);
+		byte[] data = Utils.loadSlashedClassAsBytes(classLoader.get(), slashedname);
 		// As the caller did not say, we need to work it out:
 		boolean isReloadableType = isReloadableTypeName(slashedname);
 		TypeDescriptor td = extractor.extract(data, isReloadableType);
 		if (isReloadableType) {
-			if (!slashedname.endsWith("Top"))
-				reloadableTypeDescriptorCache.put(slashedname, td);
+			reloadableTypeDescriptorCache.put(slashedname, td);
 		} else {
 			typeDescriptorCache.put(slashedname, td);
 		}
@@ -316,7 +318,7 @@ public class TypeRegistry {
 		if (cached != null) {
 			return cached;
 		}
-		byte[] data = Utils.loadClassAsBytes2(classLoader.get(), slashedname);
+		byte[] data = Utils.loadSlashedClassAsBytes(classLoader.get(), slashedname);
 		// As the caller did not say, we need to work it out:
 		boolean isReloadableType = isReloadableTypeName(slashedname);
 		TypeDescriptor td = extractor.extract(data, isReloadableType);
@@ -574,6 +576,9 @@ public class TypeRegistry {
 			if (candidates != null) {
 				for (String ignorablePackagePrefix : candidates) {
 					if (slashedName.startsWith(ignorablePackagePrefix)) {
+						if (GlobalConfiguration.explainMode && log.isLoggable(Level.INFO)) {
+							log.info("WhyNotReloadable? The type "+slashedName+" is using a package name '"+ignorablePackagePrefix+"' which is considered infrastructure and types within it are not made reloadable");
+						}
 						return false;
 					}
 				}
@@ -664,14 +669,17 @@ public class TypeRegistry {
 	 * @return true if the type is reloadable, false otherwise
 	 */
 	public boolean isReloadableTypeName(String slashedName, ProtectionDomain protectionDomain, byte[] bytes) {
-		//		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINEST)) {
-		//			log.log(Level.FINEST, "> isReloadableTypeName(" + slashedName + ")");
-		//		}
+		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINER)) {
+			log.finer("entering TypeRegistry.isReloadableTypeName(" + slashedName + ")");
+		}
 		if (GlobalConfiguration.assertsOn) {
 			Utils.assertSlashed(slashedName);
 		}
 		if (GlobalConfiguration.isProfiling) {
 			if (slashedName.startsWith("com/yourkit")) {
+				if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
+					log.finer("[explanation] The type "+slashedName+" is considered part of yourkit and is not being made reloadable");
+				}
 				return false;
 			}
 		}
@@ -698,8 +706,14 @@ public class TypeRegistry {
 		for (IsReloadableTypePlugin plugin : SpringLoadedPreProcessor.getIsReloadableTypePlugins()) {
 			ReloadDecision decision = plugin.shouldBeMadeReloadable(this,slashedName, protectionDomain, bytes);
 			if (decision == ReloadDecision.YES) { 
+				if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
+					log.finer("[explanation] The plugin "+plugin.getClass().getName()+" determined type "+slashedName+" is reloadable");
+				}
 				return true;
 			} else if (decision == ReloadDecision.NO) {
+				if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
+					log.finer("[explanation] The plugin "+plugin.getClass().getName()+" determined type "+slashedName+" is not reloadable");
+				}
 				return false;
 			}
 		}
@@ -708,8 +722,14 @@ public class TypeRegistry {
 			// No inclusions, so unless it matches an exclusion, it will be included
 			if (exclusionPatterns.isEmpty()) {
 				if (couldBeReloadable(slashedName)) {
+					if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
+						log.finer("[explanation] The class "+slashedName+" is currently considered reloadable. It matches no exclusions, is accessible from this classloader and is not in a jar/zip.");
+					}
 					return true;
 				} else {
+					if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
+						log.finer("[explanation] The class "+slashedName+" is not going to be treated as reloadable.");
+					}
 					return false;
 				}
 			} else {
@@ -1146,7 +1166,7 @@ public class TypeRegistry {
 						}
 						// ignore catchers because the dynamic __execute method wont have an implementation of them, we should
 						// just keep looking for the real thing
-						if (method != null && MethodMember.isCatcher(method)) {
+						if (method != null && (MethodMember.isCatcher(method) || MethodMember.isSuperDispatcher(method))) {
 							method = null;
 						}
 					} else {
@@ -1204,7 +1224,7 @@ public class TypeRegistry {
 				}
 				// ignore catchers because the dynamic __execute method wont have an implementation of them, we should
 				// just keep looking for the real thing
-				if (m != null && MethodMember.isCatcher(m)) {
+				if (m != null && (MethodMember.isCatcher(m) || MethodMember.isSuperDispatcher(m))) {
 					m = null;
 				}
 			} else {
@@ -1526,8 +1546,8 @@ public class TypeRegistry {
 	 */
 	@UsedByGeneratedCode
 	public static ReloadableType getReloadableType(int typeRegistryId, int typeId) {
-		if (GlobalConfiguration.logging && log.isLoggable(Level.INFO)) {
-			log.info("> TypeRegistry.getReloadableType(" + typeRegistryId + "," + typeId + ")");
+		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+			log.info(">TypeRegistry.getReloadableType(typeRegistryId=" + typeRegistryId + ",typeId=" + typeId + ")");
 		}
 		TypeRegistry typeRegistry = registryInstances[typeRegistryId].get();
 		if (typeRegistry == null) {
@@ -1536,20 +1556,21 @@ public class TypeRegistry {
 		}
 		ReloadableType reloadableType = typeRegistry.getReloadableType(typeId);
 		if (reloadableType == null) {
-			throw new IllegalStateException("Type registry does not know about type id " + typeId);
+			throw new IllegalStateException("The type registry "+typeRegistry+" does not know about type id " + typeId);
 		}
 		reloadableType.setResolved();
-		if (GlobalConfiguration.logging && log.isLoggable(Level.INFO)) {
-			log.info("< TypeRegistry.getReloadableType(" + typeRegistryId + "," + typeId + ") returning " + reloadableType);
+		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+			log.info("<TypeRegistry.getReloadableType(typeRegistryId=" + typeRegistryId + ",typeId=" + typeId + ") returning " + reloadableType);
 		}
 		return reloadableType;
 	}
 
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		s.append("TypeReg id=");
+		s.append("TypeRegistry(id=");
 		s.append(System.identityHashCode(this));
-		s.append(" loader=" + classLoader.get().getClass().getName());
+		s.append(",loader=" + classLoader.get().getClass().getName());
+		s.append(")");
 		return s.toString();
 	}
 

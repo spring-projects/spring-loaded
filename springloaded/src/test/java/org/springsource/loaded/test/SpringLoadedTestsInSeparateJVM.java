@@ -17,77 +17,121 @@ package org.springsource.loaded.test;
 
 import static org.junit.Assert.fail;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.springsource.loaded.test.ReloadingJVM.Output;
+import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
 
-
+/**
+ * These tests use a harness that forks a JVM with the agent attached, closely simulating a real environment. The
+ * forked process is running a special class that can be sent commands.
+ * 
+ * @author Andy Clement
+ */
 public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 
-	ReloadingJVM jvm;
+	private static ReloadingJVM jvm;
 
-	@Before
-	public void setup() throws Exception {
-		super.setup();
-		jvm = ReloadingJVM.launch();
+	@BeforeClass
+	public static void startJVM() throws Exception {
+//		jvm = ReloadingJVM.launch("verbose;explain");
+		jvm = ReloadingJVM.launch("");
 	}
 
-	@After
-	public void teardown() {
+	@AfterClass
+	public static void stopJVM() {
 		jvm.shutdown();
 	}
 
-	@Ignore // unfinished
-	// Launch a vm and get it to run something!
 	@Test
 	public void testEcho() throws Exception {
-		Output result = jvm.echo("hello");
+		JVMOutput result = jvm.echo("hello");
 		assertStdout("hello", result);
 	}
 
-	@Ignore // unfinished
 	@Test
 	public void testRunClass() throws Exception {
-		assertStdout("jvmtwo.Runner.run() running", jvm.run("jvmtwo.Runner"));
+		JVMOutput output = jvm.run("jvmtwo.Runner");
+		assertStdout("jvmtwo.Runner.run() running", output);
 	}
 
-	@Ignore // unfinished
 	@Test
 	public void testCreatingAndInvokingMethodsOnInstance() throws Exception {
 		assertStderrContains("creating new instance 'a' of type 'jvmtwo.Runner'", jvm.newInstance("a", "jvmtwo.Runner"));
 		assertStdout("jvmtwo.Runner.run1() running", jvm.call("a", "run1"));
 	}
 
-	//	@Test
-	//	public void testReloadingInOtherVM() throws Exception {
-	//		jvm.newInstance("a", "remote.One");
-	//		assertStdout("first load", jvm.call("a", "run"));
-	//		try {
-	//			Thread.sleep(20000);
-	//		} catch (Exception e) {
-	//		}
-	//
-	//		// Need to load a new version into that remote JVM !
-	//		// send the bytes of the new version
-	//
-	//		byte[] newbytes = retrieveRename("remote.One", "remote.One2");
-	//		jvm.reload("remote.One", newbytes);
-	//
-	//		assertStdout("second2 load", jvm.call("a", "run"));
-	//	}
+	@Test
+	public void testReloadingInOtherVM() throws Exception {
+		jvm.newInstance("a", "remote.One");
+		assertStdout("first", jvm.call("a", "run"));
+		jvm.updateClass("remote.One",retrieveRename("remote.One","remote.One2"));
+		try {
+			Thread.sleep(2000);
+		} catch (Exception e) {
+		}
+		assertStdoutContains("second", jvm.call("a", "run"));
+	}
+	// TODO tidyup test data area after each test?
+	// TODO flush/replace classloader in forked VM to clear it out after each test?
+	
+	// GRAILS-10411
+	/**
+	 * GRAILS-10411. The supertype is not reloadable, the subtype is reloadable and makes super calls
+	 * to overridden methods.
+	 */
+	@Test
+	public void testClassMakingSuperCalls() throws Exception {
+		String supertype="grails.Top";
+		String subtype="foo.Controller";
+		jvm.copyToTestdataDirectory(supertype); 
+		jvm.copyToTestdataDirectory(subtype);
+		jvm.newInstance("a",subtype);
+		assertStdout("Top.foo() running\nController.foo() running\n", jvm.call("a", "foo"));
+		jvm.updateClass(subtype,retrieveRename(subtype,subtype+"2"));
+		waitForReloadToOccur();
+		assertStdoutContains("Top.foo() running\nController.foo() running again!\n", jvm.call("a", "foo"));
+	}
+	
+	/**
+	 * GRAILS-10411. The supertype is not reloadable, the subtype is reloadable and makes super calls
+	 * to overridden methods. This time the supertype method is protected.
+	 */
+	@Test
+	public void testClassMakingSuperCalls2() throws Exception {
+//		try { Thread.sleep(15000); } catch (Exception e) {}
+		String supertype="grails.TopB";
+		String subtype="foo.ControllerB";
+		jvm.copyToTestdataDirectory(supertype); 
+		jvm.copyToTestdataDirectory(subtype);
+		jvm.newInstance("a",subtype);
+//		try { Thread.sleep(450000); } catch (Exception e) {}
+		assertStdout("TopB.foo() running\nControllerB.foo() running\n", jvm.call("a", "foo"));
+		jvm.updateClass(subtype,retrieveRename(subtype,subtype+"2"));
+		waitForReloadToOccur();
+		assertStdoutContains("TopB.foo() running\nControllerB.foo() running again!\n", jvm.call("a", "foo"));
+	}
 
 	// ---
 
-	private void assertStdout(String expectedStdout, Output actualOutput) {
+	private void waitForReloadToOccur() {
+		try { Thread.sleep(2000); } catch (Exception e) {}
+	}
+
+	private void assertStdout(String expectedStdout, JVMOutput actualOutput) {
 		if (!expectedStdout.equals(actualOutput.stdout)) {
 			//			assertEquals(expectedStdout, actualOutput.stdout);
 			fail("Expected stdout '" + expectedStdout + "' not found in \n" + actualOutput.toString());
 		}
 	}
+	
+	private void assertStdoutContains(String expectedStdout, JVMOutput actualOutput) {
+		if (!actualOutput.stdout.contains(expectedStdout)) {
+			fail("Expected stdout:\n" + expectedStdout + "\nbut was:\n" + actualOutput.stdout.toString()+"\nComplete output: \n"+actualOutput.toString());
+		}
+	}
 
-	private void assertStderrContains(String expectedStderrContains, Output actualOutput) {
+	private void assertStderrContains(String expectedStderrContains, JVMOutput actualOutput) {
 		if (actualOutput.stderr.indexOf(expectedStderrContains) == -1) {
 			fail("Expected stderr to contain '" + expectedStderrContains + "'\n" + actualOutput.toString());
 		}

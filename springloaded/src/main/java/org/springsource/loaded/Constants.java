@@ -150,4 +150,5 @@ public interface Constants extends Opcodes {
 	static final String jlcgms = "__sljlcgms";
 	static final String jlcgmsDescriptor = "(Ljava/lang/Class;)[Ljava/lang/reflect/Method;";
 
+	static final String methodSuffixSuperDispatcher = "_$superdispatcher$";
 }

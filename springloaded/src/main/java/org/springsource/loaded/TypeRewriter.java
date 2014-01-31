@@ -590,7 +590,37 @@ public class TypeRewriter implements Constants {
 			for (FieldMember field : fms) {
 				createProtectedFieldGetterSetter(field);
 			}
+			
 			MethodMember[] methods = typeDescriptor.getMethods();
+
+			for (MethodMember method: methods) {
+				if (!MethodMember.isSuperDispatcher(method)) {
+					continue;
+				}
+				// TODO topmost test?
+				String name = method.getName();
+				String descriptor = method.getDescriptor();
+				if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINEST)) {
+					log.finest("Creating super dispatcher for method "+name+descriptor+" in type "+slashedname);
+				}
+				// Create a superdispatcher for this method
+				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC, method.getName(), method.getDescriptor(), null, method.getExceptions());
+				int ps = Utils.getParameterCount(method.getDescriptor());
+				ReturnType methodReturnType = Utils.getReturnTypeDescriptor(method.getDescriptor());
+				int lvarIndex = 0;
+				mv.visitVarInsn(ALOAD, lvarIndex++); // load this
+				Utils.createLoadsBasedOnDescriptor(mv, descriptor, lvarIndex);
+				String targetMethod = method.getName().substring(0,method.getName().lastIndexOf("_$"));
+				mv.visitMethodInsn(Opcodes.INVOKESPECIAL,typeDescriptor.getSupertypeName(),targetMethod,method.getDescriptor());
+				Utils.addCorrectReturnInstruction(mv, methodReturnType, false);
+				int maxs = ps + 1;
+				if (methodReturnType.isDoubleSlot()) {
+					maxs++;
+				}
+				mv.visitMaxs(maxs, maxs);
+				mv.visitEnd();
+			}
+			
 			for (MethodMember method : methods) {
 				if (!MethodMember.isCatcher(method)) {
 					continue;

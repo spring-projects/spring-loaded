@@ -42,14 +42,13 @@ import org.springsource.loaded.Utils;
 import org.springsource.loaded.SystemClassReflectionRewriter.RewriteResult;
 import org.springsource.loaded.ri.ReflectiveInterceptor;
 
-
 /**
  * The entry point for the agent - all classes that can be modified will be passed into preProcess(). They have to be dealt with in
- * many different ways:
+ * one of these ways:
  * <ul>
- * <li>reloadable types need their bytecode rewriting
- * <li>'framework' types (not loaded by the system classloader) need their reflection rewritten
- * <li>system classes need their reflection rewritten in a slightly different way
+ * <li>reloadable types need their bytecode rewriting so that they can be modified later
+ * <li>'framework' types (not loaded by the system classloader) need their reflection calls rewritten
+ * <li>system classes also need their reflection calls modified but in a different way (they cannot have dependencies on types they cannot see)
  * </ul>
  * 
  * @author Andy Clement
@@ -63,10 +62,6 @@ public class SpringLoadedPreProcessor implements Constants {
 	// Global control to turn off the agent, used when testing
 	public static boolean disabled = false;
 
-	// Once the first reloadabletype is hit, we can start initializing the system class with reflective interceptors.
-	// Doing it early can lead to hangs
-	private static boolean firstReloadableTypeHit = false;
-
 	// These are system classes that contain reflection code and so need instrumenting when encountered.
 	private static List<String> systemClassesContainingReflection;
 
@@ -74,9 +69,13 @@ public class SpringLoadedPreProcessor implements Constants {
 	// to the VM.  This records the list of those that have not yet been initialized.
 	private Map<String, Integer> systemClassesRequiringInitialization = new HashMap<String, Integer>();
 
+	// Once the first reloadabletype is hit, we can start initializing the system classes with reflective interceptors.
+	// Doing it early can lead to hangs
+	private static boolean firstReloadableTypeHit = false;
+
 	public void initialize() {
 		// When spring loaded is running as an agent, it should not be defining types directly (this setting does not apply to
-		// the generated types)
+		// the generated suuport types)
 		GlobalConfiguration.directlyDefineTypes = false;
 		GlobalConfiguration.fileSystemMonitoring = true;
 		systemClassesContainingReflection = new ArrayList<String>();
@@ -98,14 +97,12 @@ public class SpringLoadedPreProcessor implements Constants {
 	 * order to determine whether the type should be made reloadable. Non-reloadable types will at least get their call sites
 	 * rewritten.
 	 * 
-	 * @return modified bytes
+	 * @return potentially modified bytes
 	 */
 	public byte[] preProcess(ClassLoader classLoader, String slashedClassName, ProtectionDomain protectionDomain, byte[] bytes) {
 		if (disabled) {
 			return bytes;
 		}
-		//		System.err.println("> SpringLoadedPreProcessor.preProcess(classLoader=" + classLoader + ",slashedClassName="
-		//				+ slashedClassName + ",...)");
 
 		// TODO need configurable debug here, ability to dump any code before/after
 		for (Plugin plugin : getGlobalPlugins()) {
@@ -120,44 +117,45 @@ public class SpringLoadedPreProcessor implements Constants {
 		tryToEnsureSystemClassesInitialized(slashedClassName);
 
 		TypeRegistry typeRegistry = TypeRegistry.getTypeRegistryFor(classLoader);
-		//		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
-		//			logEntryToPreprocess(classLoader, slashedClassName, typeRegistry);
-		//		}
-		// NULL typeRegistry means we should not be fiddling in what this classLoader is loading
-		// TODO is that true? what about rewriting reflection code outside of the loader doing reloading?
-		if (typeRegistry == null) {
-			if (classLoader == null) {
+		
+		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+			logPreProcess(classLoader, slashedClassName, typeRegistry);
+		}
+
+		if (typeRegistry == null) { // A null type registry indicates nothing is being made reloadable for the classloader
+			if (classLoader == null) { // Indicates loading of a system class
 				if (systemClassesContainingReflection.contains(slashedClassName)) {
 					try {
+						// TODO [perf] why are we not using the cache here, is it because the list is so short?
 						RewriteResult rr = SystemClassReflectionRewriter.rewrite(slashedClassName, bytes);
-						// System.err.println("Type " + slashedClassName + " rewrite summary: " + rr.summarize());
+						if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINER)) {
+							log.finer("System class rewritten: name="+slashedClassName+" rewrite summary="+rr.summarize());
+						}
 						systemClassesRequiringInitialization.put(slashedClassName, rr.bits);
 						return rr.bytes;
 					} catch (Exception re) {
 						re.printStackTrace();
 					}
-
-					// make conditional?
-					//				} else {
-					//					// We should really track whether this type is using reflection...
-					//					if (SystemClassReflectionInvestigator.investigate(slashedClassName, bytes) > 0) {
-					//						RewriteResult rr = SystemClassReflectionRewriter.rewrite(slashedClassName, bytes);
-					//						System.err.println("Type " + slashedClassName + " rewrite summary: " + rr.summarize());
-					//						systemClassesRequiringInitialization.put(slashedClassName, rr.bits);
-					//						return rr.bytes;
-					//					}
+					// This block can help when you suspect there is a system class using reflection and that
+					// class isn't on the 'shortlist' (in systemClassesContainingReflection). Currently we skip
+					// this for performance, we could make it optional baed on a configuration option
+					//	} else {
+					//		// We should really track whether this type is using reflection...
+					//		if (SystemClassReflectionInvestigator.investigate(slashedClassName, bytes) > 0) {
+					//		RewriteResult rr = SystemClassReflectionRewriter.rewrite(slashedClassName, bytes);
+					//		System.err.println("Type " + slashedClassName + " rewrite summary: " + rr.summarize());
+					//		systemClassesRequiringInitialization.put(slashedClassName, rr.bits);
+					//		return rr.bytes;
+					//	}
 				}
-				//			} else if (needsClientSideRewriting(slashedClassName)) {
-				//				bytes = typeRegistry.methodCallRewriteUseCacheIfAvailable(slashedClassName, bytes);
 			}
 			return bytes;
 		}
 
-		// What happens here?
-		// 1. Determine if the type should be made reloadable
-		// 2. If NO, but something in this classloader might be, then rewrite the call sites.
-		// 3. If NO, and nothing in this classloader might be, return the original bytes
-		// 4. If YES, make the type reloadable (including rewriting call sites)
+		// What happens here? The aim is to determine if the type should be made reloadable.
+		// 1. If NO, but something in this classloader might be, then rewrite the call sites.
+		// 2. If NO, and nothing in this classloader might be, return the original bytes.
+		// 3. If YES, make the type reloadable (including rewriting call sites)
 
 		boolean isReloadableTypeName = typeRegistry.isReloadableTypeName(slashedClassName, protectionDomain, bytes);
 		
@@ -542,34 +540,12 @@ public class SpringLoadedPreProcessor implements Constants {
 		return watchPath;
 	}
 
-	private static final String[] uninterestingPrefixes = new String[] { "org/codehaus/groovy/", "groovy/", "freemarker/",
-			"org/springframework/" };
-
-	/**
-	 * Record expensive-to-compute log message about what we are doing.
-	 */
-	private void logEntryToPreprocess(ClassLoader classLoader, String slashedClassName, TypeRegistry typeRegistry) {
+	private void logPreProcess(ClassLoader classLoader, String slashedClassName, TypeRegistry typeRegistry) {
 		String clname = classLoader == null ? "null" : classLoader.getClass().getName();
 		if (clname.indexOf('.') != -1) {
 			clname = clname.substring(clname.lastIndexOf('.') + 1);
 		}
-		if (typeRegistry == null) {
-			// it is less interesting
-			log.finer("classname=" + slashedClassName + " classloader=" + classLoader + " typeregistry=" + typeRegistry);
-		} else {
-			boolean ignore = false;
-			for (String uninterestingPrefix : uninterestingPrefixes) {
-				if (slashedClassName.startsWith(uninterestingPrefix)) {
-					ignore = true;
-					break;
-				}
-			}
-			if (!ignore) {
-				log.info("classname=" + slashedClassName + " classloader=" + clname + " typeregistry=" + typeRegistry);
-			}
-			// more detailed log entry
-			log.finer("classname=" + slashedClassName + " classloader=" + classLoader + " typeregistry=" + typeRegistry);
-		}
+		log.info("SpringLoaded preprocessing: classname="+slashedClassName+" classloader="+clname+" typeRegistry="+typeRegistry);
 	}
 
 	public static List<Plugin> getGlobalPlugins() {

@@ -95,6 +95,11 @@ class MethodCopier extends MethodAdapter implements Constants {
 		}
 		return false;
 	}
+	
+	private TypeDescriptor getType(String type) {
+		TypeDescriptor typeDescriptor = this.typeDescriptor.getTypeRegistry().getDescriptorFor(type);
+		return typeDescriptor;
+	}
 
 	@Override
 	public void visitFieldInsn(final int opcode, final String owner, final String name, final String desc) {
@@ -125,23 +130,41 @@ class MethodCopier extends MethodAdapter implements Constants {
 	public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
 		// Is it a private method call?
 		// TODO r$ check here because we use invokespecial to avoid virtual dispatch on field changes...
-		if (opcode == INVOKESPECIAL && name.charAt(0) != '<' && owner.equals(classname) && !name.startsWith("r$")) {
-			// leaving the invokespecial alone will cause a verify error
-			String descriptor = Utils.insertExtraParameter(owner, desc);
-			super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor);
-		} else {
-			// Might be a private static method
-			boolean done = false;
-			if (opcode == INVOKESTATIC) {
-				MethodMember mm = typeDescriptor.getByDescriptor(name, desc);
-				if (mm != null && mm.isPrivate()) {
-					super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, desc);
-					done = true;
+		if (opcode == INVOKESPECIAL && name.charAt(0) != '<' && !name.startsWith("r$")) {
+			if (owner.equals(classname)) {
+				// private method call
+				// leaving the invokespecial alone will cause a verify error
+				String descriptor = Utils.insertExtraParameter(owner, desc);
+				super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor);
+				return;
+			} else {
+				// super call
+				// TODO Check if this is true: we can just call the catcher directly if there was one, there is no need
+				// for a superdispatcher
+
+				// Only need to redirect to the superdispatcher if it was a protected method
+				TypeDescriptor supertypeDescriptor = getType(owner);
+				MethodMember target = supertypeDescriptor.getByNameAndDescriptor(name+desc);
+				if (target!=null && target.isProtected()) {
+					// A null target means that method is not in the supertype, so didn't get a superdispatcher
+					super.visitMethodInsn(INVOKESPECIAL,classname,name+methodSuffixSuperDispatcher,desc);
+				} else {
+					super.visitMethodInsn(opcode, owner, name, desc);
 				}
+				return;
 			}
-			if (!done) {
-				super.visitMethodInsn(opcode, owner, name, desc);
+		}
+		// Might be a private static method
+		boolean done = false;
+		if (opcode == INVOKESTATIC) {
+			MethodMember mm = typeDescriptor.getByDescriptor(name, desc);
+			if (mm != null && mm.isPrivate()) {
+				super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, desc);
+				done = true;
 			}
+		}
+		if (!done) {
+			super.visitMethodInsn(opcode, owner, name, desc);
 		}
 	}
 

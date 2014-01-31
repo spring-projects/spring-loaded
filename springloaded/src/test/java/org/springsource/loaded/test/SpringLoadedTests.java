@@ -47,7 +47,12 @@ import java.util.StringTokenizer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -443,7 +448,7 @@ public abstract class SpringLoadedTests implements Constants {
 	}
 
 	protected byte[] loadBytesForClass(String dottedClassName) {
-		byte[] data = Utils.loadClassAsBytes(binLoader, dottedClassName);
+		byte[] data = Utils.loadDottedClassAsBytes(binLoader, dottedClassName);
 		Assert.assertNotNull(data);
 		Assert.assertNotSame(0, data.length);
 		return data;
@@ -454,7 +459,7 @@ public abstract class SpringLoadedTests implements Constants {
 	}
 
 	public static byte[] retrieveClass(ClassLoader loader, String classname) {
-		byte[] data = Utils.loadClassAsBytes(loader, classname);
+		byte[] data = Utils.loadDottedClassAsBytes(loader, classname);
 		Assert.assertNotNull(data);
 		Assert.assertNotSame(0, data.length);
 		return data;
@@ -521,6 +526,34 @@ public abstract class SpringLoadedTests implements Constants {
 		return null;
 	}
 
+	protected ClassNode getClassNode(byte[] classdata) {
+		ClassNode cn = new ClassNode();
+		ClassReader cr = new ClassReader(classdata);
+		cr.accept(cn, 0);	
+		return cn;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected List<MethodNode> getMethods(byte[] classdata) {
+		return getClassNode(classdata).methods;
+	}
+	
+	protected int countMethods(byte[] classdata) {
+		ClassNode cn = getClassNode(classdata);
+		return cn.methods==null?0:cn.methods.size();
+	}	
+
+	protected List<MethodNode> filter(List<MethodNode> methods, String nameSubstring) {
+		if (methods == null) { return Collections.<MethodNode>emptyList(); }
+		List<MethodNode> subset = new ArrayList<MethodNode>();
+		for (MethodNode methodNode: methods) {
+			if (methodNode.name.contains(nameSubstring)) {
+				subset.add(methodNode);
+			}
+		}
+		return subset;
+	}
+	
 	protected String toStringClass(byte[] classdata) {
 		return toStringClass(classdata, false, false);
 	}
@@ -734,6 +767,7 @@ public abstract class SpringLoadedTests implements Constants {
 						expectedLines.add(line);
 					}
 				}
+				dis.close();
 				fis.close();
 				List<String> actualLines = toLines(printItAndReturnIt(bytes));
 				if (actualLines.size() != expectedLines.size()) {
@@ -1224,5 +1258,5 @@ public abstract class SpringLoadedTests implements Constants {
 		m.invoke(null);
 		return captureOff();
 	}
-
+	
 }

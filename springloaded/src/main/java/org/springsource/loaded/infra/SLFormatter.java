@@ -26,17 +26,23 @@ public class SLFormatter extends java.util.logging.Formatter {
 
 	public String format(LogRecord record) {
 		StringBuilder s = new StringBuilder();
-		String sourceClassName = record.getSourceClassName();
-		int idx;
-		if ((idx = sourceClassName.lastIndexOf('.')) == -1) {
-			s.append(record.getSourceClassName());
-		} else {
-			s.append(record.getSourceClassName().substring(idx + 1));
+		s.append(record.getLevel());
+		String message = super.formatMessage(record);
+		
+		if (!(message.startsWith(">") || message.startsWith("<"))) {			
+			s.append(":");
+			String sourceClassName = record.getSourceClassName();
+			int idx;
+			if ((idx = sourceClassName.lastIndexOf('.')) == -1) {
+				s.append(record.getSourceClassName());
+			} else {
+				s.append(record.getSourceClassName().substring(idx + 1));
+			}
+			s.append(".");
+			s.append(record.getSourceMethodName());
+			s.append(":");
 		}
-		s.append(".");
-		s.append(record.getSourceMethodName());
-		s.append(":");
-		s.append(super.formatMessage(record));
+		s.append(message);
 		s.append("\n");
 		return s.toString();
 	}
