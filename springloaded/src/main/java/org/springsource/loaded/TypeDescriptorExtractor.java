@@ -36,6 +36,8 @@ import org.objectweb.asm.Opcodes;
  */
 public class TypeDescriptorExtractor {
 
+	private final static boolean DEBUG_TYPE_DESCRIPTOR_EXTRACTOR = false;
+	
 	private TypeRegistry registry;
 
 	public TypeDescriptorExtractor(TypeRegistry registry) {
@@ -50,7 +52,7 @@ public class TypeDescriptorExtractor {
 	}
 
 	/**
-	 * Visit a class and accumulate enough information to build a TypeDescriptor.
+	 * Visit a class and accumulate sufficient information to build a TypeDescriptor.
 	 */
 	class ExtractionVisitor implements ClassVisitor, Opcodes {
 
@@ -60,7 +62,9 @@ public class TypeDescriptorExtractor {
 		private String superclassName;
 		private String[] interfaceNames;
 		private boolean isGroovy = false;
+		private boolean isEnum = false;
 		private boolean hasClinit = false;
+		// TODO [perf - reduce garbage] make these collections lazily initialize
 		private List<MethodMember> constructors = new ArrayList<MethodMember>();
 		private List<MethodMember> methods = new ArrayList<MethodMember>();
 		private List<FieldMember> fieldsRequiringAccessors = new ArrayList<FieldMember>();
@@ -71,7 +75,6 @@ public class TypeDescriptorExtractor {
 			this.isReloadableType = isReloadableType;
 		}
 		
-
 		public TypeDescriptor getTypeDescriptor() {
 			if (isReloadableType) {
 				computeCatchersAndSuperdispatchers();
@@ -87,7 +90,7 @@ public class TypeDescriptorExtractor {
 		}
 
 		/**
-		 * Determine if there are clashes. A clash is where a static method takes the this reloadable type as its first parameter
+		 * Determine if there are clashes. A clash is where a static method takes the reloadable type as its first parameter
 		 * but in all other ways is the same as an existing instance method. For example this instance method A.foo(String) clashes
 		 * with this static method A.foo(A, String). 'clashing' means the executor will have to do something to avoid a duplicate
 		 * method problem and we'll have to differentiate between the two.
@@ -120,6 +123,7 @@ public class TypeDescriptorExtractor {
 			return registry.getDescriptorFor(slashedname);
 		}
 
+		// TODO [refactor] extract the type registry relationship code into a central helper class
 		private TypeDescriptor findTypeDescriptor(TypeRegistry registry, String typename) {
 			// follow the pattern for a classloader: recurse up trying to find it, then recurse down trying to load it
 			TypeRegistry regToTry = registry;
@@ -138,77 +142,92 @@ public class TypeDescriptorExtractor {
 		}
 
 		/**
-		 * Create catcher methods for methods from our super-hierarchy that we don't yet override (but may after the initial define
-		 * has happened).
+		 * Algorithm: Go up the superclass hierarchy for a type and determine what should be caught in this type (see 
+		 * 'catchers' in notes.md). Methods that are private, static or final do *not* get a catcher. This method
+		 * also computes superdispatchers - see 'superdispatchers' in notes.md
+		 * 
+		 */
+		private void walkHierarchyForCatchersAndSuperDispatchers(String superclass, List<String> superDispatchers, List<String> finalInHierarchy) {
+			TypeDescriptor supertypeDescriptor = superclass==null?null:findTypeDescriptor(registry, superclass);
+			if (DEBUG_TYPE_DESCRIPTOR_EXTRACTOR) {
+				System.out.println("Computing catchers on "+this.typename+" from superclass "+superclass);
+			}
+			boolean isReloadable = supertypeDescriptor.isReloadable();
+			for (MethodMember method: supertypeDescriptor.getMethods()) {
+				if (shouldCreateSuperDispatcherFor(method) && !superDispatchers.contains(method.nameAndDescriptor)) {
+					// need a public super dispatcher - so that we can reach that super method
+					// from a reloaded instance of this type
+					MethodMember superdispatcher = method.superDispatcherFor();
+					methods.add(superdispatcher);
+					superDispatchers.add(method.nameAndDescriptor);
+				}
+				if (shouldCatchMethod(method) && !finalInHierarchy.contains(method.getNameAndDescriptor())) {
+					// don't need the catcher if method is already defined since when the existing method is rewritten
+					// it will be kind of morphed into a catcher
+					// TODO what about a private method that is overridden by a static method (same name/descriptor but not
+					// an overrides relationship)
+					if (!isReloadable && Modifier.isFinal(method.getModifiers())) {
+						// Do not create a catcher, the supertype is not reloadable and so an implementation cannot be
+						// added lower in the type hierarchy
+						finalInHierarchy.add(method.getNameAndDescriptor());
+						continue;
+					}
+					MethodMember found = null;
+					for (MethodMember existingMethod : methods) {
+						if (existingMethod.equalsApartFromModifiers(method)) {
+							found = existingMethod;
+							break;
+						}
+					}
+					if (found != null) {
+						continue;
+					}
+					MethodMember catcherCopy = method.catcherCopyOf();
+					if (DEBUG_TYPE_DESCRIPTOR_EXTRACTOR) {
+						System.out.println("Adding catcher for "+method.nameAndDescriptor);
+					}
+					methods.add(catcherCopy);
+				} else {
+					if (method.isFinal()) {
+						finalInHierarchy.add(method.getNameAndDescriptor());
+					}
+				}
+			}
+			if (supertypeDescriptor.supertypeName != null) {
+				walkHierarchyForCatchersAndSuperDispatchers(supertypeDescriptor.supertypeName, superDispatchers, finalInHierarchy);
+			}
+			if (Modifier.isAbstract(this.flags) && !this.isEnum/* && !Modifier.isInterface(this.flags)*/) {
+				// abstract class may be missing methods that it can implement from the interfaces
+				for (String interfaceName : supertypeDescriptor.superinterfaceNames) {
+					addCatchersForNonImplementedMethodsFrom(interfaceName, finalInHierarchy);
+				}
+			}
+		}
+		
+		/**
+		 * Compute and add the catch methods and super dispatch methods that apply to this type.
 		 */
 		private void computeCatchersAndSuperdispatchers() {
-			// When walking up the hierarchy we may hit a 'final' method which means we must not catch it.
-			// The 'shouldNotCatch' list stores things we discover like this that should not be caught
-			List<String> shouldNotCatch = new ArrayList<String>();
-
-			String type = superclassName;
-			// Don't need catchers in interfaces
-			if (Modifier.isInterface(this.flags)) {
+			if (Modifier.isInterface(this.flags)) { // Don't need catchers in interfaces
 				return;
 			}
-			List<String> superDispatcherAddedFor = new ArrayList<String>();
-			while (type != null) {
-				TypeDescriptor supertypeDescriptor = findTypeDescriptor(registry, type);
-				// TODO review the need to create catchers for methods where the supertype is reloadable.  In this situation we are already going to
-				// be intercepting the call side of these methods so we don't need the catcher.  Could be a large performance increase and reduction in 
-				// permgen, and simplification of stack traces
-				//				if (!supertypeDescriptor.isReloadable()) {
-				for (MethodMember method : supertypeDescriptor.getMethods()) {
-					if (shouldCreateSuperDispatcherFor(method) && !superDispatcherAddedFor.contains(method.nameAndDescriptor)) {
-						// need a public super dispatcher - so that we can reach that super method
-						// from a reloaded instance of this type
-						MethodMember superdispatcher = method.superDispatcherFor();
-						methods.add(superdispatcher);
-						superDispatcherAddedFor.add(method.nameAndDescriptor);
-					}
-					
-					if (shouldCatchMethod(method) && !shouldNotCatch.contains(method.getNameAndDescriptor())) {
-						// don't need the catcher if method is already defined since when the existing method is rewritten
-						// it will be kind of morphed into a catcher
-						// TODO what about a private method that is overridden by a static method (same name/descriptor but not
-						// an overrides relationship)
-						//						if (supertypeDescriptor.isGroovyType() && !isGroovy) {
-						//							if (method.getName().startsWith("super$")) {
-						//								continue;
-						//							}
-						//						}
-						MethodMember found = null;
-						for (MethodMember existingMethod : methods) {
-							if (existingMethod.equalsApartFromModifiers(method)) {
-								found = existingMethod;
-								break;
-							}
-						}
-						if (found != null) {
-							continue;
-						}
-						MethodMember catcherCopy = method.catcherCopyOf();
-						//						System.out.println("catcher is " + catcherCopy + "  is groovy type? " + this.isGroovy);
-						methods.add(catcherCopy);
-					} else {
-						if (method.isFinal()) {
-							shouldNotCatch.add(method.getNameAndDescriptor());
-						}
-					}
-				}
-				//				}
-				type = supertypeDescriptor.supertypeName;
-			}
+			
+			// TODO [review design] review the need to create catchers for methods where the supertype is reloadable.
+			// Can we just add them to the topmost reloadable type?
+			List<String> doNotCatch = new ArrayList<String>();
+			walkHierarchyForCatchersAndSuperDispatchers(superclassName, new ArrayList<String>(), doNotCatch);
 
-			// ought to look in interfaces *if* we are an abstract class
-			if (Modifier.isAbstract(this.flags)/* && !Modifier.isInterface(this.flags)*/) {
-				// abstract class
+			// ought to look in interfaces if we are an abstract class
+			if (Modifier.isAbstract(this.flags) && !this.isEnum/* && !Modifier.isInterface(this.flags)*/) {
+				// abstract class may be missing methods that it can implement from the interfaces
 				for (String interfaceName : interfaceNames) {
-					addCatchersForNonImplementedMethodsFrom(interfaceName);
+					addCatchersForNonImplementedMethodsFrom(interfaceName, doNotCatch);
 				}
 			}
-
-			finalInHierarchy.addAll(shouldNotCatch);
+			if (DEBUG_TYPE_DESCRIPTOR_EXTRACTOR) {
+				System.out.println("For "+this.typename+" setting finalsInHierarchy to "+doNotCatch);
+			}
+			finalInHierarchy.addAll(doNotCatch);
 		}
 
 		// TODO should clone and finalize be in here?
@@ -218,8 +237,7 @@ public class TypeDescriptorExtractor {
 					(method.getName().equals("clone") && method.getDescriptor().equals("()Ljava/lang/Object;")));
 		}
 
-
-		private void addCatchersForNonImplementedMethodsFrom(String interfacename) {
+		private void addCatchersForNonImplementedMethodsFrom(String interfacename,List<String> finalInNonReloadableType) {
 			TypeDescriptor interfaceDescriptor = findTypeDescriptor(registry, interfacename);
 			for (MethodMember method : interfaceDescriptor.getMethods()) {
 				// If this class doesn't implement this interface method, add it
@@ -230,17 +248,21 @@ public class TypeDescriptorExtractor {
 						break;
 					}
 				}
-				if (!found) {
+				if (!found && !finalInNonReloadableType.contains(method.getNameAndDescriptor())) {
+					if (DEBUG_TYPE_DESCRIPTOR_EXTRACTOR) {
+						Log.log("adding catcher for ["+method+"] from ["+interfacename+"] to ["+this.typename+"]");
+					}
 					methods.add(method.catcherCopyOfWithAbstractRemoved());
 				}
 			}
 			for (String interfaceName : interfaceDescriptor.superinterfaceNames) {
-				addCatchersForNonImplementedMethodsFrom(interfaceName);
+				addCatchersForNonImplementedMethodsFrom(interfaceName,finalInNonReloadableType);
 			}
 		}
 
 		/**
-		 * Field
+		 * Protected fields in reloadable parents of a class need an accessor adding to the reloadable
+		 * type so that the fields can be reached from the executor.
 		 */
 		private void computeFieldsRequiringAccessors() {
 			String type = superclassName;
@@ -274,13 +296,17 @@ public class TypeDescriptorExtractor {
 		 * @return true if it should be caught
 		 */
 		private boolean shouldCatchMethod(MethodMember method) {
-			return !(method.isPrivateStaticFinal() || method.getName().endsWith(Constants.methodSuffixSuperDispatcher) || (method.getName().equals("finalize") && method.getDescriptor().equals("()V")));
+			return !(method.isPrivateOrStaticOrFinal() || method.getName().endsWith(Constants.methodSuffixSuperDispatcher) || 
+					 (method.getName().equals("finalize") && method.getDescriptor().equals("()V")));
 		}
 
 		public void visit(int version, int flags, String name, String signature, String superclassName, String[] interfaceNames) {
 			this.flags = flags;
 			this.superclassName = superclassName;
 			this.interfaceNames = interfaceNames;
+			if (superclassName!=null && superclassName.equals("java/lang/Enum")) {
+				this.isEnum = true;
+			}
 			this.typename = name;
 		}
 
@@ -304,7 +330,7 @@ public class TypeDescriptorExtractor {
 			}
 			return null;
 		}
-		// For each method, copy it into the new class making appropriate adjustments
+
 		/**
 		 * Visit a method in the class and build an appropriate representation for it to include in the extracted output.
 		 */

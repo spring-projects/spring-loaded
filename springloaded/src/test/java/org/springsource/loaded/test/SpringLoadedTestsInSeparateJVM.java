@@ -18,6 +18,7 @@ package org.springsource.loaded.test;
 import static org.junit.Assert.fail;
 
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
@@ -53,6 +54,25 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	public void testRunClass() throws Exception {
 		JVMOutput output = jvm.run("jvmtwo.Runner");
 		assertStdout("jvmtwo.Runner.run() running", output);
+	}
+	
+	@Test
+	public void githubIssue34() throws Exception {
+		jvm.copyToTestdataDirectory("issue34.Interface1"); 
+		jvm.copyToTestdataDirectory("issue34.Interface2"); 
+		jvm.copyToTestdataDirectory("issue34.Implementation1"); 
+		jvm.copyToTestdataDirectory("issue34.Implementation2"); 
+		jvm.copyToTestdataDirectory("issue34.Implementation3"); 
+		JVMOutput output = jvm.run("issue34.Implementation3");
+		assertStdout("Hello World!\n", output);		
+	}
+
+	@Test
+	public void githubIssue34_2() throws Exception {
+		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters"); 
+		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters$1"); 
+		JVMOutput output = jvm.run("issue34.InnerEnum");
+		assertStdout("Hello World!\n", output);		
 	}
 
 	@Test

@@ -459,4 +459,18 @@ public class CrossLoaderTests extends SpringLoadedTests {
 	// set the superclass for a reloadabletype when the clinit runs for the subtype, for quicker lookup of exactly the type we need (getRegistryFor(clazz.getClassLoader())
 	// use those sparse arrays and ID numbers more so that type lookups can be quicker.  Once we truly discover the right super type reference from a subtype, fill it in in the array
 	// optimize for the case where there will only be one type around of a given name *usually*
+	
+	@Test
+	public void github34() throws Exception {
+		ReloadableType rtypeA = subLoader.loadAsReloadableType("issue34.Implementation3");
+		result = runUnguarded(rtypeA.getClazz(), "run");
+		assertEquals("Hello World!", result.stdout);
+
+//		ReloadableType rtypeB = subLoader.loadAsReloadableType("subpkg.Bottom");
+//		result = runUnguarded(rtypeB.getClazz(), "m");
+//		assertEquals("Bottom.m() running", result.stdout);
+//		assertNotSame(rtypeA.getTypeRegistry(), rtypeB.getTypeRegistry());
+	}
+	
+	
 }

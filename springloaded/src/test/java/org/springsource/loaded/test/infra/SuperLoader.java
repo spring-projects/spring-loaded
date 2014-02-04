@@ -73,7 +73,9 @@ public class SuperLoader extends ClassLoader {
 	}
 
 	public Class<?> findClass(String name) throws ClassNotFoundException {
-		//		System.out.println(">> SuperLoader.findClass(" + name + ")");
+		if (SubLoader.DEBUG_LOADING) {
+			System.out.println("> SuperLoader: findClass(" + name + ")");
+		}
 		Class<?> c = null;
 		// Look in the filesystem first
 		try {
@@ -86,6 +88,9 @@ public class SuperLoader extends ClassLoader {
 						// not yet doing this - the testcase tends to do any client side rewriting for this
 						ReloadableType rtype = tr.addType(name, data);
 						data = rtype.bytesLoaded;
+					}
+					if (SubLoader.DEBUG_LOADING) {
+						System.out.println("  SuperLoader: found in folder: '"+folders[i]+"'");
 					}
 					c = defineClass(name, data, 0, data.length);
 					break;
@@ -105,6 +110,7 @@ public class SuperLoader extends ClassLoader {
 					if (zipentry != null) {
 						byte[] data = Utils.loadBytesFromStream(zipfile.getInputStream(zipentry));
 						TypeRegistry tr = TypeRegistry.getTypeRegistryFor(this);
+//						data = new SpringLoadedPreProcessor().preProcess(this, slashedClassName, null, data);
 						if (tr != null) {
 
 							// Give the plugins a chance to rewrite stuff too
@@ -120,7 +126,9 @@ public class SuperLoader extends ClassLoader {
 							//System.out.println("Transforming " + name);
 							data = tr.methodCallRewrite(data);
 						}
-
+						if (SubLoader.DEBUG_LOADING) {
+							System.out.println("  SuperLoader: found in zip: '"+jars[i]+"'");
+						}
 						c = defineClass(name, data, 0, data.length);
 						break;
 					}

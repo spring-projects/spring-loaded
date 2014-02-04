@@ -109,7 +109,7 @@ public abstract class AbstractMember implements Constants {
 		return Modifier.isPublic(getModifiers());
 	}
 
-	public boolean isPrivateStaticFinal() {
+	public boolean isPrivateOrStaticOrFinal() {
 		return (modifiers & ACC_PRIVATE_STATIC_FINAL) != 0;
 	}
 

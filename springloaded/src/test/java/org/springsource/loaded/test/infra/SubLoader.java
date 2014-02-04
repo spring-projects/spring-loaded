@@ -40,6 +40,8 @@ import org.springsource.loaded.test.TestUtils;
  */
 public class SubLoader extends ClassLoader {
 
+	public static final boolean DEBUG_LOADING = false;
+	
 	// @formatter:off
 	static String[] folders = new String[] { 
 		TestUtils.getPathToClasses("../testdata-subloader")
@@ -60,6 +62,9 @@ public class SubLoader extends ClassLoader {
 	}
 
 	public ReloadableType loadAsReloadableType(String typename) throws ClassNotFoundException {
+		if (DEBUG_LOADING) {
+			System.out.println("SubLoader: loading "+typename);
+		}
 		if (tr == null) {
 			tr = TypeRegistry.getTypeRegistryFor(this);
 		}
