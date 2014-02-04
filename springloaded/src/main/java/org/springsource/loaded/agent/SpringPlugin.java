@@ -117,7 +117,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		removeClazzFromMethodResolverCache(clazz);
 		clearCachedIntrospectionResults(clazz);
 		reinvokeDetectHandlers(); // Spring 3.0
-				reinvokeInitHandlerMethods(); // Spring 3.1
+		reinvokeInitHandlerMethods(); // Spring 3.1
 	}
 
 	private void removeClazzFromMethodResolverCache(Class<?> clazz) {
@@ -211,6 +211,15 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				Method method_initHandlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredMethod("initHandlerMethods");
 				method_initHandlerMethods.setAccessible(true);
 				method_initHandlerMethods.invoke(o);
+			} catch (NoSuchFieldException nsfe) {
+				if (log.isLoggable(Level.WARNING)) {
+					if (nsfe.getMessage().equals("handlerMethods")) {
+						log.warning("problem resetting request mapping handlers - unable to find field 'handlerMethods' on type 'AbstractHandlerMethodMapping' - you probably are not on Spring 3.1");
+					}
+					else {
+						log.warning("problem resetting request mapping handlers - NoSuchFieldException: "+nsfe.getMessage());
+					}
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -28,18 +28,25 @@ import org.springsource.loaded.LoadtimeInstrumentationPlugin;
  */
 public class CglibPlugin implements LoadtimeInstrumentationPlugin {
 
-	//	private static Logger log = Logger.getLogger(CglibPlugin.class.getName());
+//		private static Logger log = Logger.getLogger(CglibPlugin.class.getName());
 
 	// implementing LoadtimeInstrumentationPlugin
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
 		if (slashedTypeName==null) {
 			return false;
 		}
-		return slashedTypeName.equals("net/sf/cglib/core/AbstractClassGenerator");
+//		if (slashedTypeName.contains("cglib")) {
+//			System.out.println(">>CglibPlugin.accept("+slashedTypeName+")");
+//		}
+		// Seen in the wild:
+		// net/sf/cglib/core/AbstractClassGenerator
+		// org/springframework/cglib/core/AbstractClassGenerator
+		return slashedTypeName.endsWith("/cglib/core/AbstractClassGenerator");
 		// || slashedTypeName.equals("net/sf/cglib/reflect/FastClass");
 	}
 
 	public byte[] modify(String slashedClassName, ClassLoader classLoader, byte[] bytes) {
+		System.out.println(">> CglibPlugin.modify("+slashedClassName+","+classLoader+","+bytes.length);
 		// if (slashedClassName.equals("net/sf/cglib/core/AbstractClassGenerator")) {
 		return CglibPluginCapturing.catchGenerate(bytes);
 		// } else {

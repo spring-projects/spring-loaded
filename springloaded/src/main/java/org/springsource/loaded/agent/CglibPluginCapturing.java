@@ -26,7 +26,6 @@ import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
 
-
 /**
  * This bytecode rewriter intercepts calls to generate made in the CGLIB framework and allows us to record what generator is called
  * to create the proxy for some type. The same generator can then be driven again if the type is reloaded.
@@ -38,7 +37,8 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 
 	public static Map<Class<?>, Object[]> clazzToGeneratorStrategyAndClassGeneratorMap = new HashMap<Class<?>, Object[]>();
 	public static Map<Class<?>, Object[]> clazzToGeneratorStrategyAndFastClassGeneratorMap = new HashMap<Class<?>, Object[]>();
-
+	public String prefix;
+	
 	public static byte[] catchGenerate(byte[] bytesIn) {
 		ClassReader cr = new ClassReader(bytesIn);
 		CglibPluginCapturing ca = new CglibPluginCapturing();
@@ -49,6 +49,16 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 
 	private CglibPluginCapturing() {
 		super(new ClassWriter(0)); // TODO review 0 here
+	}
+	
+	@Override
+	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		// The name could be a repackaged form of cglib:
+		// net/sf/cglib/core/AbstractClassGenerator
+		// org/springframework/cglib/core/AbstractClassGenerator
+		int index = name.indexOf("/cglib");
+		prefix = name.substring(0,index);
+		super.visit(version,access,name,signature,superName,interfaces);
 	}
 
 	public byte[] getBytes() {
@@ -64,7 +74,7 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 		}
 	}
 
-	static class CreateMethodInterceptor extends MethodAdapter implements Constants {
+	class CreateMethodInterceptor extends MethodAdapter implements Constants {
 
 		public CreateMethodInterceptor(MethodVisitor mv) {
 			super(mv);
@@ -88,8 +98,8 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 				//	ALOAD 0
 				//	INVOKEINTERFACE net/sf/cglib/core/GeneratorStrategy.generate(Lnet/sf/cglib/core/ClassGenerator;)[B
 				mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
-				mv.visitFieldInsn(GETFIELD, "net/sf/cglib/core/AbstractClassGenerator", "strategy",
-						"Lnet/sf/cglib/core/GeneratorStrategy;");
+				mv.visitFieldInsn(GETFIELD, prefix+"/cglib/core/AbstractClassGenerator", "strategy",
+						"L"+prefix+"/cglib/core/GeneratorStrategy;");
 				mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
 				mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/agent/CglibPluginCapturing", "record",
 						"(Ljava/lang/Object;Ljava/lang/Object;)V");//Lnet/sf/cglib/core/GeneratorStrategy;Lnet/sf/cglib/core/AbstractClassGenerator);");			
@@ -114,7 +124,7 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 		// a is something like 'UndeclaredThrowableStrategy'
 		// b is an Enhancer:  namePrefix="example.Simple" superclass=example.Simple
 		String generatorName = b.getClass().getName();
-		if (generatorName.equals("net.sf.cglib.proxy.Enhancer")) {
+		if (generatorName.endsWith(".cglib.proxy.Enhancer")) {
 			try {
 				Field f = b.getClass().getDeclaredField("superclass");
 				f.setAccessible(true);
@@ -124,7 +134,7 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 			} catch (Throwable re) {
 				re.printStackTrace();
 			}
-		} else if (generatorName.equals("net.sf.cglib.reflect.FastClass$Generator")) {
+		} else if (generatorName.endsWith(".cglib.reflect.FastClass$Generator")) {
 			try {
 				Field f = b.getClass().getDeclaredField("type");
 				f.setAccessible(true);

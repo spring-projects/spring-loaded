@@ -124,6 +124,7 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		Exception ex = null;
 		if (c == null) {
 			// Try the jar
 			try {
@@ -164,12 +165,18 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 				}
 				// zipfile.close();
 			} catch (Exception e) {
-				e.printStackTrace();
+				ex = e;
+				e.printStackTrace(System.err);
 			}
 		}
 
 		if (c == null) {
-			throw new ClassNotFoundException(name);
+			if (ex!=null) {
+				throw new ClassNotFoundException(name,ex);
+			}
+			else {
+				throw new ClassNotFoundException(name);
+			}
 		}
 		return c;
 	}

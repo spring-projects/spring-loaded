@@ -273,7 +273,7 @@ public class ReloadableType {
 	 */
 	public boolean loadNewVersion(String versionsuffix, byte[] newbytedata) {
 		javaMethodCache = null;
-		if (log.isLoggable(Level.INFO)) {
+		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
 			log.info("Loading new version of "+slashedtypename+", identifying suffix "+versionsuffix+", new data length is "+newbytedata.length+"bytes");
 		}
 
@@ -454,6 +454,12 @@ public class ReloadableType {
 		ReloadableType proxy = typeRegistry.cglibProxies.get(this.slashedtypename);
 		if (proxy != null) {
 			Object[] strategyAndGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndClassGeneratorMap.get(getClazz());
+			if (strategyAndGeneratorPair == null) {
+				if (log.isLoggable(Level.SEVERE)) {
+					log.severe("Unable to find regeneration methods for cglib proxies - proxies will be out of date for this type");
+				}
+				return;
+			}
 			Object a = strategyAndGeneratorPair[0];
 			Object b = strategyAndGeneratorPair[1];
 			// want to call a.generate(b)
