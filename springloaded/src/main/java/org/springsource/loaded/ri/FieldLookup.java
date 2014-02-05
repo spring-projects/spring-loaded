@@ -126,7 +126,7 @@ public class FieldLookup {
 		private FieldMember f;
 
 		public ReloadedTypeFieldRef(ReloadableType rtype, FieldMember f) {
-			if (GlobalConfiguration.assertsOn) {
+			if (GlobalConfiguration.assertsMode) {
 				Utils.assertTrue(rtype.hasBeenReloaded(), "Not yet reloaded: " + rtype.getName());
 			}
 			this.rtype = rtype;

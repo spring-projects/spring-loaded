@@ -634,7 +634,7 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 	@Test
 	public void stripFirstParameter() throws Exception {
 		assertEquals("(Ljava/lang/Object;)V", Utils.stripFirstParameter("(Ljava/lang/String;Ljava/lang/Object;)V"));
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			try {
 				Utils.stripFirstParameter("()V");
 				fail();

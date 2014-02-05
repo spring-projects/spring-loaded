@@ -553,7 +553,7 @@ public class TypeRegistry {
 	 */
 	private List<String> packagesFound = new ArrayList<String>();
 	private List<String> packagesNotFound = new ArrayList<String>();
-
+	
 	/**
 	 * Determine if the named type could be reloadable. This method is invoked if the user has not setup any inclusions. With no
 	 * inclusions specified, something is considered reloadable if it is accessible by the classloader for this registry and is not
@@ -672,7 +672,7 @@ public class TypeRegistry {
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINER)) {
 			log.finer("entering TypeRegistry.isReloadableTypeName(" + slashedName + ")");
 		}
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertSlashed(slashedName);
 		}
 		if (GlobalConfiguration.isProfiling) {
@@ -901,7 +901,7 @@ public class TypeRegistry {
 
 		String slashname = dottedname.replace('.', '/');
 		reloadableTypeDescriptorCache.put(slashname, td);
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertTrue(td.getName().equals(slashname), "Name from bytecode '" + td.getName()
 					+ "' does not match that passed in '" + slashname + "'");
 		}

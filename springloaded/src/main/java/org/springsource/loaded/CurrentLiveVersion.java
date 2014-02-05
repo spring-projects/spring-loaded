@@ -69,7 +69,7 @@ public class CurrentLiveVersion {
 		this.typeDescriptor = reloadableType.getTypeRegistry().getExtractor().extract(newbytedata, true);
 		this.versionstamp = versionstamp;
 
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			if (!this.typeDescriptor.getName().equals(reloadableType.typedescriptor.getName())) {
 				throw new IllegalStateException("New version has wrong name.  Expected " + reloadableType.typedescriptor.getName()
 						+ " but was " + typeDescriptor.getName());

@@ -42,7 +42,7 @@ public abstract class ReloadedTypeInvoker extends Invoker {
 	private ReloadedTypeInvoker(ReloadableTypeMethodProvider declaringType, MethodMember methodMember) {
 		this.methodMember = methodMember;
 		rtype = declaringType.getRType();
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertTrue(rtype.hasBeenReloaded(),
 					"This class is only equiped to provide invocation/method services for reloaded types");
 		}

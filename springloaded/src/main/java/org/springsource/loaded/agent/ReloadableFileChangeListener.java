@@ -45,7 +45,7 @@ public class ReloadableFileChangeListener implements FileChangeListener {
 
 	public void fileChanged(File file) {
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-			log.info("ReloadableFileChangeListener: change detected in " + file);
+			log.info(" processing change for " + file);
 		}
 		ReloadableType rtype = correspondingReloadableTypes.get(file);
 		typeRegistry.loadNewVersion(rtype, file);

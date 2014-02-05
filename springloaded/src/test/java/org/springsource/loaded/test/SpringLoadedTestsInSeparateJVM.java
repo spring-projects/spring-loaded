@@ -18,7 +18,6 @@ package org.springsource.loaded.test;
 import static org.junit.Assert.fail;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
@@ -110,7 +109,8 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		assertStdout("Top.foo() running\nController.foo() running\n", jvm.call("a", "foo"));
 		jvm.updateClass(subtype,retrieveRename(subtype,subtype+"2"));
 		waitForReloadToOccur();
-		assertStdoutContains("Top.foo() running\nController.foo() running again!\n", jvm.call("a", "foo"));
+		JVMOutput jo = jvm.call("a", "foo");
+		assertStdoutContains("Top.foo() running\nController.foo() running again!\n", jo);
 	}
 	
 	/**
@@ -119,13 +119,11 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	 */
 	@Test
 	public void testClassMakingSuperCalls2() throws Exception {
-//		try { Thread.sleep(15000); } catch (Exception e) {}
 		String supertype="grails.TopB";
 		String subtype="foo.ControllerB";
 		jvm.copyToTestdataDirectory(supertype); 
 		jvm.copyToTestdataDirectory(subtype);
 		jvm.newInstance("a",subtype);
-//		try { Thread.sleep(450000); } catch (Exception e) {}
 		assertStdout("TopB.foo() running\nControllerB.foo() running\n", jvm.call("a", "foo"));
 		jvm.updateClass(subtype,retrieveRename(subtype,subtype+"2"));
 		waitForReloadToOccur();

@@ -60,6 +60,11 @@ public class GlobalConfiguration {
 	public static boolean verboseMode = false;
 	
 	/**
+	 * asserts mode will trigger extra checking (performance impact but confirms correctness)
+	 */
+	public static boolean assertsMode = false;
+	
+	/**
 	 * Can be turned on to enable users to determine the decision process around why
 	 * something is not reloadable.
 	 */
@@ -97,7 +102,6 @@ public class GlobalConfiguration {
 	/**
 	 * Global control for checking assertions
 	 */
-	public final static boolean assertsOn = false;
 	public final static boolean isProfiling = false;
 
 	public static boolean directlyDefineTypes = true;
@@ -247,7 +251,11 @@ public class GlobalConfiguration {
 						} else if (key.equals("verbose")) {
 							verboseMode = kv.substring(equals + 1).equalsIgnoreCase("true");
 							reloadMessages = verboseMode;
-						} else if (key.equals("rebasePaths")) {
+						}
+						else if (key.equals("asserts")) {
+							assertsMode = kv.substring(equals + 1).equalsIgnoreCase("true");
+						}
+						else if (key.equals("rebasePaths")) {
 							// value is a series of "a=b,c=d,e=f" indicating from and to
 							globalConfigurationProperties.put("rebasePaths", kv.substring(equals + 1));
 						} else if (key.equals("inclusions")) {
@@ -270,6 +278,11 @@ public class GlobalConfiguration {
 						else if (kv.equals("verbose")) {
 							Log.log("[verbose mode on] Full configuration is:"+value);
 							verboseMode = true;
+							reloadMessages = true;
+						}
+						else if (kv.equals("asserts")) {
+							Log.log("[asserts mode on] Will verify system coherence");
+							assertsMode = true;
 						}
 						else if (kv.equals("explain")) {
 							Log.log("[explain mode on] Reporting on the decision making process within SpringLoaded");

@@ -139,7 +139,7 @@ public class ReloadableType {
 	 */
 	public ReloadableType(String dottedtypename, byte[] initialBytes, int id, TypeRegistry typeRegistry,
 			TypeDescriptor typeDescriptor) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertDotted(dottedtypename);
 		}
 		this.id = id;

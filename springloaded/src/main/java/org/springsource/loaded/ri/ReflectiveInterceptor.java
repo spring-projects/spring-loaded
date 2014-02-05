@@ -1600,7 +1600,7 @@ public class ReflectiveInterceptor {
 					}
 					fields[i++] = JVM.newField(clazz, type, f.getModifiers(), f.getName(), f.getGenericSignature());
 				}
-				if (GlobalConfiguration.assertsOn) {
+				if (GlobalConfiguration.assertsMode) {
 					Utils.assertTrue(i == fields.length, "Bug: unexpected number of fields");
 				}
 				return fields;
@@ -1623,7 +1623,7 @@ public class ReflectiveInterceptor {
 		if (i < realFields.length) {
 			realFields = Utils.arrayCopyOf(realFields, i);
 		}
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertTrue(i == realFields.length, "Bug in removeMetaFields, created array of wrong length");
 		}
 		return realFields;

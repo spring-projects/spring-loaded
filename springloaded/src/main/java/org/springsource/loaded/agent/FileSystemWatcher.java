@@ -105,7 +105,6 @@ class Watcher implements Runnable {
 	private static long interval = 1100;// ms
 	List<File> watchListFiles = new ArrayList<File>();
 	List<Long> watchListLMTs = new ArrayList<Long>();
-	//	Map<File, Long> watchList = new ConcurrentHashMap<File, Long>();
 	FileChangeListener listener;
 	private boolean timeToStop = false;
 	public boolean paused = false;
@@ -137,6 +136,9 @@ class Watcher implements Runnable {
 			return false;
 		}
 		synchronized (this) {
+			if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+				log.info("Now watching "+fileToWatch);
+			}
 			int insertionPos = findPosition(fileToWatch);
 			if (insertionPos == -1) {
 				watchListFiles.add(fileToWatch);
@@ -169,6 +171,12 @@ class Watcher implements Runnable {
 			if (cmp > 0) {
 				return f;
 			}
+			else if (GlobalConfiguration.assertsMode && cmp == 0) {
+				// Are we watching the same file twice, that is bad!
+				if (file2.getAbsoluteFile().toString().equals(file.getAbsoluteFile().toString())) {
+					log.severe("Watching the same file twice: "+file.getAbsoluteFile().toString());
+				}
+			}
 		}
 		return -1;
 	}
@@ -179,10 +187,10 @@ class Watcher implements Runnable {
 			if ((registryLivenessCount % registryLivenessCountInterval) == 0) {
 				// Time to check if the registry is still alive!
 				if (!TypeRegistry.typeRegistryExistsForId(typeRegistryId)) {
-					//					System.out.println("TypeRegistry " + typeRegistryId + " gone, no point in thread continuing!");
+					if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+						log.info("TypeRegistry " + typeRegistryId + " gone, no point in thread continuing!");
+					}
 					return;
-					//				} else {
-					//					System.out.println("TypeRegistry " + typeRegistryId + " seems to still be around!");
 				}
 				registryLivenessCount = 0;
 			}
@@ -198,7 +206,9 @@ class Watcher implements Runnable {
 						File file = watchListFiles.get(f);
 						long lastModTime = file.lastModified();
 						if (lastModTime > watchListLMTs.get(f)) {
-							// System.out.println("Watcher: " + lastScanTime + " change detected in " + file);
+							if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+								log.info("Observed last modification time change for "+file+" (lastScanTime="+lastScanTime+")");
+							}
 							watchListLMTs.set(f, lastModTime);
 							changedFiles.add(file);
 						}
@@ -219,6 +229,9 @@ class Watcher implements Runnable {
 
 	private void determineChangesSince(File file, long lastScanTime) {
 		try {
+			if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+				log.info("Firing file changed event "+file);
+			}
 			listener.fileChanged(file);
 			if (file.isDirectory()) {
 				File[] filesOfInterest = file.listFiles(new RecentChangeFilter(lastScanTime));
@@ -227,14 +240,17 @@ class Watcher implements Runnable {
 						determineChangesSince(f, lastScanTime);
 					} else {
 						if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-							log.info("file change observed: "+f);
+							log.info("Observed last modification time change for "+f+"  (lastScanTime="+lastScanTime+")");
+							log.info("Firing file changed event "+file);
 						}
 						listener.fileChanged(f);
 					}
 				}
 			}
 		} catch (Throwable t) {
-			new RuntimeException("FileWatcher caught serious error, see cause.", t).printStackTrace();
+			if (log.isLoggable(Level.SEVERE)) {
+				log.log(Level.SEVERE,"FileWatcher caught serious error, see cause",t);
+			}
 		}
 	}
 

@@ -134,7 +134,7 @@ public class Utils implements Opcodes, Constants {
 			}
 		} else {
 			// either array or reference type
-			if (GlobalConfiguration.assertsOn) {
+			if (GlobalConfiguration.assertsMode) {
 				// Must not end with a ';' unless it starts with a '['
 				if (returnType.descriptor.endsWith(";") && !returnType.descriptor.startsWith("[")) {
 					throw new IllegalArgumentException("Invalid signature of '" + returnType.descriptor + "'");
@@ -734,7 +734,7 @@ public class Utils implements Opcodes, Constants {
 	 * @return the byte data defining that class
 	 */
 	public static byte[] loadDottedClassAsBytes(ClassLoader loader, String dottedclassname) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			if (dottedclassname.endsWith(".class")) {
 				throw new IllegalStateException(".class suffixed name should not be passed:" + dottedclassname);
 			}
@@ -758,7 +758,7 @@ public class Utils implements Opcodes, Constants {
 	 * @return the byte data defining that class
 	 */
 	public static byte[] loadSlashedClassAsBytes(ClassLoader loader, String slashedclassname) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			if (slashedclassname.endsWith(".class")) {
 				throw new IllegalStateException(".class suffixed name should not be passed:" + slashedclassname);
 			}
@@ -856,7 +856,7 @@ public class Utils implements Opcodes, Constants {
 	 * @return new version of input descriptor with first parameter taken out
 	 */
 	public static String stripFirstParameter(String descriptor) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			if (descriptor.indexOf(';') == -1) {
 				throw new IllegalStateException("Input descriptor must have at least one parameter: " + descriptor);
 			}
@@ -907,7 +907,7 @@ public class Utils implements Opcodes, Constants {
 		 */
 		private ReturnType(String descriptor, Kind kind) {
 			this.descriptor = descriptor;
-			if (GlobalConfiguration.assertsOn) {
+			if (GlobalConfiguration.assertsMode) {
 				if (this.kind == Kind.REFERENCE) {
 					if (descriptor.endsWith(";") && !descriptor.startsWith("[")) {
 						throw new IllegalStateException("Should already have been stripped of 'L' and ';': " + descriptor);
@@ -976,7 +976,7 @@ public class Utils implements Opcodes, Constants {
 					return ReturnType.getReturnType(withoutLeadingLorTrailingSemi, Kind.REFERENCE);
 				} else {
 					// must be an array!
-					if (GlobalConfiguration.assertsOn) {
+					if (GlobalConfiguration.assertsMode) {
 						Utils.assertTrue(ch == '[', "Expected array leading char: " + descriptor);
 					}
 					return ReturnType.getReturnType(descriptor, Kind.ARRAY);
@@ -1074,7 +1074,7 @@ public class Utils implements Opcodes, Constants {
 	 * @return the path to the file
 	 */
 	public static String dump(String slashname, byte[] bytesLoaded) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			if (slashname.indexOf('.') != -1) {
 				throw new IllegalStateException("Slashed type name expected, not '" + slashname + "'");
 			}
@@ -1504,7 +1504,7 @@ public class Utils implements Opcodes, Constants {
 	 * @return the result we can return, or null if it is not compatible
 	 */
 	public static Object checkCompatibility(TypeRegistry registry, Object result, String expectedTypeDescriptor) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertTrue(result != null, "result should never be null");
 		}
 		String actualType = result.getClass().getName();

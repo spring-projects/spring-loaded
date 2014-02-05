@@ -16,7 +16,10 @@
 package org.springsource.loaded.agent;
 
 import java.security.ProtectionDomain;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.LoadtimeInstrumentationPlugin;
 
 
@@ -28,27 +31,29 @@ import org.springsource.loaded.LoadtimeInstrumentationPlugin;
  */
 public class CglibPlugin implements LoadtimeInstrumentationPlugin {
 
-//		private static Logger log = Logger.getLogger(CglibPlugin.class.getName());
+	private static Logger log = Logger.getLogger(CglibPlugin.class.getName());
 
 	// implementing LoadtimeInstrumentationPlugin
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
 		if (slashedTypeName==null) {
 			return false;
 		}
-//		if (slashedTypeName.contains("cglib")) {
-//			System.out.println(">>CglibPlugin.accept("+slashedTypeName+")");
-//		}
-		// Seen in the wild:
+		// Sometimes the package prefix for cglib types is changed, for example:
 		// net/sf/cglib/core/AbstractClassGenerator
 		// org/springframework/cglib/core/AbstractClassGenerator
+		// This test will allow for both variants
 		return slashedTypeName.endsWith("/cglib/core/AbstractClassGenerator");
 		// || slashedTypeName.equals("net/sf/cglib/reflect/FastClass");
 	}
 
 	public byte[] modify(String slashedClassName, ClassLoader classLoader, byte[] bytes) {
-		System.out.println(">> CglibPlugin.modify("+slashedClassName+","+classLoader+","+bytes.length);
+		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+			log.info("Modifying "+slashedClassName);
+		}
 		// if (slashedClassName.equals("net/sf/cglib/core/AbstractClassGenerator")) {
 		return CglibPluginCapturing.catchGenerate(bytes);
+		
+		// Not currently worrying about FastClass:
 		// } else {
 		// net/sf/cglib/reflect/FastClass
 		// We must empty the FastClass constructor.  Why?  Due to current limitations with

@@ -110,7 +110,7 @@ public class ReloadingJVM {
 		return captureOutput(message);
 	}
 
-	private final static boolean DEBUG_CLIENT_SIDE = true;
+	private final static boolean DEBUG_CLIENT_SIDE = false;
 
 	private JVMOutput sendAndReceive(String message) {
 		try {

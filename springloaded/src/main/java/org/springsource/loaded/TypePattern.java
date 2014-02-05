@@ -24,7 +24,7 @@ package org.springsource.loaded;
 public abstract class TypePattern {
 
 	public boolean matches(String dottedname) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertDotted(dottedname);
 		}
 		return internalMatches(dottedname);

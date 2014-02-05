@@ -40,7 +40,7 @@ public class ReloadableTypeMethodProvider extends TypeDescriptorMethodProvider {
 	ReloadableType rtype;
 
 	public ReloadableTypeMethodProvider(ReloadableType rtype) {
-		if (GlobalConfiguration.assertsOn) {
+		if (GlobalConfiguration.assertsMode) {
 			Utils.assertTrue(rtype != null, "ReloadableTypeMethodProvider rtype should not be null");
 		}
 		this.rtype = rtype;
