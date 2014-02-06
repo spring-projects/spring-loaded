@@ -37,6 +37,7 @@ public class ReloadingJVM {
 	String javaclasspath;
 	File testdataDirectory;
 	Process process;
+	private boolean debug = false;
 	DataInputStream reader;
 	DataOutputStream writer;
 	DataInputStream readerErrors;
@@ -65,8 +66,9 @@ public class ReloadingJVM {
 		agentJarLocation = search(searchLocation);
 	}
 	
-	private ReloadingJVM(String agentOptions) {
+	private ReloadingJVM(String agentOptions, boolean debug) {
 		try {
+			this.debug = debug;
 			javaclasspath = System.getProperty("java.class.path");
 			
 			// Create a temporary folder where we can load/replace class files for the file watcher to observe
@@ -81,7 +83,7 @@ public class ReloadingJVM {
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) Classpath for JVM that is being launched: " + javaclasspath);
 			}
-			String OPTS = "";//"-Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,address=4000,server=y,suspend=y";
+			String OPTS = debug?"-Xdebug -Xrunjdwp:transport=dt_socket,address=5100,server=y,suspend=y":"";
 			String AGENT_OPTION_STRING = "";
 			if (agentOptions!=null && agentOptions.length()>0) {
 				AGENT_OPTION_STRING = "-Dspringloaded="+agentOptions;
@@ -93,6 +95,9 @@ public class ReloadingJVM {
 			writer = new DataOutputStream(process.getOutputStream());
 			reader = new DataInputStream(process.getInputStream());
 			readerErrors = new DataInputStream(process.getErrorStream());
+			if (debug) {
+				System.out.println("Debugging launched VM, port 5000");
+			}
 			JVMOutput text = waitFor("ReloadingJVM:started");
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println(text);
@@ -103,8 +108,13 @@ public class ReloadingJVM {
 	}
 
 	public static ReloadingJVM launch(String options) {
-		return new ReloadingJVM(options);
+		return new ReloadingJVM(options,false);
 	}
+
+	public static ReloadingJVM launch(String options,boolean debug) {
+		return new ReloadingJVM(options,debug);
+	}
+
 
 	private JVMOutput waitFor(String message) {
 		return captureOutput(message);
@@ -144,25 +154,28 @@ public class ReloadingJVM {
 	private JVMOutput captureOutput(String terminationString) {
 		try {
 			long time = System.currentTimeMillis();
-			int timeout = 1000; // 1s timeout
+			int timeout = 1000+(debug?60000:0); // 1s timeout
 			byte[] buf = new byte[1024];
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			while ((System.currentTimeMillis() - time) < timeout) {
-				while (reader.available() != 0) {
-					int read = reader.read(buf);
+			boolean found = false;
+			while ((System.currentTimeMillis() - time) < timeout && !found) {
+//				System.out.println("Waiting on ["+terminationString+"] so far: ["+baos.toString()+"]");
+				while (readerErrors.available() != 0) {
+					int read = readerErrors.read(buf);
 					baos.write(buf, 0, read);
-					if (baos.toString().indexOf(terminationString) != -1) {
-						break;
-					}
 				}
-			}
-			String stdout = baos.toString();
-			baos = new ByteArrayOutputStream();
-			while (readerErrors.available() != 0) {
-				int read = readerErrors.read(buf);
-				baos.write(buf, 0, read);
+				if (baos.toString().indexOf(terminationString) != -1) {
+					found = true;
+				}
+				try { Thread.sleep(100); } catch (Exception e) {}
 			}
 			String stderr = baos.toString();
+			baos = new ByteArrayOutputStream();
+			while (reader.available() != 0) {
+				int read = reader.read(buf);
+				baos.write(buf, 0, read);
+			}
+			String stdout = baos.toString();
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) >> received  \n== STDOUT ==\n" + stdout + "\n== STDERR==\n" + stderr);
 			}

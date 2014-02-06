@@ -36,7 +36,7 @@ import org.springsource.loaded.TypeRegistry;
  */
 public class ReloadingJVMCommandProcess {
 	public static void main(String[] argv) throws IOException {
-		System.err.println("(jvm) started");
+		System.err.println("ReloadingJVM:started");System.err.flush();
 		try {
 			DataInputStream br = new DataInputStream((System.in));
 			do {
@@ -52,6 +52,7 @@ public class ReloadingJVMCommandProcess {
 					//					String[] args = (arguments.size() > 0 ? arguments.toArray(new String[arguments.size()]) : null);
 					if (commandName.equals("exit")) {
 						System.err.println("ReloadingJVM:terminating!!");
+						System.exit(0);
 						return;
 					} else if (commandName.equals("echo")) {
 						echoCommand(arguments);
@@ -133,6 +134,7 @@ public class ReloadingJVMCommandProcess {
 			Class<?> clazz = o.getClass();
 			Method m = clazz.getDeclaredMethod(methodName);
 			m.invoke(o);
+			System.err.println("!!");
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
 		}
@@ -148,6 +150,7 @@ public class ReloadingJVMCommandProcess {
 			if (!b) {
 				throw new IllegalStateException("Failed to reload new verion of "+classname);
 			}
+			System.err.println("!!");
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
 		}
@@ -167,9 +170,9 @@ public class ReloadingJVMCommandProcess {
 			System.err.println("(jvm) creating new instance '" + instanceName + "' of type '" + classname + "'");
 			Class<?> clazz = Class.forName(classname);
 			instances.put(instanceName, clazz.newInstance());
-			System.err.println("(jvm) instance successfully created");
+			System.err.println("(jvm) instance successfully created!!");
 		} catch (Exception e) {
-			System.out.println("(jvm) failed to create instance " + e.getMessage());
+			System.out.println("(jvm) failed to create instance " + e.getMessage()+"!!");
 			e.printStackTrace(System.out);
 		}
 

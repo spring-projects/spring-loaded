@@ -159,6 +159,10 @@ public class SpringLoadedPreProcessor implements Constants {
 
 		boolean isReloadableTypeName = typeRegistry.isReloadableTypeName(slashedClassName, protectionDomain, bytes);
 		
+		if (isReloadableTypeName && GlobalConfiguration.explainMode && log.isLoggable(Level.INFO)) {
+			log.info("[explanation] Based on the name, type "+slashedClassName+" is considered to be reloadable");
+		}
+		
 		// logging causes a ClassCircularity problem when reporting on:
 		// SL: Type 'org/codehaus/groovy/grails/cli/logging/GrailsConsolePrintStream' is not being made reloadable
 //		if (GlobalConfiguration.verboseMode && isReloadableTypeName) {

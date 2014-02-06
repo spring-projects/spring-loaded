@@ -81,6 +81,36 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	}
 
 	@Test
+	public void reloadedPerformance() throws Exception {
+//		debug();
+		jvm.newInstance("a","remote.Perf1");
+		JVMOutput jo = jvm.call("a","time"); // 75ms
+		jo = jvm.call("a","time"); // 75ms
+		pause(5);
+		jvm.updateClass("remote.Perf1",retrieveRename("remote.Perf1","remote.Perf2"));
+		pause(2);
+		// In Perf2 the static method is gone, why does it give us a NSME?
+		jo = jvm.call("a","time"); // 150ms
+		System.out.println(jo);
+	}
+	
+	private final static void debug() {
+		jvm.shutdown();
+		jvm = ReloadingJVM.launch("",true);
+	}
+	
+	private final static void debug(String options) {
+		jvm = ReloadingJVM.launch(options,true);
+	}
+	
+	private final static void pause(int seconds) {
+		try {
+			Thread.sleep(seconds*1000);
+		} catch (Exception e) {}
+	}
+	
+	
+	@Test
 	public void testReloadingInOtherVM() throws Exception {
 		jvm.newInstance("a", "remote.One");
 		assertStdout("first", jvm.call("a", "run"));

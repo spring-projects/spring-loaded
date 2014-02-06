@@ -78,6 +78,21 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	}
 
 	@Test
+	public void removingStaticMethod() throws Exception {
+		String t = "remote.Perf1";
+		TypeRegistry typeRegistry = getTypeRegistry(t);
+		byte[] sc = loadBytesForClass(t);
+		ReloadableType rtype = typeRegistry.addType(t, sc);
+
+		Class<?> clazz = rtype.getClazz();
+		runUnguarded(clazz, "time");
+
+		rtype.loadNewVersion("002", retrieveRename(t, "remote.Perf2"));
+
+		runUnguarded(clazz, "time");
+	}
+	
+	@Test
 	public void protectedFieldAccessors() throws Exception {
 		TypeRegistry tr = getTypeRegistry("prot.SubOne");
 		ReloadableType rtype = tr.addType("prot.SubOne", loadBytesForClass("prot.SubOne"));

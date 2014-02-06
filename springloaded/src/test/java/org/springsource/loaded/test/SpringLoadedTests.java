@@ -95,6 +95,8 @@ public abstract class SpringLoadedTests implements Constants {
 	protected String GroovyTestDataPath = TestUtils.getPathToClasses("../testdata-groovy");
 	protected String AspectjrtJar = "../testdata/aspectjrt.jar";
 	protected String CodeJar = "../testdata/code.jar";
+	// TODO [java8] replace this with project dependency when Java8 is out
+	protected String Java8CodeJar = "../testdata-java8/build/libs/testdata-java8.jar";
 	protected String GroovyrtJar = "../testdata-groovy/groovy-1.8.2.jar";
 	protected Result result;
 	protected TypeRegistry registry;
@@ -103,7 +105,7 @@ public abstract class SpringLoadedTests implements Constants {
 	public void setup() throws Exception {
 		SpringLoadedPreProcessor.disabled = true;
 		NameRegistry.reset();
-		binLoader = new TestClassLoader(toURLs(TestDataPath, AspectjrtJar,CodeJar), this.getClass().getClassLoader());
+		binLoader = new TestClassLoader(toURLs(TestDataPath, AspectjrtJar, CodeJar, Java8CodeJar), this.getClass().getClassLoader());
 	}
 
 	@After
