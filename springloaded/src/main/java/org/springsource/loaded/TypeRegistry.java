@@ -71,12 +71,12 @@ public class TypeRegistry {
 	static {
 		ignorablePackagePrefixes = new String[26][];
 		ignorablePackagePrefixes['a' - 'a'] = new String[] { "antlr/" };
-		ignorablePackagePrefixes['c' - 'a'] = new String[] { "org/springsource/loaded/", "com/springsource/tcserver/",
+		ignorablePackagePrefixes['c' - 'a'] = new String[] { "com/springsource/tcserver/",
 				"com/springsource/insight" };
 		ignorablePackagePrefixes['g' - 'a'] = new String[] { "groovy/", "groovyjarjarantlr/", "groovyjarjarasm/", "grails/", };
 		ignorablePackagePrefixes['j' - 'a'] = new String[] { "java/", "javassist/" };
-		ignorablePackagePrefixes['o' - 'a'] = new String[] { "org/codehaus/groovy/", "org/apache/", "org/springframework/",
-				"org/hibernate/", "org/hsqldb/", "org/aspectj/", "org/xml/", "org/h2/", };
+		ignorablePackagePrefixes['o' - 'a'] = new String[] { "org/springsource/loaded/", "org/objectweb/asm", "org/codehaus/groovy/", "org/apache/", "org/springframework/",
+				"org/hibernate/", "org/hsqldb/", "org/aspectj/", "org/xml/", "org/h2/"};
 	}
 
 	// @formatter:off
