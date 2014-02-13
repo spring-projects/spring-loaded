@@ -69,7 +69,7 @@ public class ExecutorBuilder {
 	 * ClassVisitor that constructs the executor by visiting the original class. The basic goal is to visit the original class and
 	 * 'copy' the methods into the executor, making adjustments as we go.
 	 */
-	static class ExecutorBuilderVisitor implements ClassVisitor, Constants {
+	static class ExecutorBuilderVisitor extends ClassVisitor implements Constants {
 
 		private ClassWriter cw = new ClassWriter(0);
 
@@ -78,6 +78,7 @@ public class ExecutorBuilder {
 		protected TypeDescriptor typeDescriptor;
 
 		public ExecutorBuilderVisitor(String classname, String suffix, TypeDescriptor typeDescriptor) {
+			super(ASM5);
 			this.classname = classname;
 			this.suffix = suffix;
 			this.typeDescriptor = typeDescriptor;
@@ -145,11 +146,12 @@ public class ExecutorBuilder {
 			cw.visitSource(sourcefile, debug);
 		}
 
-		private static class CopyingAnnotationVisitor implements AnnotationVisitor {
+		private static class CopyingAnnotationVisitor extends AnnotationVisitor {
 
 			private AnnotationVisitor av;
 
 			public CopyingAnnotationVisitor(AnnotationVisitor av) {
+				super(ASM5);
 				this.av = av;
 			}
 

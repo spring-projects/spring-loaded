@@ -17,7 +17,7 @@ package org.springsource.loaded.agent;
 
 import java.lang.reflect.Modifier;
 
-import org.objectweb.asm.ClassAdapter;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.springsource.loaded.Constants;
@@ -29,7 +29,7 @@ import org.springsource.loaded.Constants;
  * @author Andy Clement
  * @since 0.7.0
  */
-public class NonFinalizer extends ClassAdapter implements Constants {
+public class NonFinalizer extends ClassVisitor implements Constants {
 
 	private String fieldname;
 
@@ -42,7 +42,7 @@ public class NonFinalizer extends ClassAdapter implements Constants {
 	 * @param name
 	 */
 	public NonFinalizer(String fieldname) {
-		super(new ClassWriter(0)); // TODO review 0 here
+		super(ASM5,new ClassWriter(0)); // TODO review 0 here
 		this.fieldname = fieldname;
 	}
 

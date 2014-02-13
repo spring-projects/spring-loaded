@@ -31,8 +31,8 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.springsource.loaded.MethodInvokerRewriter.DontRewriteException;
 import org.springsource.loaded.MethodInvokerRewriter.RewriteClassAdaptor;
@@ -839,10 +839,10 @@ public class ReloadableType {
 			}
 		}
 
-		static class ChainedAdapters extends ClassAdapter implements Constants {
+		static class ChainedAdapters extends ClassVisitor implements Constants {
 
 			public ChainedAdapters(ReloadableType rtype) {
-				super(new RewriteClassAdaptor(rtype.typeRegistry, new TypeRewriter.RewriteClassAdaptor(rtype, new ClassWriter(
+				super(ASM5,new RewriteClassAdaptor(rtype.typeRegistry, new TypeRewriter.RewriteClassAdaptor(rtype, new ClassWriter(
 						ClassWriter.COMPUTE_MAXS))));
 			}
 

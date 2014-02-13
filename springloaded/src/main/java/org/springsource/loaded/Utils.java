@@ -1369,7 +1369,7 @@ public class Utils implements Opcodes, Constants {
 		return access;
 	}
 
-	public static int promoteDefaultOrProtectedToPublic(int access, boolean isEnum) {
+	public static int promoteDefaultOrProtectedToPublic(int access, boolean isEnum, String name) {
 		if ((access & Constants.ACC_PUBLIC_PRIVATE_PROTECTED) == 0) {
 			// is default
 			return (access | Modifier.PUBLIC);
@@ -1380,6 +1380,10 @@ public class Utils implements Opcodes, Constants {
 		}
 		if (isEnum && (access & Constants.ACC_PRIVATE) != 0) {
 			// was private, need to 'publicize' it
+			return access - Constants.ACC_PRIVATE + Constants.ACC_PUBLIC;
+		}
+		if ((access&Constants.ACC_PRIVATE_STATIC_SYNTHETIC)==ACC_PRIVATE_STATIC_SYNTHETIC && name.startsWith("lambda")) {
+			// Special case for lambda, may need to generalize for general invokedynamic support
 			return access - Constants.ACC_PRIVATE + Constants.ACC_PUBLIC;
 		}
 		return access;
@@ -1733,7 +1737,11 @@ public class Utils implements Opcodes, Constants {
 
 	// TODO [performance] speed up by throwing exception from first visit method? (but this isn't used in the mainline really)
 	// TODO or just write a quicker bytecode parser that just looks at the interfaces then returns
-	private static class InterfaceCollectingClassVisitor implements ClassVisitor {
+	private static class InterfaceCollectingClassVisitor extends ClassVisitor {
+
+		public InterfaceCollectingClassVisitor() {
+			super(ASM5);
+		}
 
 		public String[] interfaces;
 

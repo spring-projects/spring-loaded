@@ -97,7 +97,7 @@ public abstract class SpringLoadedTests implements Constants {
 	protected String CodeJar = "../testdata/code.jar";
 	// TODO [java8] replace this with project dependency when Java8 is out
 	protected String Java8CodeJar = "../testdata-java8/build/libs/testdata-java8.jar";
-	protected String GroovyrtJar = "../testdata-groovy/groovy-1.8.2.jar";
+	protected String GroovyrtJar = "../testdata-groovy/groovy-all-1.8.6.jar";
 	protected Result result;
 	protected TypeRegistry registry;
 
@@ -1260,5 +1260,12 @@ public abstract class SpringLoadedTests implements Constants {
 		m.invoke(null);
 		return captureOff();
 	}
+
+	protected final static void pause(int seconds) {
+		try {
+			Thread.sleep(seconds*1000);
+		} catch (Exception e) {}
+	}
+	
 	
 }

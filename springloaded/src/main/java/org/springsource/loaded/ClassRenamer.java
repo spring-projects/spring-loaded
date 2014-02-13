@@ -18,11 +18,10 @@ package org.springsource.loaded;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -54,7 +53,7 @@ public class ClassRenamer {
 		return renamed;
 	}
 
-	static class RenameAdapter extends ClassAdapter implements Opcodes {
+	static class RenameAdapter extends ClassVisitor implements Opcodes {
 
 		private ClassWriter cw;
 		private String oldname;
@@ -62,7 +61,7 @@ public class ClassRenamer {
 		private Map<String, String> retargets = new HashMap<String, String>();
 
 		public RenameAdapter(String newname, String[] retargets) {
-			super(new ClassWriter(0));
+			super(ASM5,new ClassWriter(0));
 			cw = (ClassWriter) cv;
 			this.newname = newname.replace('.', '/');
 			if (retargets != null) {
@@ -141,13 +140,13 @@ public class ClassRenamer {
 			return super.visitField(access, name, desc, signature, value);
 		}
 
-		class RenameMethodAdapter extends MethodAdapter implements Opcodes {
+		class RenameMethodAdapter extends MethodVisitor implements Opcodes {
 
 			String oldname;
 			String newname;
 
 			public RenameMethodAdapter(MethodVisitor mv, String oldname, String newname) {
-				super(mv);
+				super(ASM5,mv);
 				this.oldname = oldname;
 				this.newname = newname;
 			}

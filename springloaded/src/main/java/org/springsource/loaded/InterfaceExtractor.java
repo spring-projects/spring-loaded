@@ -66,13 +66,14 @@ public class InterfaceExtractor {
 		return extractorVisitor.getBytes();
 	}
 
-	class ExtractorVisitor implements ClassVisitor, Constants {
+	class ExtractorVisitor extends ClassVisitor implements Constants {
 
 		private TypeDescriptor typeDescriptor;
 		private ClassWriter interfaceWriter = new ClassWriter(0);
 		private String slashedtypename;
 
 		public ExtractorVisitor(TypeDescriptor typeDescriptor) {
+			super(ASM5);
 			this.typeDescriptor = typeDescriptor;
 		}
 

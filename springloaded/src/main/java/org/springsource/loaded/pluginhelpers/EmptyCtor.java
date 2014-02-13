@@ -17,8 +17,8 @@ package org.springsource.loaded.pluginhelpers;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -32,7 +32,7 @@ import org.springsource.loaded.test.infra.ClassPrinter;
  * @author Andy Clement
  * @since 0.8.3
  */
-public class EmptyCtor extends ClassAdapter implements Constants {
+public class EmptyCtor extends ClassVisitor implements Constants {
 
 	private String[] descriptors;
 
@@ -52,7 +52,7 @@ public class EmptyCtor extends ClassAdapter implements Constants {
 	}
 
 	private EmptyCtor(String... descriptors) {
-		super(new ClassWriter(0)); // TODO review 0 here
+		super(ASM5,new ClassWriter(0)); // TODO review 0 here
 		this.descriptors = descriptors;
 	}
 
@@ -80,11 +80,12 @@ public class EmptyCtor extends ClassAdapter implements Constants {
 		}
 	}
 
-	static class Emptier implements MethodVisitor, Constants {
+	static class Emptier extends MethodVisitor implements Constants {
 
 		MethodVisitor mv;
 
 		public Emptier(MethodVisitor mv) {
+			super(ASM5);
 			this.mv = mv;
 		}
 

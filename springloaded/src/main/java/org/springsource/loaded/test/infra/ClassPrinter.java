@@ -32,7 +32,7 @@ import org.springsource.loaded.Utils;
 /**
  * @author Andy Clement
  */
-public class ClassPrinter implements ClassVisitor, Opcodes {
+public class ClassPrinter extends ClassVisitor implements Opcodes {
 
 	private PrintStream destination;
 	private boolean includeBytecode;
@@ -47,6 +47,7 @@ public class ClassPrinter implements ClassVisitor, Opcodes {
 	}
 
 	public ClassPrinter(PrintStream destination, boolean includeBytecode) {
+		super(ASM5);
 		this.destination = destination;
 		this.includeBytecode = includeBytecode;
 	}
@@ -188,7 +189,11 @@ public class ClassPrinter implements ClassVisitor, Opcodes {
 		return new AnnotationVisitorPrinter();
 	}
 
-	class AnnotationVisitorPrinter implements AnnotationVisitor {
+	class AnnotationVisitorPrinter extends AnnotationVisitor {
+
+		public AnnotationVisitorPrinter() {
+			super(ASM5);
+		}
 
 		public void visit(String name, Object value) {
 			destination.print(name + "=" + value + " ");

@@ -236,6 +236,25 @@ public class ReloadingJVM {
 		}
 		Utils.write(new File(testdataDirectory,classfile),data);
 	}
+	
+	public void clearTestdataDirectory() {
+		File[] fs = testdataDirectory.listFiles();
+		for (File f: fs) {
+			delete(f);
+		}
+	}
+	
+	private void delete(File toDelete) {
+		if (toDelete.isDirectory()) {
+			File[] fs = toDelete.listFiles();
+			for (File f: fs) {
+				delete(f);
+			}
+		}
+		else {
+			toDelete.delete();
+		}
+	}
 
 	public JVMOutput newInstance(String instanceName, String classname) {
 		copyToTestdataDirectory(classname);

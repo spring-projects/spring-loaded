@@ -15,6 +15,8 @@
  */
 package org.springsource.loaded;
 
+import j8code.J8Helper;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,6 +44,7 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.objectweb.asm.Handle;
 import org.springsource.loaded.agent.FileSystemWatcher;
 import org.springsource.loaded.agent.ReloadDecision;
 import org.springsource.loaded.agent.ReloadableFileChangeListener;
@@ -1459,7 +1462,25 @@ public class TypeRegistry {
 		}
 		return false;
 	}
+	
+	@UsedByGeneratedCode
+	public static Object idyrun(Object methodHandles_lookup, String nameAndDescriptor, int bsmId) {
+		// bsmId = 0
+		// nameAndDescriptor = m()Lbasic/LambdaA$Foo;	
 
+//	    0: #31 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:
+		// (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;
+		//  Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+//	      Method arguments:
+//	        #32 ()I
+//	        #33 invokestatic basic/LambdaA.lambda$run$0:()I
+//	        #32 ()I
+
+		
+		System.out.println("idyrun("+methodHandles_lookup+","+nameAndDescriptor+","+bsmId+")");
+		return J8Helper.simulateInvokeDynamic(methodHandles_lookup);
+	}
+	
 	/**
 	 * Used in code the generated code replaces invokevirtual calls. Determine if the code can run as it was originally compiled.
 	 * 
@@ -1855,5 +1876,37 @@ public class TypeRegistry {
 
 	public Set<ReloadableType> getJDKProxiesFor(String slashedInterfaceTypeName) {
 		return jdkProxiesForInterface.get(slashedInterfaceTypeName);
+	}
+
+
+	/**
+	 * When an invokedynamic instruction is reached, we allocate an id that
+	 * recognizes that bsm and the parameters to that bsm. The index can be
+	 * used when rewriting that invokedynamic
+	 * 
+	 * @return id that represents this bootstrap method usage
+	 */
+	public synchronized int recordBootstrapMethod(Handle bsm, Object[] bsmArgs) {
+		// TODO [memory] search the existing bsmInfos for a matching one! Reuse!
+		if (nextBsmIndex >= bsmInfo.length) {
+			BsmInfo[] newarray = new BsmInfo[bsmInfo.length+4];
+			System.arraycopy(bsmInfo, 0, newarray, 0, bsmInfo.length);
+			bsmInfo = newarray;
+		}
+		bsmInfo[nextBsmIndex] = new BsmInfo(bsm,bsmArgs);
+		nextBsmIndex++;
+		return nextBsmIndex-1;
+	}
+
+	private int nextBsmIndex = 0;
+	private BsmInfo[] bsmInfo = new BsmInfo[4];
+	
+	static class BsmInfo {
+		Handle bsm;
+		Object[] bsmArgs;
+		public BsmInfo(Handle bsm, Object[] bsmArgs) {
+			this.bsm = bsm;
+			this.bsmArgs = bsmArgs;
+		}
 	}
 }

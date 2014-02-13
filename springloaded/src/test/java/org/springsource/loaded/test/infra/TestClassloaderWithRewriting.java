@@ -51,12 +51,12 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 		TestUtils.getPathToClasses("../testdata-groovy") 
 		};
 	static String[] jars = new String[] { 
-		"../testdata-groovy/groovy-1.8.2.jar"
+		"../testdata-groovy/groovy-all-1.8.6.jar"
 		};
 	// @formatter:on
 
 	public TestClassloaderWithRewriting() {
-		jars = new String[] { "../testdata-groovy/groovy-1.8.2.jar" };
+		jars = new String[] { "../testdata-groovy/groovy-all-1.8.6.jar" };
 	}
 
 	public TestClassloaderWithRewriting(String metainfFolder) {
@@ -64,7 +64,7 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 		newFolders[0] = folders[0];
 		newFolders[1] = "../testdata/" + metainfFolder;
 		folders = newFolders;
-		jars = new String[] { "../testdata-groovy/groovy-1.8.2.jar" };
+		jars = new String[] { "../testdata-groovy/groovy-all-1.8.6.jar" };
 	}
 
 	public TestClassloaderWithRewriting(String metainfFolder, boolean b) {
@@ -74,7 +74,7 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 		newFolders[2] = TestUtils.getPathToClasses("../testdata");
 		newFolders[3] = TestUtils.getPathToClasses("../testdata-plugin");
 		folders = newFolders;
-		jars = new String[] { "../testdata-groovy/groovy-1.8.2.jar" };
+		jars = new String[] { "../testdata-groovy/groovy-all-1.8.6.jar" };
 	}
 
 	public TestClassloaderWithRewriting(String metainfFolder, boolean b, boolean useRegistry, URLClassLoader classLoader) {
@@ -85,7 +85,7 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 		newFolders[2] = TestUtils.getPathToClasses("../testdata");
 		folders = newFolders;
 		this.useRegistry = useRegistry;
-		jars = new String[] { "../testdata-groovy/groovy-1.8.2.jar" };
+		jars = new String[] { "../testdata-groovy/groovy-all-1.8.6.jar" };
 	}
 
 	public TestClassloaderWithRewriting(boolean b, boolean useRegistry, boolean addCglib) {

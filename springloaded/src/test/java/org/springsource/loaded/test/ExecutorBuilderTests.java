@@ -296,8 +296,22 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/I;)V", "@common.Marker()", "@common.Anno(id=abc)");
 		Method m = rtype.getLatestExecutorClass().getDeclaredMethod("m2", rtype.getClazz());
 		assertEquals("@common.Marker()", m.getAnnotations()[0].toString());
-		assertEquals("@common.Anno(someValue=37, longValue=2, id=abc)", m.getAnnotations()[1].toString());
+		assertEquals("@common.Anno(someValue=37, longValue=2, id=abc)", printAnnotation(m.getAnnotations()[1]));
 	}
+//	
+	private String printAnnotation(Annotation a) {
+		return a.toString();
+//		StringBuilder buf = new StringBuilder();
+//		printAnnotationHelper(buf,a);
+//		return buf.toString();
+	}
+//
+//	private void printAnnotationHelper(StringBuilder buf, Annotation a) {
+//		Class<?> clazz = a.annotationType();a.toString()
+//		clazz.getDeclaredFields()[0].get
+//		System.out.println(a.annotationType());
+//		
+//	}
 
 	@Test
 	public void methodLevelAnnotationsOnInterfaces2() throws Exception {

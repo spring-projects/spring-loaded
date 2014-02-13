@@ -15,7 +15,7 @@
  */
 package org.springsource.loaded.agent;
 
-import org.objectweb.asm.ClassAdapter;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
@@ -26,12 +26,12 @@ import org.springsource.loaded.Constants;
  * @author Andy Clement
  * @since 0.7.0
  */
-public class FalseReturner extends ClassAdapter implements Constants {
+public class FalseReturner extends ClassVisitor implements Constants {
 
 	private String methodname;
 
 	public FalseReturner(String methodname) {
-		super(new ClassWriter(0)); // TODO review 0 here
+		super(ASM5,new ClassWriter(0)); // TODO review 0 here
 		this.methodname = methodname;
 	}
 

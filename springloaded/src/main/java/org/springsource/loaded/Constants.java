@@ -81,6 +81,7 @@ public interface Constants extends Opcodes {
 	static String mChangedForInvokeInterfaceName = "iincheck";
 	static String mChangedForInvokeVirtualName = "ivicheck";
 	static String mChangedForInvokeSpecialName = "ispcheck";
+	static String mPerformInvokeDynamicName = "idyrun";
 	static String descriptorChangedForInvokeSpecialName = "(ILjava/lang/String;)Lorg/springsource/loaded/__DynamicallyDispatchable;";
 	static String mChangedForConstructorName = "ccheck";
 
@@ -103,6 +104,7 @@ public interface Constants extends Opcodes {
 
 	static int ACC_PUBLIC_PROTECTED = Opcodes.ACC_PUBLIC | Opcodes.ACC_PROTECTED;
 	static int ACC_PUBLIC_PRIVATE_PROTECTED = Opcodes.ACC_PUBLIC | Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED;
+	static int ACC_PRIVATE_STATIC_SYNTHETIC = Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC;
 	static int ACC_PRIVATE_PROTECTED = Opcodes.ACC_PRIVATE | Opcodes.ACC_PROTECTED;
 
 	static int ACC_PRIVATE_STATIC_FINAL = ACC_FINAL | ACC_STATIC | ACC_PRIVATE;

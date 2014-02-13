@@ -17,10 +17,14 @@ package org.springsource.loaded.test;
 
 import static org.junit.Assert.fail;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
+
+import sun.misc.Cleaner;
 
 /**
  * These tests use a harness that forks a JVM with the agent attached, closely simulating a real environment. The
@@ -41,6 +45,12 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	@AfterClass
 	public static void stopJVM() {
 		jvm.shutdown();
+	}
+	
+	@After
+	public void teardown() throws Exception {
+		super.teardown();
+		jvm.clearTestdataDirectory();
 	}
 
 	@Test
@@ -80,6 +90,10 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		assertStdout("jvmtwo.Runner.run1() running", jvm.call("a", "run1"));
 	}
 
+	/* careful with this test - when the forked JVM takes a while the output can interfere with later tests, needs fixing up
+	 *
+	 */
+	@Ignore
 	@Test
 	public void reloadedPerformance() throws Exception {
 //		debug();
@@ -91,7 +105,7 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		pause(2);
 		// In Perf2 the static method is gone, why does it give us a NSME?
 		jo = jvm.call("a","time"); // 150ms
-		System.out.println(jo);
+		pause(5);
 	}
 	
 	private final static void debug() {
@@ -103,23 +117,14 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		jvm = ReloadingJVM.launch(options,true);
 	}
 	
-	private final static void pause(int seconds) {
-		try {
-			Thread.sleep(seconds*1000);
-		} catch (Exception e) {}
-	}
-	
-	
 	@Test
 	public void testReloadingInOtherVM() throws Exception {
-		jvm.newInstance("a", "remote.One");
-		assertStdout("first", jvm.call("a", "run"));
+		jvm.newInstance("b", "remote.One");
+		assertStdout("first", jvm.call("b", "run"));
+		pause(1);
 		jvm.updateClass("remote.One",retrieveRename("remote.One","remote.One2"));
-		try {
-			Thread.sleep(2000);
-		} catch (Exception e) {
-		}
-		assertStdoutContains("second", jvm.call("a", "run"));
+		pause(2);
+		assertStdoutContains("second", jvm.call("b", "run"));
 	}
 	// TODO tidyup test data area after each test?
 	// TODO flush/replace classloader in forked VM to clear it out after each test?
@@ -135,11 +140,14 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		String subtype="foo.Controller";
 		jvm.copyToTestdataDirectory(supertype); 
 		jvm.copyToTestdataDirectory(subtype);
-		jvm.newInstance("a",subtype);
-		assertStdout("Top.foo() running\nController.foo() running\n", jvm.call("a", "foo"));
+		JVMOutput jo = jvm.newInstance("bb",subtype);
+		System.out.println(jo);
+		pause(1);
+		assertStdout("Top.foo() running\nController.foo() running\n", jvm.call("bb", "foo"));
+		pause(1);
 		jvm.updateClass(subtype,retrieveRename(subtype,subtype+"2"));
 		waitForReloadToOccur();
-		JVMOutput jo = jvm.call("a", "foo");
+		jo = jvm.call("bb", "foo");
 		assertStdoutContains("Top.foo() running\nController.foo() running again!\n", jo);
 	}
 	

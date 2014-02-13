@@ -30,13 +30,12 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.springsource.loaded.ConstantPoolChecker2.References;
@@ -436,7 +435,7 @@ public class MethodInvokerRewriter {
 	static class DontRewriteException extends RuntimeException {
 	}
 
-	static class RewriteClassAdaptor extends ClassAdapter implements Opcodes {
+	static class RewriteClassAdaptor extends ClassVisitor implements Opcodes {
 
 		private ClassVisitor cw;
 
@@ -667,14 +666,14 @@ public class MethodInvokerRewriter {
 			return intercepted.contains(owner + "." + methodName);
 		}
 
-		private TypeRegistry typeRegistry;
+		protected TypeRegistry typeRegistry;
 		boolean isEnum = false;
 		private boolean isGroovyClosure = false;
 		int fieldcount = 0;
 
 		public RewriteClassAdaptor(TypeRegistry typeRegistry, ClassVisitor classWriter) {
 			// TODO should it also compute frames?
-			super(classWriter);
+			super(ASM5,classWriter);
 			cw = cv;
 			this.typeRegistry = typeRegistry;
 		}
@@ -691,7 +690,7 @@ public class MethodInvokerRewriter {
 		public ClassVisitor getClassVisitor() {
 			return cv;
 		}
-
+		
 		@Override
 		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 			super.visit(version, access, name, signature, superName, interfaces);
@@ -721,7 +720,7 @@ public class MethodInvokerRewriter {
 			return new RewritingMethodAdapter(mv, name);
 		}
 
-		class RewritingMethodAdapter extends MethodAdapter implements Opcodes, Constants {
+		class RewritingMethodAdapter extends MethodVisitor implements Opcodes, Constants {
 
 			// tracks max variable used in a method so we know what we can use
 			// safely
@@ -731,7 +730,7 @@ public class MethodInvokerRewriter {
 			private boolean isClinitOrEnumInit = false;
 
 			public RewritingMethodAdapter(MethodVisitor mv, String methodname) {
-				super(mv);
+				super(ASM5,mv);
 				this.methodname = methodname;
 				if (isEnum) {
 					isClinitOrEnumInit = this.methodname.length() > 2 && this.methodname.charAt(0) == '<'
@@ -950,6 +949,123 @@ public class MethodInvokerRewriter {
 				super.visitTypeInsn(opcode, type);
 			}
 
+			private String toString(Handle handle) {
+				return "handle(tag="+handle.getTag()+",name="+handle.getName()+",desc="+handle.getDesc()+",owner="+handle.getOwner();
+			}
+			private String toString(Object[] oa) {
+				StringBuilder buf = new StringBuilder();
+				buf.append("[");
+				if (oa!=null) {
+					for (Object o:oa) {
+						buf.append(" ");
+						buf.append(o);
+					}
+				}
+				buf.append("]");
+				return buf.toString();
+			}
+			
+			@Override
+			public void visitInvokeDynamicInsn(String name, String desc, org.objectweb.asm.Handle bsm, Object... bsmArgs) {
+				// TODO *shudder* what about invoke dynamic calls that target reflective APIs
+				boolean handled = false;
+				// TODO Perhaps (for sake of my sanity initially) make a distinction here between the general invokedynamic case and the special lambda support case?
+
+				// name=m
+				// desc=()Lbasic/LambdaA2$Foo;
+				// bsm=handle(tag=6,
+				//            name=metafactory,
+				//            desc=(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;,
+				//            owner=java/lang/invoke/LambdaMetafactory
+				// bsmArgs=[ ()I basic/LambdaA2.lambda$run$1()I (6) ()I]
+				if (bsm.getTag()==H_INVOKESTATIC) {
+//					InvokeDynamic(name=m,desc=()Lbasic/LambdaA$Foo;,bsm=handle(tag=6,name=metafactory,desc=(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;,owner=java/lang/invoke/LambdaMetafactory,bsmArgs=[ ()I basic/LambdaA.lambda$run$0()I (6) ()I]
+					System.out.println("InvokeDynamic(name="+name+",desc="+desc+",bsm="+toString(bsm)+",bsmArgs="+toString(bsmArgs));
+					// The other invokes use the 'owner' of the target method to determine which type registry should be part of this
+					// check. Here the 'owner' is wrapped up in the bootstrap method - as version 1 we can assume the owner is the lambdametafactory
+					// which *wont* be getting reloaded - so we already know we don't need to do some jiggery pokery.
+					
+//					int classId = typeRegistry.getTypeIdFor(owner, true);
+					// Call type registry to determine 'can we do what we were going to do?'
+					
+					int bsmReferenceId = typeRegistry.recordBootstrapMethod(bsm,bsmArgs);
+					 // Method java/lang/invoke/MethodHandles.lookup:()Ljava/lang/invoke/MethodHandles$Lookup;
+					mv.visitMethodInsn(INVOKESTATIC,"java/lang/invoke/MethodHandles","lookup","()Ljava/lang/invoke/MethodHandles$Lookup;");
+					mv.visitLdcInsn(name+desc); // Ljava/lang/String;
+					mv.visitLdcInsn(bsmReferenceId); // I
+					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mPerformInvokeDynamicName, "(Ljava/lang/Object;Ljava/lang/String;I)Ljava/lang/Object;");
+					handled=true;
+					// TODO handle return type
+//					mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(),classId));
+//					mv.visitLdcInsn(name+desc);
+//					mv.visitLdcInsn(BSM_NUMBER);
+//					mv.visitLdcInsn(bsmArgs);
+					
+					
+					
+//					// What can we check to see whether it is necessary to intercept this call? Is it the return type of the descriptor? (For when
+//					// the bsm is recognizable as for lambda support)
+//					mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
+//					mv.visitLdcInsn(name + desc);
+//					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeVirtualName, "(ILjava/lang/String;)Z");
+//					// Return value is the extracted interface to call if there is a
+//					// change and it can't be called directly
+//
+//					// 2. preserve a copy of the return value (new target)
+//					// mv.visitInsn(DUP);
+//
+//					// 3. Was it null?
+//					Label l1 = new Label();
+//					mv.visitJumpInsn(IFEQ, l1);
+//
+//					// 4. Not false
+//
+//					// 5. Store the target implementation of the interface that we
+//					// will invoke later
+//					// mv.visitVarInsn(ASTORE, max + 1);
+//
+//					// 6. Package up any parameters
+//					if (hasParams) {
+//						Utils.collapseStackToArray(mv, desc);
+//					}
+//
+//					// Prepare for the invocation:
+//					if (!hasParams) {
+//						// [targetInstance]
+//						mv.visitInsn(DUP);
+//						mv.visitInsn(ACONST_NULL); // no parameters
+//						mv.visitInsn(SWAP); // [targetInstance NULL targetInstance]
+//					} else {
+//						// [targetInstance paramArray]
+//						mv.visitInsn(SWAP);
+//						mv.visitInsn(DUP_X1); // [targetInstance paramArray
+//												// targetInstance]
+//					}
+//
+//					mv.visitLdcInsn(name + desc);
+//
+//					// calling __execute(params array,this,name+desc)
+//					mv.visitMethodInsn(INVOKEVIRTUAL, owner, mDynamicDispatchName, mDynamicDispatchDescriptor);
+//
+//					insertAppropriateReturn(returnType);
+//					Label gotolabel = new Label();
+//					mv.visitJumpInsn(GOTO, gotolabel);
+//					mv.visitLabel(l1);
+//					// mv.visitInsn(POP);
+//					// Here is where we end up if the test for changes failed (ie.
+//					// there were no changes - just 'do what you were going to do'
+//					super.visitMethodInsn(opcode, owner, name, desc);
+//					mv.visitLabel(gotolabel);					
+					
+				}
+				else {
+					// TODO handle it!
+				}
+				if (!handled) {
+				super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+				}
+			}
+			
 			@Override
 			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
 				if (GlobalConfiguration.interceptReflection && rewriteReflectiveCall(opcode, owner, name, desc)) {

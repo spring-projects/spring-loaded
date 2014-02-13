@@ -45,12 +45,12 @@ public class SuperLoader extends ClassLoader {
 		TestUtils.getPathToClasses("../testdata-superloader")
 		};
 	static String[] jars = new String[] { 
-		"../testdata-groovy/groovy-1.8.2.jar"
+		"../testdata-groovy/groovy-all-1.8.6.jar"
 		};
 	// @formatter:on
 
 	public SuperLoader() {
-		jars = new String[] { "../testdata-groovy/groovy-1.8.2.jar" };
+		jars = new String[] { "../testdata-groovy/groovy-all-1.8.6.jar" };
 	}
 
 	public SuperLoader(String... jars) {
@@ -132,8 +132,8 @@ public class SuperLoader extends ClassLoader {
 						c = defineClass(name, data, 0, data.length);
 						break;
 					}
+					zipfile.close();
 				}
-				// zipfile.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

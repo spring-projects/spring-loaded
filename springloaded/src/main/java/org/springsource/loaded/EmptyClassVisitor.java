@@ -27,7 +27,11 @@ import org.objectweb.asm.MethodVisitor;
  * @author Andy Clement
  * @since 0.7.3
  */
-public class EmptyClassVisitor implements ClassVisitor, Constants {
+public class EmptyClassVisitor extends ClassVisitor implements Constants {
+
+	public EmptyClassVisitor() {
+		super(ASM5);
+	}
 
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 	}

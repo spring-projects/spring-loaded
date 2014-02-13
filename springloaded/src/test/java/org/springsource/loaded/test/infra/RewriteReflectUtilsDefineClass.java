@@ -15,10 +15,9 @@
  */
 package org.springsource.loaded.test.infra;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
 import org.springsource.loaded.ReloadableType;
@@ -32,7 +31,7 @@ import org.springsource.loaded.TypeRegistry;
  * @author Andy Clement
  * @version 0.8.3
  */
-public class RewriteReflectUtilsDefineClass extends ClassAdapter implements Constants {
+public class RewriteReflectUtilsDefineClass extends ClassVisitor implements Constants {
 
 	public static byte[] rewriteReflectUtilsDefineClass(byte[] data) {
 		ClassReader cr = new ClassReader(data);
@@ -43,7 +42,7 @@ public class RewriteReflectUtilsDefineClass extends ClassAdapter implements Cons
 	}
 
 	private RewriteReflectUtilsDefineClass() {
-		super(new ClassWriter(0)); // TODO review 0 here
+		super(ASM5,new ClassWriter(0)); // TODO review 0 here
 	}
 
 	public byte[] getBytes() {
@@ -74,10 +73,10 @@ public class RewriteReflectUtilsDefineClass extends ClassAdapter implements Cons
 		}
 	}
 
-	class DefineClassInterceptor extends MethodAdapter implements Constants {
+	class DefineClassInterceptor extends MethodVisitor implements Constants {
 
 		public DefineClassInterceptor(MethodVisitor mv) {
-			super(mv);
+			super(ASM5,mv);
 		}
 
 		@Override

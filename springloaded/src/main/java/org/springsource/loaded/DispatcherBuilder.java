@@ -57,7 +57,7 @@ public class DispatcherBuilder {
 	/**
 	 * Whilst visiting the interface, the implementation is created.
 	 */
-	static class DispatcherBuilderVisitor implements ClassVisitor, Opcodes, Constants {
+	static class DispatcherBuilderVisitor extends ClassVisitor implements Opcodes, Constants {
 
 		private ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
@@ -68,6 +68,7 @@ public class DispatcherBuilder {
 		private IncrementalTypeDescriptor typeDescriptor;
 
 		public DispatcherBuilderVisitor(ReloadableType rtype, IncrementalTypeDescriptor typeDescriptor, String suffix) {
+			super(ASM5);
 			this.classname = rtype.getSlashedName();
 			this.typeDescriptor = typeDescriptor;
 			this.suffix = suffix;

@@ -2,9 +2,10 @@
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/test/java"/>
-	<classpathentry exported="true" kind="lib" path="lib/asm-3.2.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/asm-tree-3.2.jar"/>
+	<classpathentry kind="lib" path="lib/asm-5.0_BETA.jar"/>
+	<classpathentry kind="lib" path="lib/asm-tree-5.0_BETA.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/j8code"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
