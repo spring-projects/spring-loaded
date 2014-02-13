@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
 
@@ -80,6 +81,7 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		assertStdout("jvmtwo.Runner.run1() running", jvm.call("a", "run1"));
 	}
 
+	@Ignore
 	@Test
 	public void reloadedPerformance() throws Exception {
 //		debug();
