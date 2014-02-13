@@ -1,8 +1,8 @@
 apply plugin: 'maven'
 
 group = "org.springsource.loaded"
-//version = '1.1.5.BUILD-SNAPSHOT'
-version = '1.1.5.RELEASE'
+version = '1.2.0.BUILD-SNAPSHOT'
+//version = '1.1.5.RELEASE'
 jar.baseName = 'springloaded'
 
 task writeNewPom << {
