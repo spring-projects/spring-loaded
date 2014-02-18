@@ -69,6 +69,11 @@ test {
 
 // org.springsource.loaded-VERSION.jar
 jar {
+doFirst {
+  for (file in configurations.compile) {
+    jar.merge(file)
+  }
+}
     from 'LICENSES/LICENSE'
     baseName = 'org.springsource.loaded'
 }
