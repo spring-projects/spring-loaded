@@ -15,8 +15,6 @@
  */
 package org.springsource.loaded;
 
-import j8code.J8Helper;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,6 +48,7 @@ import org.springsource.loaded.agent.ReloadDecision;
 import org.springsource.loaded.agent.ReloadableFileChangeListener;
 import org.springsource.loaded.agent.SpringLoadedPreProcessor;
 import org.springsource.loaded.infra.UsedByGeneratedCode;
+import org.springsource.loaded.support.Java8;
 
 
 // TODO debug: stepping into deleted methods - should delete line number table for deleted methods
@@ -1464,21 +1463,13 @@ public class TypeRegistry {
 	}
 	
 	@UsedByGeneratedCode
-	public static Object idyrun(Object methodHandles_lookup, String nameAndDescriptor, int bsmId) {
-		// bsmId = 0
-		// nameAndDescriptor = m()Lbasic/LambdaA$Foo;	
-
-//	    0: #31 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:
-		// (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;
-		//  Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
-//	      Method arguments:
-//	        #32 ()I
-//	        #33 invokestatic basic/LambdaA.lambda$run$0:()I
-//	        #32 ()I
-
-		
-		System.out.println("idyrun("+methodHandles_lookup+","+nameAndDescriptor+","+bsmId+")");
-		return J8Helper.simulateInvokeDynamic(methodHandles_lookup);
+	public static Object idyrun(Object[] indyParams, int typeRegistryId, int classId, Object caller, String nameAndDescriptor, int bsmId) {
+		// Typical next line: lookup=basic.LambdaA nameAD=m()Lbasic/LambdaA$Foo; bsmId=0
+		// System.err.println("idyrun("+caller+","+nameAndDescriptor+","+bsmId+")");
+		// TODO Currently leaking entries in bsmmap with reloads (new ones get added, old ones not removed)
+		ReloadableType rtype = TypeRegistry.getReloadableType(typeRegistryId, classId);
+		BsmInfo bsmi = bsmmap.get(rtype.getSlashedName())[bsmId]; 
+		return Java8.emulateInvokeDynamic(rtype.getLatestExecutorClass(),bsmi.bsm,bsmi.bsmArgs,caller,nameAndDescriptor, indyParams);
 	}
 	
 	/**
@@ -1886,20 +1877,31 @@ public class TypeRegistry {
 	 * 
 	 * @return id that represents this bootstrap method usage
 	 */
-	public synchronized int recordBootstrapMethod(Handle bsm, Object[] bsmArgs) {
-		// TODO [memory] search the existing bsmInfos for a matching one! Reuse!
-		if (nextBsmIndex >= bsmInfo.length) {
-			BsmInfo[] newarray = new BsmInfo[bsmInfo.length+4];
-			System.arraycopy(bsmInfo, 0, newarray, 0, bsmInfo.length);
-			bsmInfo = newarray;
+	public synchronized int recordBootstrapMethod(String slashedClassName, Handle bsm, Object[] bsmArgs) {
+		if (bsmmap == null) {
+			bsmmap = new HashMap<String,BsmInfo[]>();
 		}
-		bsmInfo[nextBsmIndex] = new BsmInfo(bsm,bsmArgs);
-		nextBsmIndex++;
-		return nextBsmIndex-1;
+		BsmInfo[] bsminfo = bsmmap.get(slashedClassName);
+		if (bsminfo== null) {
+			bsminfo = new BsmInfo[1];
+			// TODO do we need BsmInfo or can we just use Handle directly?
+			bsminfo[0] = new BsmInfo(bsm, bsmArgs);
+			bsmmap.put(slashedClassName,bsminfo);
+			return 0;
+		}
+		else {
+			int len = bsminfo.length;
+			BsmInfo[] newarray = new BsmInfo[len+1];
+			System.arraycopy(bsminfo, 0, newarray, 0, len);
+			bsminfo = newarray;
+			bsmmap.put(slashedClassName,bsminfo);
+			bsminfo[len] = new BsmInfo(bsm,bsmArgs);
+			return len;
+		}
+		// TODO [memory] search the existing bsmInfos for a matching one! Reuse!
 	}
 
-	private int nextBsmIndex = 0;
-	private BsmInfo[] bsmInfo = new BsmInfo[4];
+	private static Map<String,BsmInfo[]> bsmmap;
 	
 	static class BsmInfo {
 		Handle bsm;

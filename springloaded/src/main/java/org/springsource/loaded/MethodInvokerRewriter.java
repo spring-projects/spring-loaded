@@ -670,6 +670,7 @@ public class MethodInvokerRewriter {
 		boolean isEnum = false;
 		private boolean isGroovyClosure = false;
 		int fieldcount = 0;
+		private ReloadableType rtype; // Can be null if rewriting in a non reloadable type
 
 		public RewriteClassAdaptor(TypeRegistry typeRegistry, ClassVisitor classWriter) {
 			// TODO should it also compute frames?
@@ -867,6 +868,7 @@ public class MethodInvokerRewriter {
 			}
 
 			private void rewritePUTSTATIC(int opcode, String owner, String name, String desc) {
+				// TODO [perf] cache this information for 'us' so lookup not always necessary
 				int classId = typeRegistry.getTypeIdFor(owner, true);
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				// Make a call to check if this field operation must be intercepted:
@@ -967,6 +969,10 @@ public class MethodInvokerRewriter {
 			
 			@Override
 			public void visitInvokeDynamicInsn(String name, String desc, org.objectweb.asm.Handle bsm, Object... bsmArgs) {
+				int classId = typeRegistry.getTypeIdFor(slashedclassname, false);
+				if (classId==-1) {
+					throw new IllegalStateException();
+				}
 				// TODO *shudder* what about invoke dynamic calls that target reflective APIs
 				boolean handled = false;
 				// TODO Perhaps (for sake of my sanity initially) make a distinction here between the general invokedynamic case and the special lambda support case?
@@ -988,12 +994,26 @@ public class MethodInvokerRewriter {
 //					int classId = typeRegistry.getTypeIdFor(owner, true);
 					// Call type registry to determine 'can we do what we were going to do?'
 					
-					int bsmReferenceId = typeRegistry.recordBootstrapMethod(bsm,bsmArgs);
+					// Stack parameters at callsite into object array
+					// The name and descriptor (desc) show what the parameters are on the stack
+
+					if (desc.charAt(1)==')') {
+						// no params
+						mv.visitInsn(ACONST_NULL);
+					}
+					else {
+						Utils.collapseStackToArray(mv, desc);
+					}
+					
+					
+					int bsmReferenceId = typeRegistry.recordBootstrapMethod(slashedclassname,bsm,bsmArgs);
 					 // Method java/lang/invoke/MethodHandles.lookup:()Ljava/lang/invoke/MethodHandles$Lookup;
+					mv.visitLdcInsn(typeRegistry.getId());
+					mv.visitLdcInsn(classId);
 					mv.visitMethodInsn(INVOKESTATIC,"java/lang/invoke/MethodHandles","lookup","()Ljava/lang/invoke/MethodHandles$Lookup;");
 					mv.visitLdcInsn(name+desc); // Ljava/lang/String;
 					mv.visitLdcInsn(bsmReferenceId); // I
-					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mPerformInvokeDynamicName, "(Ljava/lang/Object;Ljava/lang/String;I)Ljava/lang/Object;");
+					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mPerformInvokeDynamicName, "([Ljava/lang/Object;IILjava/lang/Object;Ljava/lang/String;I)Ljava/lang/Object;");
 					handled=true;
 					// TODO handle return type
 //					mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(),classId));
