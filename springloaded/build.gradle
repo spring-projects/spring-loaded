@@ -42,6 +42,7 @@ dependencies {
 	compile 'org.ow2.asm:asm:5.0_BETA'
 	compile 'org.ow2.asm:asm-tree:5.0_BETA'
 
+	compile project(':springloaded-java8')
 	
 	testCompile 'junit:junit:4.11'
 	

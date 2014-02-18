@@ -990,7 +990,7 @@ public class MethodInvokerRewriter {
 			}
 			
 			@Override
-			public void visitInvokeDynamicInsn(String name, String desc, org.objectweb.asm.Handle bsm, Object... bsmArgs) {
+			public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
 				// TODO *shudder* what about invoke dynamic calls that target reflective APIs
 				int classId = typeRegistry.getTypeIdFor(slashedclassname, false);
 				if (classId==-1) {

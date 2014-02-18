@@ -56,7 +56,7 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	}
 	
 	@Override
-	public void visitInvokeDynamicInsn(String name, String desc, org.objectweb.asm.Handle bsm, Object... bsmArgs) {
+	public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
 		to.println("    INVOKEDYNAMIC " + name+"."+desc+"  bsm="+toString(bsm));
 	}
 

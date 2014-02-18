@@ -1,4 +1,4 @@
-def aspectjVersion = "1.7.1"
+def aspectjVersion = "1.8.0.M1"
 
 configurations {
 	aspects
@@ -9,8 +9,8 @@ dependencies {
 	tools "org.aspectj:aspectjtools:$aspectjVersion"
 	compile "org.aspectj:aspectjrt:$aspectjVersion"
 	compile("cglib:cglib:2.2.2") { exclude group: 'asm' } // cglib 2.2.2 depends on asm 3.3
-    compile 'asm:asm:3.2'
-	compile 'asm:asm-tree:3.2'
+        compile 'org.ow2.asm:asm:5.0_BETA'
+	compile 'org.ow2.asm:asm-tree:5.0_BETA'
 	compile files("code.jar")
 }
 

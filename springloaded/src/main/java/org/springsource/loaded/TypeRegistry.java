@@ -1119,7 +1119,7 @@ public class TypeRegistry {
 	}
 
 	/**
-	 *Used to determine if the invokedynamic needs to be intercepted. Currently very basic.
+	 *Used to determine if the invokedynamic needs to be intercepted.
 	 * 
 	 * @return null if nothing has been reloaded
 	 */

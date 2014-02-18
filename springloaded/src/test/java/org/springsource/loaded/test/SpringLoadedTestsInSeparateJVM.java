@@ -79,6 +79,7 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	@Test
 	public void githubIssue34_2() throws Exception {
 		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters"); 
+		jvm.copyToTestdataDirectory("issue34.InnerEnum$MyComparator"); 
 		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters$1"); 
 		JVMOutput output = jvm.run("issue34.InnerEnum");
 		assertStdout("Hello World!\n", output);		

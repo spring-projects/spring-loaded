@@ -255,7 +255,7 @@ public class ClassRenamer {
 			}
 			
 			@Override
-			public void visitInvokeDynamicInsn(String name, String desc, org.objectweb.asm.Handle bsm, Object... bsmArgs) {
+			public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
 				// System.out.println("visitInvokeDynamicInsn(name="+name+",desc="+desc+",bsm="+toString(bsm)+",bsmArgs="+toString(bsmArgs)+")");
 				// Example:
 				// visitInvokeDynamicInsn(name=m,desc=()Lbasic/LambdaA2$Foo;,

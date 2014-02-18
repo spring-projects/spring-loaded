@@ -6,7 +6,7 @@ public class GenericClass002<K extends Comparable<K>> implements GenericInterfac
 	
 	//what we need in this v002 class...
 
-	// Same as in original class, but also with methods added (fore these cases)
+	// Same as in original class, but also with methods added (for these cases)
 
 	public Iterator<K> iterator() {
 		return null;
