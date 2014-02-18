@@ -1,5 +1,4 @@
 include "springloaded"
-include "springloaded-java8"
 include "testdata"
 include "testdata-java8"
 include "testdata-groovy"

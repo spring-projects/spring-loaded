@@ -42,8 +42,6 @@ dependencies {
 	compile 'org.ow2.asm:asm:5.0_BETA'
 	compile 'org.ow2.asm:asm-tree:5.0_BETA'
 
-	compile project(':springloaded-java8')
-	
 	testCompile 'junit:junit:4.11'
 	
 	testCompileOnly files("../testdata-groovy/groovy-all-1.8.6.jar")
@@ -69,11 +67,6 @@ test {
 
 // org.springsource.loaded-VERSION.jar
 jar {
-doFirst {
-  for (file in configurations.compile) {
-    jar.merge(file)
-  }
-}
     from 'LICENSES/LICENSE'
     baseName = 'org.springsource.loaded'
 }
