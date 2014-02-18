@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.objectweb.asm.ClassReader;
@@ -1040,6 +1041,9 @@ public class MethodInvokerRewriter {
 					mv.visitLabel(gotolabel);
 				}
 				else {
+					if (GlobalConfiguration.verboseMode && log.isLoggable(Level.WARNING)) {
+						log.warning("[current limitation] not rewriting invokedynamic usage in type '"+slashedclassname+"'. InvokeDynamic(name="+name+",desc="+desc+",bsm="+toString(bsm)+",bsmArgs="+toString(bsmArgs));
+					}
 					super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
 				}
 			}
