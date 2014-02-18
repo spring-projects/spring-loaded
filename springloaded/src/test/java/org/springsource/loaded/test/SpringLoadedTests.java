@@ -1261,6 +1261,10 @@ public abstract class SpringLoadedTests implements Constants {
 		return captureOff();
 	}
 
+	protected String slashed(String dotted) {
+		return dotted.replaceAll("\\.", "/");
+	}
+
 	protected final static void pause(int seconds) {
 		try {
 			Thread.sleep(seconds*1000);

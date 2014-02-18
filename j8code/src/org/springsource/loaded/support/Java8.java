@@ -1,4 +1,19 @@
-package j8code;
+/*
+ * Copyright 2014 Pivotal Software Inc. and contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.springsource.loaded.support;
 
 import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
@@ -6,64 +21,122 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
-public class J8Helper {
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Type;
 
-	public static Object simulateInvokeDynamic(Object lookup) {
+/**
+ * This class encapsulates dependencies on Java 8 APIs (e.g. LambdaMetafactory).
+ * 
+ * @author Andy Clement
+ * @since 1.2
+ */
+public class Java8 {
+	
+	/** 
+	 * Notes:
+	 * 
+	 * Useful to have an example of how this code behaves. Here is a bit of code:
+	 * 
+	 * class basic.LambdaA {
+	 *   interface Foo { int m(); }
+	 *   static int run() {
+	 *     Foo f = null;
+	 *     f = () -> 77;
+	 *     return f.m();
+	 *   }
+	 * }
+	 * 
+	 * Here is a bootstrap method entry in the constant pool:
+	 * 
+	 *    0: #31 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:
+	 *             (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;
+	 *              Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
+     *		      Method arguments:
+     *		        #32 ()I
+     *  	        #33 invokestatic basic/LambdaA.lambda$run$0:()I
+     *	            #32 ()I
+	 * 
+	 * At the invokedynamic site:
+	 *     bsmId = 0
+	 *     nameAndDescriptor = m()Lbasic/LambdaA$Foo;
+	 *     
+	 * When invoking the metafactory bootstrap method the first two parameters are stacked by the VM automatically, namely the MethodHandles$Lookup
+	 * instance (caller) and the first String (invokedName). What the VM actually sees is this:
+	 * 
+	 * metaFactory parameters:
+	 * 0:MethodHandles$Lookup caller = basic.LambdaA
+	 * 1:String invokedName = "m"
+	 * 2:MethodType invokedType = "()Foo"
+	 * 3:MethodType samMethodType = "()int"
+	 * 4:MethodHandle implMethod = (actually a DirectMethodHandle where memberName is "basic.LambdaA.lambda$run$0()int/invokeStatic")
+	 * 5:MethodType instantiatedMethodType = "()int"
+	 * 
+	 * With all that information then the calls in this case are relatively straightforward:
+	 * CallSite callsite = LambdaMetafactory.metafactory(caller, invokedName, invokedType, samMethodType, implMethod, instantiatedMethodType);
+	 * callsite.dynamicInvoker().invokeWithArguments((Object[])null);
+	 */	
+	
+	/**
+	 * Programmatic emulation of INVOKEDYNAMIC so initialize the callsite via use of the bootstrap method then
+	 * invoke the result.
+	 * 
+	 * @param executorClass null if not yet reloaded
+	 * @param handle
+	 * @param bsmArgs
+	 * @param lookup
+	 * @return
+	 */
+	public static Object emulateInvokeDynamic(Class executorClass, Handle handle, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
 		try {
-			CallSite callsite = callLambdaMetaFactory(lookup);
-			// java.lang.invoke.ConstantCallSite@1e965684
-			// nameAndDescriptor at invokedynamic: m()Lbasic/LambdaA$Foo;
-			MethodHandles.Lookup caller = (MethodHandles.Lookup)lookup; 
-			return callsite.dynamicInvoker().invokeWithArguments((Object[])null);//asType(MethodType.methodType())invoke(new Object[]{"m", MethodType.methodType(Class.forName("basic.LambdaA$Foo",false,caller.lookupClass().getClassLoader()))});
+			CallSite callsite = callLambdaMetaFactory(bsmArgs,lookup,indyNameAndDescriptor,executorClass);
+			return callsite.dynamicInvoker().invokeWithArguments(indyParams);
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
 	}
-	
-	
-	public static CallSite callLambdaMetaFactory(Object lookup) throws Exception {
-		// At invokedynamic:
-		// bsmId = 0
-		// nameAndDescriptor = m()Lbasic/LambdaA$Foo;	
+	// TODO [perf] How about a table of CallSites indexed by invokedynamic number through the class file. Computed on first reference but cleared on reload. Possibly extend this to all invoke types!
 
-//			    0: #31 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:
-				// (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;
-				//  Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
-//			      Method arguments:
-//			        #32 ()I
-//			        #33 invokestatic basic/LambdaA.lambda$run$0:()I
-//			        #32 ()I
+	// TODO [lambda] Need to handle altMetaFactory which is used when the lambdas are more 'complex' (e.g. Serializable)
+	public static CallSite callLambdaMetaFactory(Object[] bsmArgs, Object lookup, String indyNameAndDescriptor,Class executorClass) throws Exception {		
+		MethodHandles.Lookup caller = (MethodHandles.Lookup)lookup;	
+
+		ClassLoader callerLoader = caller.lookupClass().getClassLoader();
+
+		int descriptorStart = indyNameAndDescriptor.indexOf('(');
+		String invokedName = indyNameAndDescriptor.substring(0,descriptorStart);
+		MethodType invokedType = MethodType.fromMethodDescriptorString(indyNameAndDescriptor.substring(descriptorStart), callerLoader);
 		
-		// First two stacked by VM when used with invokedynamic
+		// Use bsmArgs to build the parameters 
+		MethodType samMethodType = MethodType.fromMethodDescriptorString((String)(((Type)bsmArgs[0]).getDescriptor()), callerLoader);
+
+		Handle bsmArgsHandle = (Handle)bsmArgs[1];
+		String owner = bsmArgsHandle.getOwner();
+		String name = bsmArgsHandle.getName();
+		String descriptor = bsmArgsHandle.getDesc();
+		MethodType implMethodType = MethodType.fromMethodDescriptorString(descriptor, callerLoader);
+		// Looking up the lambda$run method in the caller class (note the caller class is the executor, which gets us around the
+		// problem of having to hack into LambdaMetafactory to intercept reflection)
+		MethodHandle implMethod = null;
+		// TODO [lambda] need to handle invokevirtual, surely
+		switch (bsmArgsHandle.getTag()) {
+			case 6: // INVOKESSTATIC
+				implMethod = caller.findStatic(caller.lookupClass(), name, implMethodType);
+				break;
+			case 7: // INVOKESPECIAL
+				// If there is an executor, the lambda function is actually modified from 'private instance' to 'public static' so adjust lookup:
+				if (executorClass == null) {
+					implMethod = caller.findSpecial(caller.lookupClass(), name, implMethodType, caller.lookupClass());
+				}
+				else {
+					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString("(L"+owner+";"+descriptor.substring(1),callerLoader));
+				}
+				break;
+			default:
+				throw new IllegalStateException("nyi "+bsmArgsHandle.getTag());
+		}
+
+		MethodType instantiatedMethodType = MethodType.fromMethodDescriptorString((String)(((Type)bsmArgs[2]).getDescriptor()), callerLoader);
 		
-//	    0: #31 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:
-		// (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;
-		//  Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
-//	      Method arguments:
-//	        #32 ()I
-//	        #33 invokestatic basic/LambdaA.lambda$run$0:()I
-//	        #32 ()I
-		
-		// caller = basic.LambdaA (MethodHandles$Lookup)
-		
-		// invokedName = m (String)
-		// invokedType = ()Foo (MethodType)
-		
-		// samMethodType=()int (MethodType)
-		// implMethod=MethodHandle()int (DirectMethodHandle - membername in this object is "basic.LambdaA.lambda$run$0()int/invokeStatic")
-		// form members is:
-//		
-//		DMH.invokeStatic__I=Lambda(a0:L)=>{
-//		    t1:L=DirectMethodHandle.internalMemberName(a0:L);
-//		    t2:I=MethodHandle.linkToStatic(t1:L);t2:I}
-		// instantiatedMethodType=()int (MethodType)
-		MethodHandles.Lookup caller = (MethodHandles.Lookup)lookup;
-		MethodType invokedType = MethodType.methodType(Class.forName("basic.LambdaA$Foo",false,caller.lookupClass().getClassLoader()));
-		
-		MethodType samMethodType = MethodType.methodType(Integer.TYPE);
-		// Cheating here by changing first param to pretend the original type is looking for it rather than the executor
-		MethodHandle implMethod = caller.findStatic(caller.lookupClass(), "lambda$run$0",MethodType.methodType(Integer.TYPE));
-		MethodType instantiatedMethodType = MethodType.methodType(Integer.TYPE);
-		return LambdaMetafactory.metafactory(caller, "m", invokedType, samMethodType, implMethod, instantiatedMethodType);
+		return LambdaMetafactory.metafactory(caller, invokedName, invokedType, samMethodType, implMethod, instantiatedMethodType);
 	}
 }
