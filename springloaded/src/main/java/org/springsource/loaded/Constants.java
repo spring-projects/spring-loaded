@@ -79,6 +79,7 @@ public interface Constants extends Opcodes {
 	static String mChangedForInvocationName = "anyChanges";
 	static String mChangedForInvokeStaticName = "istcheck";
 	static String mChangedForInvokeInterfaceName = "iincheck";
+	static String mChangedForInvokeDynamicName = "idycheck";
 	static String mChangedForInvokeVirtualName = "ivicheck";
 	static String mChangedForInvokeSpecialName = "ispcheck";
 	static String mPerformInvokeDynamicName = "idyrun";

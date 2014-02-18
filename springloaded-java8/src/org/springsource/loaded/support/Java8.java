@@ -22,6 +22,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 
 import org.objectweb.asm.Handle;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 /**
@@ -30,7 +31,7 @@ import org.objectweb.asm.Type;
  * @author Andy Clement
  * @since 1.2
  */
-public class Java8 {
+public class Java8 { 
 	
 	/** 
 	 * Notes:
@@ -119,10 +120,10 @@ public class Java8 {
 		MethodHandle implMethod = null;
 		// TODO [lambda] need to handle invokevirtual, surely
 		switch (bsmArgsHandle.getTag()) {
-			case 6: // INVOKESSTATIC
+			case Opcodes.H_INVOKESTATIC:
 				implMethod = caller.findStatic(caller.lookupClass(), name, implMethodType);
 				break;
-			case 7: // INVOKESPECIAL
+			case Opcodes.H_INVOKESPECIAL:
 				// If there is an executor, the lambda function is actually modified from 'private instance' to 'public static' so adjust lookup:
 				if (executorClass == null) {
 					implMethod = caller.findSpecial(caller.lookupClass(), name, implMethodType, caller.lookupClass());

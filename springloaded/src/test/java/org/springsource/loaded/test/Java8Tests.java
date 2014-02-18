@@ -22,7 +22,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
-import org.springsource.loaded.test.infra.ClassPrinter;
 import org.springsource.loaded.test.infra.Result;
 
 /**
@@ -78,7 +77,6 @@ public class Java8Tests extends SpringLoadedTests {
 
 		r = runUnguarded(simpleClass, "run");
 		assertEquals(77, r.returnValue);
-		ClassPrinter.print(rtype.bytesLoaded);
 
 		rtype.loadNewVersion("002", rtype.bytesInitial);
 		r = runUnguarded(simpleClass, "run");
@@ -196,7 +194,7 @@ public class Java8Tests extends SpringLoadedTests {
 
 		byte[] renamed = retrieveRename(t,t+"2",t+"2$Boo:"+t+"$Boo");
 		rtype.loadNewVersion("002", renamed);
-		ClassPrinter.print(rtype.getLatestExecutorBytes());
+
 		r = runUnguarded(simpleClass, "run");
 		assertEquals("a:a:a:", r.returnValue);
 	}
@@ -217,7 +215,6 @@ public class Java8Tests extends SpringLoadedTests {
 
 		r = runUnguarded(simpleClass, "run");
 		assertEquals(99, r.returnValue);
-		ClassPrinter.print(rtype.bytesLoaded);
 
 		byte[] renamed = retrieveRename(t,t+"2",t+"2$Boo:"+t+"$Boo");
 		rtype.loadNewVersion("002", renamed);
@@ -250,15 +247,15 @@ public class Java8Tests extends SpringLoadedTests {
 	@Ignore
 	@Test
 	public void lambdaWithVirtualMethodUse() throws Exception {
-		
+		// not yet written
 	}
 	
-	// TODO before commit
-	// copyrights
-	// tidyup up invokedynamic rewriting to only intercept metafactory usages
-	// decide about altmetafactory handling (marker interfaces on multicasts)
-	// Guard idyrun on whether anything reloaded
-	// Cache result of idyrun for reuse?
+	@Ignore
+	@Test
+	public void altMetaFactoryUsage() throws Exception {
+		// not yet written
+	}
 	
+	// TODO catchers and lambda methods (non static ones)
 	
 }

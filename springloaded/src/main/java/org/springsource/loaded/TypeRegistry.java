@@ -1119,6 +1119,21 @@ public class TypeRegistry {
 	}
 
 	/**
+	 *Used to determine if the invokedynamic needs to be intercepted. Currently very basic.
+	 * 
+	 * @return null if nothing has been reloaded
+	 */
+	@UsedByGeneratedCode
+	public static Object idycheck() {
+		if (TypeRegistry.nothingReloaded) {
+			return null;
+		}
+		else {
+			return "reloading-happened";
+		}
+	}
+	
+	/**
 	 * Determine if something has changed in a particular type related to a particular descriptor and so the dispatcher interface
 	 * should be used. The type registry ID and class ID are merged in the 'ids' parameter. This method is for INVOKESTATIC rewrites
 	 * and so performs additional checks because it assumes the target is static.

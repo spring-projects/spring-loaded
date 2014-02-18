@@ -954,6 +954,7 @@ public class MethodInvokerRewriter {
 			private String toString(Handle handle) {
 				return "handle(tag="+handle.getTag()+",name="+handle.getName()+",desc="+handle.getDesc()+",owner="+handle.getOwner();
 			}
+			
 			private String toString(Object[] oa) {
 				StringBuilder buf = new StringBuilder();
 				buf.append("[");
@@ -967,16 +968,37 @@ public class MethodInvokerRewriter {
 				return buf.toString();
 			}
 			
+			boolean hasParams(String descriptor) {
+				return descriptor.charAt(1)!=')';
+			}
+			
+			/**
+			 * Generate bytecode to convert parameters on the stack into an array (based on the descriptor). If the 
+			 * descriptor shows there are no parameters then null is stacked.
+			 * 
+			 * @param descriptor MethodType descriptor showing parameters and return value
+			 */
+			private void stackParameters(String descriptor) {
+				if (hasParams(descriptor)) {
+					Utils.collapseStackToArray(mv, descriptor);
+				}
+				else {
+					// no params
+					mv.visitInsn(ACONST_NULL);
+				}
+			}
+			
 			@Override
 			public void visitInvokeDynamicInsn(String name, String desc, org.objectweb.asm.Handle bsm, Object... bsmArgs) {
+				// TODO *shudder* what about invoke dynamic calls that target reflective APIs
 				int classId = typeRegistry.getTypeIdFor(slashedclassname, false);
 				if (classId==-1) {
 					throw new IllegalStateException();
 				}
-				// TODO *shudder* what about invoke dynamic calls that target reflective APIs
-				boolean handled = false;
-				// TODO Perhaps (for sake of my sanity initially) make a distinction here between the general invokedynamic case and the special lambda support case?
-
+				// Initially only rewriting use of INVOKEDYNAMIC to support Lambda execution
+				// TODO support the more general invokedynamic usage
+				
+				// Example data at this point:
 				// name=m
 				// desc=()Lbasic/LambdaA2$Foo;
 				// bsm=handle(tag=6,
@@ -984,28 +1006,24 @@ public class MethodInvokerRewriter {
 				//            desc=(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;,
 				//            owner=java/lang/invoke/LambdaMetafactory
 				// bsmArgs=[ ()I basic/LambdaA2.lambda$run$1()I (6) ()I]
-				if (bsm.getTag()==H_INVOKESTATIC) {
-//					InvokeDynamic(name=m,desc=()Lbasic/LambdaA$Foo;,bsm=handle(tag=6,name=metafactory,desc=(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;,owner=java/lang/invoke/LambdaMetafactory,bsmArgs=[ ()I basic/LambdaA.lambda$run$0()I (6) ()I]
-					System.out.println("InvokeDynamic(name="+name+",desc="+desc+",bsm="+toString(bsm)+",bsmArgs="+toString(bsmArgs));
-					// The other invokes use the 'owner' of the target method to determine which type registry should be part of this
-					// check. Here the 'owner' is wrapped up in the bootstrap method - as version 1 we can assume the owner is the lambdametafactory
-					// which *wont* be getting reloaded - so we already know we don't need to do some jiggery pokery.
+				if (bsm.getTag()==H_INVOKESTATIC && bsm.getName().equals("metafactory") && bsm.getOwner().equals("java/lang/invoke/LambdaMetafactory")) {
+					// System.out.println("InvokeDynamic(name="+name+",desc="+desc+",bsm="+toString(bsm)+",bsmArgs="+toString(bsmArgs));
+					// Only when the BSM is LambdaMetafactory.metafactory are we rewriting the invokedynamic. Since LambdaMetafactory will not
+					// be getting reloaded, we can avoid a bunch of complexity. When the bsm points to a reloadable type we'll have to
+					// do more hoop jumping.
 					
-//					int classId = typeRegistry.getTypeIdFor(owner, true);
-					// Call type registry to determine 'can we do what we were going to do?'
-					
-					// Stack parameters at callsite into object array
-					// The name and descriptor (desc) show what the parameters are on the stack
+					// Check on reloading having happened
+					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeDynamicName, "()Ljava/lang/Object;");
 
-					if (desc.charAt(1)==')') {
-						// no params
-						mv.visitInsn(ACONST_NULL);
-					}
-					else {
-						Utils.collapseStackToArray(mv, desc);
-					}
+					// mv.visitInsn(DUP);
+
+					Label nochange = new Label();
+					mv.visitJumpInsn(IFNULL, nochange);
 					
+//					// 9. do what we were going to do
+//					mv.visitLabel(l1);
 					
+					stackParameters(desc);
 					int bsmReferenceId = typeRegistry.recordBootstrapMethod(slashedclassname,bsm,bsmArgs);
 					 // Method java/lang/invoke/MethodHandles.lookup:()Ljava/lang/invoke/MethodHandles$Lookup;
 					mv.visitLdcInsn(typeRegistry.getId());
@@ -1014,75 +1032,15 @@ public class MethodInvokerRewriter {
 					mv.visitLdcInsn(name+desc); // Ljava/lang/String;
 					mv.visitLdcInsn(bsmReferenceId); // I
 					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mPerformInvokeDynamicName, "([Ljava/lang/Object;IILjava/lang/Object;Ljava/lang/String;I)Ljava/lang/Object;");
-					handled=true;
-					// TODO handle return type
-//					mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(),classId));
-//					mv.visitLdcInsn(name+desc);
-//					mv.visitLdcInsn(BSM_NUMBER);
-//					mv.visitLdcInsn(bsmArgs);
 					
-					
-					
-//					// What can we check to see whether it is necessary to intercept this call? Is it the return type of the descriptor? (For when
-//					// the bsm is recognizable as for lambda support)
-//					mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
-//					mv.visitLdcInsn(name + desc);
-//					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeVirtualName, "(ILjava/lang/String;)Z");
-//					// Return value is the extracted interface to call if there is a
-//					// change and it can't be called directly
-//
-//					// 2. preserve a copy of the return value (new target)
-//					// mv.visitInsn(DUP);
-//
-//					// 3. Was it null?
-//					Label l1 = new Label();
-//					mv.visitJumpInsn(IFEQ, l1);
-//
-//					// 4. Not false
-//
-//					// 5. Store the target implementation of the interface that we
-//					// will invoke later
-//					// mv.visitVarInsn(ASTORE, max + 1);
-//
-//					// 6. Package up any parameters
-//					if (hasParams) {
-//						Utils.collapseStackToArray(mv, desc);
-//					}
-//
-//					// Prepare for the invocation:
-//					if (!hasParams) {
-//						// [targetInstance]
-//						mv.visitInsn(DUP);
-//						mv.visitInsn(ACONST_NULL); // no parameters
-//						mv.visitInsn(SWAP); // [targetInstance NULL targetInstance]
-//					} else {
-//						// [targetInstance paramArray]
-//						mv.visitInsn(SWAP);
-//						mv.visitInsn(DUP_X1); // [targetInstance paramArray
-//												// targetInstance]
-//					}
-//
-//					mv.visitLdcInsn(name + desc);
-//
-//					// calling __execute(params array,this,name+desc)
-//					mv.visitMethodInsn(INVOKEVIRTUAL, owner, mDynamicDispatchName, mDynamicDispatchDescriptor);
-//
-//					insertAppropriateReturn(returnType);
-//					Label gotolabel = new Label();
-//					mv.visitJumpInsn(GOTO, gotolabel);
-//					mv.visitLabel(l1);
-//					// mv.visitInsn(POP);
-//					// Here is where we end up if the test for changes failed (ie.
-//					// there were no changes - just 'do what you were going to do'
-//					super.visitMethodInsn(opcode, owner, name, desc);
-//					mv.visitLabel(gotolabel);					
-					
+					Label gotolabel = new Label();
+					mv.visitJumpInsn(GOTO, gotolabel);
+					mv.visitLabel(nochange);
+					super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+					mv.visitLabel(gotolabel);
 				}
 				else {
-					// TODO handle it!
-				}
-				if (!handled) {
-				super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+					super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
 				}
 			}
 			
