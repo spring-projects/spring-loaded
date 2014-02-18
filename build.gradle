@@ -12,6 +12,7 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'eclipse'
+    apply from: "$rootDir/gradle/publish-maven.gradle"
 	
 	sourceCompatibility = 1.6
 	targetCompatibility = 1.6
