@@ -1,6 +1,6 @@
 apply plugin: 'maven'
 
-group = "org.springsource.loaded"
+group = "org.springframework"
 jar.baseName = 'springloaded'
 
 task writeNewPom << {
