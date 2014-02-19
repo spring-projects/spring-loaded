@@ -3,6 +3,7 @@ apply plugin: 'maven'
 group = "org.springframework"
 jar.baseName = 'springloaded'
 
+
 task writeNewPom << {
   pom {
     project  {
@@ -108,11 +109,16 @@ task agentjar(type: Jar, dependsOn: jar) {
     }
 }
 
+task javadocJar(type: Jar) {
+    classifier="javadoc"
+    from javadoc
+}
 
 // add the jars as artifacts
 artifacts {      
 	archives sourcesJar      
 	archives agentjar
+	archives javadocJar
 	archives agentSourcesJar      
 }
 
