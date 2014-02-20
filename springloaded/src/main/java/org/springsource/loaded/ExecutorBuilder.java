@@ -129,7 +129,16 @@ public class ExecutorBuilder {
 				if (name.charAt(1) != 'c') {
 					// regular constructor
 					// want to create the ___init___ handler for this constructor
+					
+					// With the JDT compiler the inner class constructor gets an extra first parameter that is the type of
+					// containing class. But with javac the inner class constructor gets an extra first parameter that is of
+					// a special anonymous type (inner class of the containing class)
+					// For example:  class Foo { class Bar {}}
+					// JDT: ctor in Bar is <init>(Foo) {}
+					// JAVAC: ctor in Bar is <init>(Foo$1) {}
+										
 					descriptor = Utils.insertExtraParameter(classname, descriptor);
+					
 					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mInitializerName, descriptor, signature, exceptions);
 
 					ConstructorCopier cc = new ConstructorCopier(mv, typeDescriptor, suffix, classname);

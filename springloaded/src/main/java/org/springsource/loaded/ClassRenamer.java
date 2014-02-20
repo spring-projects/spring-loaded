@@ -111,12 +111,15 @@ public class ClassRenamer {
 			}
 			return string;
 		}
-
+		
 		@Override
 		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
 			if (descriptor.indexOf(oldname) != -1) {
 				descriptor = descriptor.replace(oldname, newname);
 			} else {
+				if (descriptor.indexOf(oldname) != -1) {
+					descriptor = descriptor.replace(oldname, newname);
+				}
 				for (String s : retargets.keySet()) {
 					if (descriptor.indexOf(s) != -1) {
 						descriptor = descriptor.replace(s, retargets.get(s));

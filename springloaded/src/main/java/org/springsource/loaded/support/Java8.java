@@ -87,7 +87,7 @@ public class Java8 {
 	 * @param lookup
 	 * @return
 	 */
-	public static Object emulateInvokeDynamic(Class executorClass, Handle handle, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
+	public static Object emulateInvokeDynamic(Class<?> executorClass, Handle handle, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
 		try {
 			CallSite callsite = callLambdaMetaFactory(bsmArgs,lookup,indyNameAndDescriptor,executorClass);
 			return callsite.dynamicInvoker().invokeWithArguments(indyParams);
@@ -98,7 +98,7 @@ public class Java8 {
 	// TODO [perf] How about a table of CallSites indexed by invokedynamic number through the class file. Computed on first reference but cleared on reload. Possibly extend this to all invoke types!
 
 	// TODO [lambda] Need to handle altMetaFactory which is used when the lambdas are more 'complex' (e.g. Serializable)
-	public static CallSite callLambdaMetaFactory(Object[] bsmArgs, Object lookup, String indyNameAndDescriptor,Class executorClass) throws Exception {		
+	public static CallSite callLambdaMetaFactory(Object[] bsmArgs, Object lookup, String indyNameAndDescriptor,Class<?> executorClass) throws Exception {		
 		MethodHandles.Lookup caller = (MethodHandles.Lookup)lookup;	
 
 		ClassLoader callerLoader = caller.lookupClass().getClassLoader();

@@ -17,6 +17,7 @@ package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -262,7 +263,10 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 			s.add(anno.toString());
 		}
 		Assert.assertTrue(s.remove("@common.Marker()"));
-		Assert.assertTrue(s.remove("@common.Anno(someValue=37, longValue=2, id=abc)"));
+		// Allow for alternate toString() variant
+		if (!s.remove("@common.Anno(someValue=37, longValue=2, id=abc)")) {
+			Assert.assertTrue(s.remove("@common.Anno(longValue=2, someValue=37, id=abc)"));			
+		} 
 		Assert.assertEquals(0, s.size());
 	}
 
@@ -296,7 +300,21 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/I;)V", "@common.Marker()", "@common.Anno(id=abc)");
 		Method m = rtype.getLatestExecutorClass().getDeclaredMethod("m2", rtype.getClazz());
 		assertEquals("@common.Marker()", m.getAnnotations()[0].toString());
-		assertEquals("@common.Anno(someValue=37, longValue=2, id=abc)", printAnnotation(m.getAnnotations()[1]));
+		assertIsOneOfThese(printAnnotation(m.getAnnotations()[1]),"@common.Anno(someValue=37, longValue=2, id=abc)", "@common.Anno(longValue=2, someValue=37, id=abc)");
+	}
+	
+	/**
+	 * Check the actual value is one of the possible options.
+	 */
+	private void assertIsOneOfThese(String actual, String... possibleValues) {
+		StringBuilder buf = new StringBuilder();
+		for (int i=0;i<possibleValues.length;i++) {
+			if (actual.equals(possibleValues[i])) {
+				return;
+			}
+			buf.append("'"+possibleValues[i]+"'").append("\n");
+		}
+		fail("The value:\n'"+actual+"'\n does not match one of these possible options:\n"+buf.toString());
 	}
 //	
 	private String printAnnotation(Annotation a) {

@@ -6,6 +6,5 @@
 	<classpathentry kind="lib" path="lib/asm-tree-5.0_BETA.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/J180_b128"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/springloaded-java8"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

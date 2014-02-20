@@ -46,7 +46,9 @@ dependencies {
 	
 	testCompileOnly files("../testdata-groovy/groovy-all-1.8.6.jar")
 	testCompileOnly project(':testdata')
+	testCompileOnly project(':testdata-aspectj')
 	testCompileOnly project(':testdata-groovy')
+	testCompileOnly project(':testdata-java8')
 	testCompileOnly project(':testdata-plugin')
 	testCompileOnly project(':testdata-subloader')
 	testCompileOnly project(':testdata-superloader')

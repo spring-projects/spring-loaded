@@ -1,6 +1,7 @@
 include "springloaded"
 include "testdata"
 include "testdata-java8"
+include "testdata-aspectj"
 include "testdata-groovy"
 include "testdata-plugin"
 include "testdata-subloader"
