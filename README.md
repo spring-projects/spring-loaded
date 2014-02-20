@@ -14,9 +14,11 @@ used in Grails 2.
 
 # Installation
 
-1.1.5 dev build: [springloaded-1.1.5-dev.jar](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.5-dev.jar)
+Version 1.2.0 includes preliminary Java8 support
 
-1.1.4 release build: [springloaded-1.1.4.jar](http://dist.springframework.org/release/LOADED/springloaded-1.1.4.jar)
+1.2.0 snapshot [springloaded-1.2.0.BUILD-SNAPSHOT.jar](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.2.0.BUILD-SNAPSHOT.jar)
+
+1.1.5 release [springloaded-1.1.5.RELEASE.jar](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.5.RELEASE.jar)
 
 The download is the agent jar and needs no further unpacking before use.
 
