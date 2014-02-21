@@ -140,4 +140,15 @@ public class Java8 {
 		
 		return LambdaMetafactory.metafactory(caller, invokedName, invokedType, samMethodType, implMethod, instantiatedMethodType);
 	}
+
+	/**
+	 * The metafactory we are enhancing is responsible for generating the anonymous classes that will call the lambda methods in our type
+	 * 
+	 * @param bytes
+	 * @return
+	 */
+	public static byte[] enhanceInnerClassLambdaMetaFactory(byte[] bytes) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

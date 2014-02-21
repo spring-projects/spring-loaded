@@ -1259,6 +1259,33 @@ public class TypeRegistry {
 		return null; // let it fail anyway
 	}
 
+	/**
+	 * See notes.md#001
+	 * 
+	 */
+	public static Object iiIntercept(Object instance, Object[] params, Object instance2, String nameAndDescriptor) {
+		Class<?> clazz= instance.getClass();
+		try {
+			if (clazz.getName().contains("$$Lambda")) {
+				// There will only be one method, the SAM method
+				Method[] ms = instance.getClass().getDeclaredMethods();
+				Method m = ms[0];
+				m.setAccessible(true);
+				Object o = m.invoke(instance, params);
+				return o;	
+			}
+			else {
+				// Do what you were going to do...
+				Method m = instance.getClass().getDeclaredMethod("__execute",Object[].class,Object.class,String.class);
+				m.setAccessible(true);
+				return m.invoke(instance, params, instance, nameAndDescriptor);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	@UsedByGeneratedCode
 	public static __DynamicallyDispatchable ispcheck(int ids, String nameAndDescriptor) {
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {

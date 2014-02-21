@@ -1236,8 +1236,15 @@ public class MethodInvokerRewriter {
 
 				mv.visitLdcInsn(name + desc); // [targetInstance paramArray targetInstance nameAndDescriptor]
 
-				// calling __execute(params array, this, name+desc)
-				mv.visitMethodInsn(INVOKEINTERFACE, owner, mDynamicDispatchName, mDynamicDispatchDescriptor);
+				if (GlobalConfiguration.isJava18orHigher) {
+					// if the target is a generated lambda callsite object then calling __execute isn't going to work as those
+					// types don't have the method in them!
+					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, "iiIntercept", "(Ljava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;");
+				}
+				else {
+					// calling __execute(params array, this, name+desc)
+					mv.visitMethodInsn(INVOKEINTERFACE, owner, mDynamicDispatchName, mDynamicDispatchDescriptor);
+				}
 
 				insertAppropriateReturn(returnType);
 				Label gotolabel = new Label();

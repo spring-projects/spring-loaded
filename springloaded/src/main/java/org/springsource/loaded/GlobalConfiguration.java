@@ -362,4 +362,16 @@ public class GlobalConfiguration {
 		}
 		debugplugins = debugPlugins;
 	}
+	
+	public final static boolean isJava18orHigher;
+	
+	static {
+		String version = System.getProperty("java.version");
+		if (version.startsWith("1.8")) {
+			isJava18orHigher = true;
+		}
+		else {
+			isJava18orHigher = false;
+		}
+	}
 }
