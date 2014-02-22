@@ -494,33 +494,41 @@ public class TypeRegistry {
 		configuration = new Properties(GlobalConfiguration.globalConfigurationProperties);
 		try {
 			Set<String> configurationFiles = new HashSet<String>();
-			Enumeration<URL> resources = classLoader.get().getResources("springloaded.properties");
-			while (resources.hasMoreElements()) {
-				URL url = resources.nextElement();
-				String configFile = url.toString();
-				if (GlobalConfiguration.logging && log.isLoggable(Level.INFO)) {
-					log.log(Level.INFO, this.toString() + ": processing config file: " + url.toString());
+			ClassLoader classloader = classLoader.get();
+			Enumeration<URL> resources = classloader==null?null:classloader.getResources("springloaded.properties");
+			if (resources == null) {
+				if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+					log.info("Unable to load springloaded.properties, cannot find it through classloader "+classloader);
 				}
-				if (configurationFiles.contains(configFile)) {
-					continue;
-				}
-				configurationFiles.add(configFile);
-				InputStream is = url.openStream();
-
-				Properties p = new Properties();
-				p.load(is);
-				is.close();
-				Set<String> keys = p.stringPropertyNames();
-				for (String key : keys) {
-					if (!configuration.containsKey(key)) {
-						configuration.put(key, p.getProperty(key));
-					} else {
-						// Extend our configuration
-						String valueSoFar = configuration.getProperty(key);
-						StringBuilder sb = new StringBuilder(valueSoFar);
-						sb.append(",");
-						sb.append(p.getProperty(key));
-						configuration.put(key, sb.toString());
+			}
+			else {
+				while (resources.hasMoreElements()) {
+					URL url = resources.nextElement();
+					String configFile = url.toString();
+					if (GlobalConfiguration.logging && log.isLoggable(Level.INFO)) {
+						log.log(Level.INFO, this.toString() + ": processing config file: " + url.toString());
+					}
+					if (configurationFiles.contains(configFile)) {
+						continue;
+					}
+					configurationFiles.add(configFile);
+					InputStream is = url.openStream();
+	
+					Properties p = new Properties();
+					p.load(is);
+					is.close();
+					Set<String> keys = p.stringPropertyNames();
+					for (String key : keys) {
+						if (!configuration.containsKey(key)) {
+							configuration.put(key, p.getProperty(key));
+						} else {
+							// Extend our configuration
+							String valueSoFar = configuration.getProperty(key);
+							StringBuilder sb = new StringBuilder(valueSoFar);
+							sb.append(",");
+							sb.append(p.getProperty(key));
+							configuration.put(key, sb.toString());
+						}
 					}
 				}
 			}
