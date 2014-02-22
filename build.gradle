@@ -1,4 +1,6 @@
 allprojects {
+    apply plugin: 'idea'
+
     configurations {
         tools
     }
@@ -21,3 +23,4 @@ subprojects {
 configure(subprojects.findAll { it.name.startsWith('testdata')}) {
 	tasks.findByPath("artifactoryPublish")?.enabled = false
 }
+
