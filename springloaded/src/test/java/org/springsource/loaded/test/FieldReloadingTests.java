@@ -564,7 +564,11 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		} catch (ResultException re) {
 			assertTrue(re.getCause() instanceof InvocationTargetException);
 			assertTrue(re.getCause().getCause() instanceof IncompatibleClassChangeError);
-			assertEquals("Expected static field fields.Yb.j", re.getCause().getCause().getMessage());
+			// When compiled with AspectJ vs Eclipse JDT the GETSTATIC actually varies.
+			// With AspectJ it is: PUTSTATIC fields/Yb.j : I
+			// With JDT (4.3) it is: PUTSTATIC fields/Zb.j : I
+			// hence the error is different
+			assertEquals("Expected static field fields.Zb.j", re.getCause().getCause().getMessage());
 		}
 
 		// Now should be an IncompatibleClassChangeError
@@ -574,7 +578,11 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		} catch (ResultException re) {
 			assertTrue(re.getCause() instanceof InvocationTargetException);
 			assertTrue(re.getCause().getCause() instanceof IncompatibleClassChangeError);
-			assertEquals("Expected static field fields.Yb.j", re.getCause().getCause().getMessage());
+			// When compiled with AspectJ vs Eclipse JDT the GETSTATIC actually varies.
+			// With AspectJ it is: GETSTATIC fields/Yb.j : I
+			// With JDT (4.3) it is: GETSTATIC fields/Zb.j : I
+			// hence the error is different
+			assertEquals("Expected static field fields.Zb.j", re.getCause().getCause().getMessage());
 		}
 	}
 

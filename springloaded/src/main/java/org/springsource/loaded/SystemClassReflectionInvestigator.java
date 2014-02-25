@@ -15,10 +15,9 @@
  */
 package org.springsource.loaded;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -39,7 +38,7 @@ public class SystemClassReflectionInvestigator {
 		return classAdaptor.hitCount;
 	}
 
-	static class RewriteClassAdaptor extends ClassAdapter implements Constants {
+	static class RewriteClassAdaptor extends ClassVisitor implements Constants {
 
 		int hitCount = 0;
 		private ClassWriter cw;
@@ -52,7 +51,7 @@ public class SystemClassReflectionInvestigator {
 
 		public RewriteClassAdaptor() {
 			// TODO should it also compute frames?
-			super(new ClassWriter(ClassWriter.COMPUTE_MAXS));
+			super(ASM5,new ClassWriter(ClassWriter.COMPUTE_MAXS));
 			cw = (ClassWriter) cv;
 		}
 
@@ -77,10 +76,10 @@ public class SystemClassReflectionInvestigator {
 			return new RewritingMethodAdapter(mv);
 		}
 
-		class RewritingMethodAdapter extends MethodAdapter implements Opcodes, Constants {
+		class RewritingMethodAdapter extends MethodVisitor implements Opcodes, Constants {
 
 			public RewritingMethodAdapter(MethodVisitor mv) {
-				super(mv);
+				super(ASM5,mv);
 			}
 
 			private boolean interceptReflection(String owner, String name, String desc) {

@@ -15,9 +15,8 @@
  */
 package org.springsource.loaded.agent;
 
-import org.objectweb.asm.ClassAdapter;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
 
@@ -27,7 +26,7 @@ import org.springsource.loaded.Constants;
  * @author Andy Clement
  * @since 0.5.0
  */
-public class ClassVisitingConstructorAppender extends ClassAdapter implements Constants {
+public class ClassVisitingConstructorAppender extends ClassVisitor implements Constants {
 
 	private String calleeOwner;
 	private String calleeName;
@@ -41,7 +40,7 @@ public class ClassVisitingConstructorAppender extends ClassAdapter implements Co
 	 * @param name
 	 */
 	public ClassVisitingConstructorAppender(String owner, String name) {
-		super(new ClassWriter(0)); // TODO review 0 here
+		super(ASM5,new ClassWriter(0)); // TODO review 0 here
 		this.calleeOwner = owner;
 		this.calleeName = name;
 	}
@@ -63,10 +62,10 @@ public class ClassVisitingConstructorAppender extends ClassAdapter implements Co
 	 * This constructor appender includes a couple of instructions at the end of each constructor it is asked to visit. It
 	 * recognizes the end by observing a RETURN instruction. The instructions are inserted just before the RETURN.
 	 */
-	class ConstructorAppender extends MethodAdapter implements Constants {
+	class ConstructorAppender extends MethodVisitor implements Constants {
 
 		public ConstructorAppender(MethodVisitor mv) {
-			super(mv);
+			super(ASM5,mv);
 		}
 
 		@Override

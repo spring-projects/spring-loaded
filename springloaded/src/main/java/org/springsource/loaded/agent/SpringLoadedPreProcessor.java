@@ -41,6 +41,7 @@ import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils;
 import org.springsource.loaded.SystemClassReflectionRewriter.RewriteResult;
 import org.springsource.loaded.ri.ReflectiveInterceptor;
+import org.springsource.loaded.support.Java8;
 
 /**
  * The entry point for the agent - all classes that can be modified will be passed into preProcess(). They have to be dealt with in
@@ -147,6 +148,10 @@ public class SpringLoadedPreProcessor implements Constants {
 					//		systemClassesRequiringInitialization.put(slashedClassName, rr.bits);
 					//		return rr.bytes;
 					//	}
+				}
+				else if (slashedClassName.equals("java/lang/invoke/InnerClassLambdaMetafactory")) {
+					bytes = Java8.enhanceInnerClassLambdaMetaFactory(bytes);
+					return bytes;
 				}
 			}
 			return bytes;

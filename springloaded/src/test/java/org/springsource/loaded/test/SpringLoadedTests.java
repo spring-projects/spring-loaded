@@ -47,12 +47,7 @@ import java.util.StringTokenizer;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -61,7 +56,6 @@ import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.springsource.loaded.ClassRenamer;
 import org.springsource.loaded.Constants;
-import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.ISMgr;
 import org.springsource.loaded.MethodMember;
 import org.springsource.loaded.NameRegistry;
@@ -92,12 +86,13 @@ public abstract class SpringLoadedTests implements Constants {
 	protected ClassLoader binLoader;
 
 	protected String TestDataPath = TestUtils.getPathToClasses("../testdata");
+	protected String TestDataAspectJPath = TestUtils.getPathToClasses("../testdata-aspectj");
 	protected String GroovyTestDataPath = TestUtils.getPathToClasses("../testdata-groovy");
 	protected String AspectjrtJar = "../testdata/aspectjrt.jar";
 	protected String CodeJar = "../testdata/code.jar";
 	// TODO [java8] replace this with project dependency when Java8 is out
 	protected String Java8CodeJar = "../testdata-java8/build/libs/testdata-java8.jar";
-	protected String GroovyrtJar = "../testdata-groovy/groovy-1.8.2.jar";
+	protected String GroovyrtJar = "../testdata-groovy/groovy-all-1.8.6.jar";
 	protected Result result;
 	protected TypeRegistry registry;
 
@@ -105,7 +100,7 @@ public abstract class SpringLoadedTests implements Constants {
 	public void setup() throws Exception {
 		SpringLoadedPreProcessor.disabled = true;
 		NameRegistry.reset();
-		binLoader = new TestClassLoader(toURLs(TestDataPath, AspectjrtJar, CodeJar, Java8CodeJar), this.getClass().getClassLoader());
+		binLoader = new TestClassLoader(toURLs(TestDataPath, TestDataAspectJPath, AspectjrtJar, CodeJar, Java8CodeJar), this.getClass().getClassLoader());
 	}
 
 	@After
@@ -1260,5 +1255,16 @@ public abstract class SpringLoadedTests implements Constants {
 		m.invoke(null);
 		return captureOff();
 	}
+
+	protected String slashed(String dotted) {
+		return dotted.replaceAll("\\.", "/");
+	}
+
+	protected final static void pause(int seconds) {
+		try {
+			Thread.sleep(seconds*1000);
+		} catch (Exception e) {}
+	}
+	
 	
 }

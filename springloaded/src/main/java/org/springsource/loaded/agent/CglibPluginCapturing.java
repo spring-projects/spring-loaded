@@ -19,10 +19,9 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
 
@@ -33,7 +32,7 @@ import org.springsource.loaded.Constants;
  * @author Andy Clement
  * @since 0.8.3
  */
-public class CglibPluginCapturing extends ClassAdapter implements Constants {
+public class CglibPluginCapturing extends ClassVisitor implements Constants {
 
 	public static Map<Class<?>, Object[]> clazzToGeneratorStrategyAndClassGeneratorMap = new HashMap<Class<?>, Object[]>();
 	public static Map<Class<?>, Object[]> clazzToGeneratorStrategyAndFastClassGeneratorMap = new HashMap<Class<?>, Object[]>();
@@ -48,7 +47,7 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 	}
 
 	private CglibPluginCapturing() {
-		super(new ClassWriter(0)); // TODO review 0 here
+		super(ASM5,new ClassWriter(0)); // TODO review 0 here
 	}
 	
 	@Override
@@ -74,10 +73,10 @@ public class CglibPluginCapturing extends ClassAdapter implements Constants {
 		}
 	}
 
-	class CreateMethodInterceptor extends MethodAdapter implements Constants {
+	class CreateMethodInterceptor extends MethodVisitor implements Constants {
 
 		public CreateMethodInterceptor(MethodVisitor mv) {
-			super(mv);
+			super(ASM5,mv);
 		}
 
 		@Override

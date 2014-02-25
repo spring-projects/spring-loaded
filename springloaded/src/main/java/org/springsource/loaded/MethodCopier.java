@@ -16,7 +16,6 @@
 package org.springsource.loaded;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Utils.ReturnType;
 
@@ -26,7 +25,7 @@ import org.springsource.loaded.Utils.ReturnType;
  * @author Andy Clement
  * @since 0.5.0
  */
-class MethodCopier extends MethodAdapter implements Constants {
+class MethodCopier extends MethodVisitor implements Constants {
 
 	private boolean isInterface;
 	private String descriptor;
@@ -37,7 +36,7 @@ class MethodCopier extends MethodAdapter implements Constants {
 
 	public MethodCopier(MethodVisitor mv, boolean isInterface, String descriptor, TypeDescriptor typeDescriptor, String classname,
 			String suffix) {
-		super(mv);
+		super(ASM5,mv);
 		this.isInterface = isInterface;
 		this.descriptor = descriptor;
 		this.typeDescriptor = typeDescriptor;

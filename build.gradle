@@ -5,6 +5,9 @@ allprojects {
 
     repositories {
         mavenCentral()
+	maven {
+		url "http://maven.springframework.org/milestone"
+	}
     }
 }
 
@@ -14,8 +17,8 @@ subprojects {
     apply plugin: 'eclipse'
     apply from: "$rootDir/gradle/publish-maven.gradle"
 	
-	sourceCompatibility = 1.6
-	targetCompatibility = 1.6
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
 }
 
 configure(subprojects.findAll { it.name.startsWith('testdata')}) {

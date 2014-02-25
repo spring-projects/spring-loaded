@@ -18,12 +18,11 @@ package org.springsource.loaded;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -105,7 +104,7 @@ public class SystemClassReflectionRewriter {
 		}
 	}
 
-	static class RewriteClassAdaptor extends ClassAdapter implements Constants {
+	static class RewriteClassAdaptor extends ClassVisitor implements Constants {
 
 		private ClassWriter cw;
 		int bits = 0x0000;
@@ -122,7 +121,7 @@ public class SystemClassReflectionRewriter {
 
 		public RewriteClassAdaptor() {
 			// TODO should it also compute frames?
-			super(new ClassWriter(ClassWriter.COMPUTE_MAXS));
+			super(ASM5,new ClassWriter(ClassWriter.COMPUTE_MAXS));
 			cw = (ClassWriter) cv;
 		}
 
@@ -189,10 +188,10 @@ public class SystemClassReflectionRewriter {
 			}
 		}
 
-		class RewritingMethodAdapter extends MethodAdapter implements Opcodes, Constants {
+		class RewritingMethodAdapter extends MethodVisitor implements Opcodes, Constants {
 
 			public RewritingMethodAdapter(MethodVisitor mv) {
-				super(mv);
+				super(ASM5,mv);
 			}
 
 			/**

@@ -18,6 +18,7 @@ package org.springsource.loaded.test;
 import org.junit.Test;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
+import org.springsource.loaded.test.infra.ClassPrinter;
 
 
 /**
@@ -68,11 +69,15 @@ public class InnerClassesTests extends SpringLoadedTests {
 	public void reloadPrivateVisInner() throws Exception {
 		String tclass = "inners.Three";
 		TypeRegistry typeRegistry = getTypeRegistry("inners..*");
-		typeRegistry.addType("inners.Three$Inner", retrieveRename("inners.Three$Inner", "inners.Three2$Inner"));
+		
+		
 		ReloadableType rtype = typeRegistry.addType(tclass, loadBytesForClass(tclass));
 		runUnguarded(rtype.getClazz(), "runner");
 
-		rtype.loadNewVersion("2", retrieveRename(tclass, tclass + "2", "inners.Three2$Inner:inners.Three$Inner"));
+//		ReloadableType rtypeInner = 
+		typeRegistry.addType("inners.Three$Inner", retrieveRename("inners.Three$Inner", "inners.Three2$Inner","inners.Three2:inners.Three"));
+
+		rtype.loadNewVersion("2", retrieveRename(tclass, tclass + "2", "inners.Three2$Inner:inners.Three$Inner","inners.Three2:inners.Three"));
 		runUnguarded(rtype.getClazz(), "runner");
 	}
 
@@ -84,11 +89,11 @@ public class InnerClassesTests extends SpringLoadedTests {
 	public void reloadProtectedVisInner() throws Exception {
 		String tclass = "inners.Four";
 		TypeRegistry typeRegistry = getTypeRegistry("inners..*");
-		typeRegistry.addType("inners.Four$Inner", retrieveRename("inners.Four$Inner", "inners.Four2$Inner"));
+		typeRegistry.addType("inners.Four$Inner", retrieveRename("inners.Four$Inner", "inners.Four2$Inner","inners.Four2:inners.Four"));
 		ReloadableType rtype = typeRegistry.addType(tclass, loadBytesForClass(tclass));
 		runUnguarded(rtype.getClazz(), "runner");
 
-		rtype.loadNewVersion("2", retrieveRename(tclass, tclass + "2", "inners.Four2$Inner:inners.Four$Inner"));
+		rtype.loadNewVersion("2", retrieveRename(tclass, tclass + "2", "inners.Four2$Inner:inners.Four$Inner","inners.Four2:inners.Four"));
 		runUnguarded(rtype.getClazz(), "runner");
 	}
 }

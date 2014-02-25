@@ -18,11 +18,11 @@ package org.springsource.loaded;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodAdapter;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -54,7 +54,7 @@ public class ClassRenamer {
 		return renamed;
 	}
 
-	static class RenameAdapter extends ClassAdapter implements Opcodes {
+	static class RenameAdapter extends ClassVisitor implements Opcodes {
 
 		private ClassWriter cw;
 		private String oldname;
@@ -62,7 +62,7 @@ public class ClassRenamer {
 		private Map<String, String> retargets = new HashMap<String, String>();
 
 		public RenameAdapter(String newname, String[] retargets) {
-			super(new ClassWriter(0));
+			super(ASM5,new ClassWriter(0));
 			cw = (ClassWriter) cv;
 			this.newname = newname.replace('.', '/');
 			if (retargets != null) {
@@ -111,12 +111,15 @@ public class ClassRenamer {
 			}
 			return string;
 		}
-
+		
 		@Override
 		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
 			if (descriptor.indexOf(oldname) != -1) {
 				descriptor = descriptor.replace(oldname, newname);
 			} else {
+				if (descriptor.indexOf(oldname) != -1) {
+					descriptor = descriptor.replace(oldname, newname);
+				}
 				for (String s : retargets.keySet()) {
 					if (descriptor.indexOf(s) != -1) {
 						descriptor = descriptor.replace(s, retargets.get(s));
@@ -141,13 +144,13 @@ public class ClassRenamer {
 			return super.visitField(access, name, desc, signature, value);
 		}
 
-		class RenameMethodAdapter extends MethodAdapter implements Opcodes {
+		class RenameMethodAdapter extends MethodVisitor implements Opcodes {
 
 			String oldname;
 			String newname;
 
 			public RenameMethodAdapter(MethodVisitor mv, String oldname, String newname) {
-				super(mv);
+				super(ASM5,mv);
 				this.oldname = oldname;
 				this.newname = newname;
 			}
@@ -224,6 +227,50 @@ public class ClassRenamer {
 				}
 			}
 
+			private String toString(Handle bsm) {
+				return "["+bsm.getTag()+"]"+bsm.getOwner()+"."+bsm.getName()+bsm.getDesc();
+			}
+			
+			private String toString(Object[] os) {
+				StringBuilder buf = new StringBuilder();
+				if (os!=null) {
+					buf.append("[");
+					for (int i=0;i<os.length;i++) {
+						if (i>0) buf.append(",");
+						buf.append(os[i]);
+					}
+					buf.append("]");
+				}
+				else {
+					return "null";
+				}
+				return buf.toString();
+			}
+			
+			private Handle retargetHandle(Handle oldHandle) {
+				int tag = oldHandle.getTag();
+				String owner = oldHandle.getOwner();
+				String name = oldHandle.getName();
+				String desc = oldHandle.getDesc();
+				owner = renameRetargetIfNecessary(owner);
+				Handle newHandle = new Handle(tag,owner,name,desc);
+				return newHandle;
+			}
+			
+			@Override
+			public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+				// System.out.println("visitInvokeDynamicInsn(name="+name+",desc="+desc+",bsm="+toString(bsm)+",bsmArgs="+toString(bsmArgs)+")");
+				// Example:
+				// visitInvokeDynamicInsn(name=m,desc=()Lbasic/LambdaA2$Foo;,
+				//   bsm=[6]java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;,
+				//   bsmArgs=[()I,basic/LambdaA2.lambda$run$1()I (6),()I])
+				desc = renameRetargetIfNecessary(desc);
+				if (bsmArgs[1] instanceof Handle) {
+					bsmArgs[1] = retargetHandle((Handle)bsmArgs[1]);
+				}
+				mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);	
+			}
+			
 			public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 				if (owner.equals(oldname)) {
 					owner = newname;

@@ -104,6 +104,15 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	}
 
 	private static boolean debug = false;
+	
+	static {
+		try {
+			String debugString = System.getProperty("springloaded.plugins.spring.debug","false");
+			debug = Boolean.valueOf(debugString);
+		} catch (Exception e) {
+			// likely security exception
+		}
+	}
 
 	// called by the modified code
 	public static void recordDefaultAnnotationHandlerMappingInstance(Object obj) {
@@ -212,12 +221,12 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				method_initHandlerMethods.setAccessible(true);
 				method_initHandlerMethods.invoke(o);
 			} catch (NoSuchFieldException nsfe) {
-				if (log.isLoggable(Level.WARNING)) {
+				if (debug) {
 					if (nsfe.getMessage().equals("handlerMethods")) {
-						log.warning("problem resetting request mapping handlers - unable to find field 'handlerMethods' on type 'AbstractHandlerMethodMapping' - you probably are not on Spring 3.1");
+						System.out.println("problem resetting request mapping handlers - unable to find field 'handlerMethods' on type 'AbstractHandlerMethodMapping' - you probably are not on Spring 3.1");
 					}
 					else {
-						log.warning("problem resetting request mapping handlers - NoSuchFieldException: "+nsfe.getMessage());
+						System.out.println("problem resetting request mapping handlers - NoSuchFieldException: "+nsfe.getMessage());
 					}
 				}
 			} catch (Exception e) {

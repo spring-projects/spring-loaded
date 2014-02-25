@@ -625,7 +625,10 @@ public class TypeDiffComputer implements Opcodes {
 		//			td.setTypeVersionChange(oldClassNode.version, newClassNode.version);
 		//		}
 		if (oldClassNode.access != newClassNode.access) {
-			td.setTypeAccessChange(oldClassNode.access, newClassNode.access);
+			// Is it only because of 0x20000 - that appears to represent Deprecated!
+			if ((oldClassNode.access & 0xffff) != (newClassNode.access&0xffff)) {
+				td.setTypeAccessChange(oldClassNode.access, newClassNode.access);
+			}
 		}
 		if (!oldClassNode.name.equals(newClassNode.name)) {
 			td.setTypeNameChange(oldClassNode.name, newClassNode.name);

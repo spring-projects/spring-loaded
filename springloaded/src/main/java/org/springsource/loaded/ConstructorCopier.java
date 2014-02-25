@@ -16,14 +16,13 @@
 package org.springsource.loaded;
 
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 
 /**
  * @author Andy Clement
  * @since 0.5.0
  */
-class ConstructorCopier extends MethodAdapter implements Constants {
+class ConstructorCopier extends MethodVisitor implements Constants {
 
 	private final static int preInvokeSpecial = 0;
 	private final static int postInvokeSpecial = 1;
@@ -39,7 +38,7 @@ class ConstructorCopier extends MethodAdapter implements Constants {
 	private String classname;
 
 	public ConstructorCopier(MethodVisitor mv, TypeDescriptor typeDescriptor, String suffix, String classname) {
-		super(mv);
+		super(ASM5,mv);
 		this.typeDescriptor = typeDescriptor;
 		this.suffix = suffix;
 		this.classname = classname;

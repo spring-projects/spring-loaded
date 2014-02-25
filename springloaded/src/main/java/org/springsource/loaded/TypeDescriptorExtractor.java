@@ -54,7 +54,7 @@ public class TypeDescriptorExtractor {
 	/**
 	 * Visit a class and accumulate sufficient information to build a TypeDescriptor.
 	 */
-	class ExtractionVisitor implements ClassVisitor, Opcodes {
+	class ExtractionVisitor extends ClassVisitor implements Opcodes {
 
 		private boolean isReloadableType;
 		private int flags;
@@ -72,6 +72,7 @@ public class TypeDescriptorExtractor {
 		private List<String> finalInHierarchy = new ArrayList<String>();
 		
 		public ExtractionVisitor(boolean isReloadableType) {
+			super(ASM5);
 			this.isReloadableType = isReloadableType;
 		}
 		

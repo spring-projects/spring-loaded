@@ -205,7 +205,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	@Test
 	public void invokeStaticReloading_gh4_2() throws Exception {
 		TypeRegistry tr = getTypeRegistry("invokestatic..*");
-		ReloadableType AA = tr.addType("invokestatic.issue4.AA", loadBytesForClass("invokestatic.issue4.AA"));
+		tr.addType("invokestatic.issue4.AA", loadBytesForClass("invokestatic.issue4.AA"));
 		ReloadableType BB = tr.addType("invokestatic.issue4.BB", loadBytesForClass("invokestatic.issue4.BB"));
 		
 		Result r = runUnguarded(BB.getClazz(), "getMessage");
@@ -272,7 +272,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	@Test
 	public void invokeStaticReloading_gh4_6() throws Exception {
 		TypeRegistry tr = getTypeRegistry("invokestatic.issue4..*");
-		ReloadableType AB = tr.addType("invokestatic.issue4.AB", loadBytesForClass("invokestatic.issue4.AB"));
+		tr.addType("invokestatic.issue4.AB", loadBytesForClass("invokestatic.issue4.AB"));
 		ReloadableType B = tr.addType("invokestatic.issue4.BBBBB", loadBytesForClass("invokestatic.issue4.BBBBB"));
 		
 		Result r = runUnguarded(B.getClazz(), "getMessage");

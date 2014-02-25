@@ -42,11 +42,13 @@ import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.objectweb.asm.Handle;
 import org.springsource.loaded.agent.FileSystemWatcher;
 import org.springsource.loaded.agent.ReloadDecision;
 import org.springsource.loaded.agent.ReloadableFileChangeListener;
 import org.springsource.loaded.agent.SpringLoadedPreProcessor;
 import org.springsource.loaded.infra.UsedByGeneratedCode;
+import org.springsource.loaded.support.Java8;
 
 
 // TODO debug: stepping into deleted methods - should delete line number table for deleted methods
@@ -492,33 +494,41 @@ public class TypeRegistry {
 		configuration = new Properties(GlobalConfiguration.globalConfigurationProperties);
 		try {
 			Set<String> configurationFiles = new HashSet<String>();
-			Enumeration<URL> resources = classLoader.get().getResources("springloaded.properties");
-			while (resources.hasMoreElements()) {
-				URL url = resources.nextElement();
-				String configFile = url.toString();
-				if (GlobalConfiguration.logging && log.isLoggable(Level.INFO)) {
-					log.log(Level.INFO, this.toString() + ": processing config file: " + url.toString());
+			ClassLoader classloader = classLoader.get();
+			Enumeration<URL> resources = classloader==null?null:classloader.getResources("springloaded.properties");
+			if (resources == null) {
+				if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+					log.info("Unable to load springloaded.properties, cannot find it through classloader "+classloader);
 				}
-				if (configurationFiles.contains(configFile)) {
-					continue;
-				}
-				configurationFiles.add(configFile);
-				InputStream is = url.openStream();
-
-				Properties p = new Properties();
-				p.load(is);
-				is.close();
-				Set<String> keys = p.stringPropertyNames();
-				for (String key : keys) {
-					if (!configuration.containsKey(key)) {
-						configuration.put(key, p.getProperty(key));
-					} else {
-						// Extend our configuration
-						String valueSoFar = configuration.getProperty(key);
-						StringBuilder sb = new StringBuilder(valueSoFar);
-						sb.append(",");
-						sb.append(p.getProperty(key));
-						configuration.put(key, sb.toString());
+			}
+			else {
+				while (resources.hasMoreElements()) {
+					URL url = resources.nextElement();
+					String configFile = url.toString();
+					if (GlobalConfiguration.logging && log.isLoggable(Level.INFO)) {
+						log.log(Level.INFO, this.toString() + ": processing config file: " + url.toString());
+					}
+					if (configurationFiles.contains(configFile)) {
+						continue;
+					}
+					configurationFiles.add(configFile);
+					InputStream is = url.openStream();
+	
+					Properties p = new Properties();
+					p.load(is);
+					is.close();
+					Set<String> keys = p.stringPropertyNames();
+					for (String key : keys) {
+						if (!configuration.containsKey(key)) {
+							configuration.put(key, p.getProperty(key));
+						} else {
+							// Extend our configuration
+							String valueSoFar = configuration.getProperty(key);
+							StringBuilder sb = new StringBuilder(valueSoFar);
+							sb.append(",");
+							sb.append(p.getProperty(key));
+							configuration.put(key, sb.toString());
+						}
 					}
 				}
 			}
@@ -1117,6 +1127,21 @@ public class TypeRegistry {
 	}
 
 	/**
+	 *Used to determine if the invokedynamic needs to be intercepted.
+	 * 
+	 * @return null if nothing has been reloaded
+	 */
+	@UsedByGeneratedCode
+	public static Object idycheck() {
+		if (TypeRegistry.nothingReloaded) {
+			return null;
+		}
+		else {
+			return "reloading-happened";
+		}
+	}
+	
+	/**
 	 * Determine if something has changed in a particular type related to a particular descriptor and so the dispatcher interface
 	 * should be used. The type registry ID and class ID are merged in the 'ids' parameter. This method is for INVOKESTATIC rewrites
 	 * and so performs additional checks because it assumes the target is static.
@@ -1240,6 +1265,33 @@ public class TypeRegistry {
 			next = next.getTypeRegistry().getReloadableType(next.getTypeDescriptor().getSupertypeName(), false);
 		}
 		return null; // let it fail anyway
+	}
+
+	/**
+	 * See notes.md#001
+	 * 
+	 */
+	public static Object iiIntercept(Object instance, Object[] params, Object instance2, String nameAndDescriptor) {
+		Class<?> clazz= instance.getClass();
+		try {
+			if (clazz.getName().contains("$$Lambda")) {
+				// There will only be one method, the SAM method
+				Method[] ms = instance.getClass().getDeclaredMethods();
+				Method m = ms[0];
+				m.setAccessible(true);
+				Object o = m.invoke(instance, params);
+				return o;	
+			}
+			else {
+				// Do what you were going to do...
+				Method m = instance.getClass().getDeclaredMethod("__execute",Object[].class,Object.class,String.class);
+				m.setAccessible(true);
+				return m.invoke(instance, params, instance, nameAndDescriptor);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@UsedByGeneratedCode
@@ -1459,7 +1511,17 @@ public class TypeRegistry {
 		}
 		return false;
 	}
-
+	
+	@UsedByGeneratedCode
+	public static Object idyrun(Object[] indyParams, int typeRegistryId, int classId, Object caller, String nameAndDescriptor, int bsmId) {
+		// Typical next line: lookup=basic.LambdaA nameAD=m()Lbasic/LambdaA$Foo; bsmId=0
+		// System.err.println("idyrun("+caller+","+nameAndDescriptor+","+bsmId+")");
+		// TODO Currently leaking entries in bsmmap with reloads (new ones get added, old ones not removed)
+		ReloadableType rtype = TypeRegistry.getReloadableType(typeRegistryId, classId);
+		BsmInfo bsmi = bsmmap.get(rtype.getSlashedName())[bsmId]; 
+		return Java8.emulateInvokeDynamic(rtype.getLatestExecutorClass(),bsmi.bsm,bsmi.bsmArgs,caller,nameAndDescriptor, indyParams);
+	}
+	
 	/**
 	 * Used in code the generated code replaces invokevirtual calls. Determine if the code can run as it was originally compiled.
 	 * 
@@ -1855,5 +1917,48 @@ public class TypeRegistry {
 
 	public Set<ReloadableType> getJDKProxiesFor(String slashedInterfaceTypeName) {
 		return jdkProxiesForInterface.get(slashedInterfaceTypeName);
+	}
+
+
+	/**
+	 * When an invokedynamic instruction is reached, we allocate an id that
+	 * recognizes that bsm and the parameters to that bsm. The index can be
+	 * used when rewriting that invokedynamic
+	 * 
+	 * @return id that represents this bootstrap method usage
+	 */
+	public synchronized int recordBootstrapMethod(String slashedClassName, Handle bsm, Object[] bsmArgs) {
+		if (bsmmap == null) {
+			bsmmap = new HashMap<String,BsmInfo[]>();
+		}
+		BsmInfo[] bsminfo = bsmmap.get(slashedClassName);
+		if (bsminfo== null) {
+			bsminfo = new BsmInfo[1];
+			// TODO do we need BsmInfo or can we just use Handle directly?
+			bsminfo[0] = new BsmInfo(bsm, bsmArgs);
+			bsmmap.put(slashedClassName,bsminfo);
+			return 0;
+		}
+		else {
+			int len = bsminfo.length;
+			BsmInfo[] newarray = new BsmInfo[len+1];
+			System.arraycopy(bsminfo, 0, newarray, 0, len);
+			bsminfo = newarray;
+			bsmmap.put(slashedClassName,bsminfo);
+			bsminfo[len] = new BsmInfo(bsm,bsmArgs);
+			return len;
+		}
+		// TODO [memory] search the existing bsmInfos for a matching one! Reuse!
+	}
+
+	private static Map<String,BsmInfo[]> bsmmap;
+	
+	static class BsmInfo {
+		Handle bsm;
+		Object[] bsmArgs;
+		public BsmInfo(Handle bsm, Object[] bsmArgs) {
+			this.bsm = bsm;
+			this.bsmArgs = bsmArgs;
+		}
 	}
 }

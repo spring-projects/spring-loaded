@@ -69,7 +69,7 @@ public class ExecutorBuilder {
 	 * ClassVisitor that constructs the executor by visiting the original class. The basic goal is to visit the original class and
 	 * 'copy' the methods into the executor, making adjustments as we go.
 	 */
-	static class ExecutorBuilderVisitor implements ClassVisitor, Constants {
+	static class ExecutorBuilderVisitor extends ClassVisitor implements Constants {
 
 		private ClassWriter cw = new ClassWriter(0);
 
@@ -78,6 +78,7 @@ public class ExecutorBuilder {
 		protected TypeDescriptor typeDescriptor;
 
 		public ExecutorBuilderVisitor(String classname, String suffix, TypeDescriptor typeDescriptor) {
+			super(ASM5);
 			this.classname = classname;
 			this.suffix = suffix;
 			this.typeDescriptor = typeDescriptor;
@@ -128,7 +129,16 @@ public class ExecutorBuilder {
 				if (name.charAt(1) != 'c') {
 					// regular constructor
 					// want to create the ___init___ handler for this constructor
+					
+					// With the JDT compiler the inner class constructor gets an extra first parameter that is the type of
+					// containing class. But with javac the inner class constructor gets an extra first parameter that is of
+					// a special anonymous type (inner class of the containing class)
+					// For example:  class Foo { class Bar {}}
+					// JDT: ctor in Bar is <init>(Foo) {}
+					// JAVAC: ctor in Bar is <init>(Foo$1) {}
+										
 					descriptor = Utils.insertExtraParameter(classname, descriptor);
+					
 					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mInitializerName, descriptor, signature, exceptions);
 
 					ConstructorCopier cc = new ConstructorCopier(mv, typeDescriptor, suffix, classname);
@@ -145,11 +155,12 @@ public class ExecutorBuilder {
 			cw.visitSource(sourcefile, debug);
 		}
 
-		private static class CopyingAnnotationVisitor implements AnnotationVisitor {
+		private static class CopyingAnnotationVisitor extends AnnotationVisitor {
 
 			private AnnotationVisitor av;
 
 			public CopyingAnnotationVisitor(AnnotationVisitor av) {
+				super(ASM5);
 				this.av = av;
 			}
 

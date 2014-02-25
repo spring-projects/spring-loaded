@@ -19,13 +19,11 @@ import java.lang.reflect.Modifier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.objectweb.asm.ClassAdapter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.springsource.loaded.Utils.ReturnType;
@@ -55,7 +53,7 @@ public class TypeRewriter implements Constants {
 		return classAdaptor.getBytes();
 	}
 
-	static class RewriteClassAdaptor extends ClassAdapter implements Constants {
+	static class RewriteClassAdaptor extends ClassVisitor implements Constants {
 
 		private ClassWriter cw;
 		private String slashedname;
@@ -72,7 +70,7 @@ public class TypeRewriter implements Constants {
 		}
 
 		public RewriteClassAdaptor(ReloadableType rtype, ClassWriter classWriter) {
-			super(classWriter);
+			super(ASM5,classWriter);
 			this.rtype = rtype;
 			this.slashedname = rtype.getSlashedName();
 			this.cw = (ClassWriter) cv;
@@ -414,7 +412,7 @@ public class TypeRewriter implements Constants {
 
 		@Override
 		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
-			MethodVisitor mv = super.visitMethod(promoteIfNecessary(flags), name, descriptor, signature, exceptions);
+			MethodVisitor mv = super.visitMethod(promoteIfNecessary(flags,name), name, descriptor, signature, exceptions);
 			MethodVisitor newMethodVisitor = getMethodVisitor(name, descriptor, mv);
 			return newMethodVisitor;
 		}
@@ -444,8 +442,8 @@ public class TypeRewriter implements Constants {
 		}
 
 		// Default visibility elements need promotion to public so that they can be seen from the executor
-		private int promoteIfNecessary(int flags) {
-			int newflags = Utils.promoteDefaultOrProtectedToPublic(flags, isEnum);
+		private int promoteIfNecessary(int flags,String name) {
+			int newflags = Utils.promoteDefaultOrProtectedToPublic(flags, isEnum, name);
 			return newflags;
 		}
 
@@ -816,7 +814,7 @@ public class TypeRewriter implements Constants {
 		/**
 		 * Rewrites a method to include the extra checks to verify it is the most up to date version.
 		 */
-		class AugmentingMethodAdapter extends MethodAdapter implements Opcodes {
+		class AugmentingMethodAdapter extends MethodVisitor implements Opcodes {
 
 			int methodId;
 			String name;
@@ -825,7 +823,7 @@ public class TypeRewriter implements Constants {
 			ReturnType returnType;
 
 			public AugmentingMethodAdapter(MethodVisitor mv, String name, String descriptor) {
-				super(mv);
+				super(ASM5,mv);
 				this.name = name;
 				this.method = rtype.getMethod(name, descriptor);
 				this.methodId = method.getId();
@@ -916,7 +914,7 @@ public class TypeRewriter implements Constants {
 
 		}
 
-		class AugmentingConstructorAdapter extends MethodAdapter implements Opcodes {
+		class AugmentingConstructorAdapter extends MethodVisitor implements Opcodes {
 
 			int ctorId;
 			String name;
@@ -926,7 +924,7 @@ public class TypeRewriter implements Constants {
 			boolean isTopMost;
 
 			public AugmentingConstructorAdapter(MethodVisitor mv, String descriptor, String type, boolean isTopMost) {
-				super(mv);
+				super(ASM5,mv);
 				this.descriptor = descriptor;
 				this.type = type;
 				this.isTopMost = isTopMost;
@@ -1053,12 +1051,12 @@ public class TypeRewriter implements Constants {
 			void prepend();
 		}
 
-		class MethodPrepender extends MethodAdapter implements Opcodes {
+		class MethodPrepender extends MethodVisitor implements Opcodes {
 
 			Prepender appender;
 
 			public MethodPrepender(MethodVisitor mv, Prepender appender) {
-				super(mv);
+				super(ASM5,mv);
 				this.appender = appender;
 			}
 

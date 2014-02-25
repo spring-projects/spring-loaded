@@ -19,13 +19,18 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
+import org.springsource.loaded.Constants;
 import org.springsource.loaded.Utils;
 
 
 /**
  * MethodVisitor that records events - very useful for testing
  */
-public class FakeMethodVisitor implements MethodVisitor {
+public class FakeMethodVisitor extends MethodVisitor implements Constants {
+
+	public FakeMethodVisitor() {
+		super(ASM5);
+	}
 
 	StringBuilder events = new StringBuilder();
 

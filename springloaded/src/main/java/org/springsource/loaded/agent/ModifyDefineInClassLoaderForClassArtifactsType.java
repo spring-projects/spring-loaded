@@ -15,9 +15,8 @@
  */
 package org.springsource.loaded.agent;
 
-import org.objectweb.asm.ClassAdapter;
+import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
 import org.springsource.loaded.GlobalConfiguration;
@@ -30,10 +29,10 @@ import org.springsource.loaded.TypeRegistry;
  * @author Andy Clement
  * @since 0.7.3
  */
-public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassAdapter implements Constants {
+public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor implements Constants {
 
 	public ModifyDefineInClassLoaderForClassArtifactsType() {
-		super(new ClassWriter(0)); // TODO review 0 here
+		super(ASM5,new ClassWriter(0)); // TODO review 0 here
 	}
 
 	public byte[] getBytes() {
@@ -49,10 +48,10 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassAdapter
 		}
 	}
 
-	class DefineClassModifierVisitor extends MethodAdapter implements Constants {
+	class DefineClassModifierVisitor extends MethodVisitor implements Constants {
 
 		public DefineClassModifierVisitor(MethodVisitor mv) {
-			super(mv);
+			super(ASM5,mv);
 		}
 
 		@Override

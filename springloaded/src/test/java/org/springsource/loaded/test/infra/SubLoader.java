@@ -47,7 +47,7 @@ public class SubLoader extends ClassLoader {
 		TestUtils.getPathToClasses("../testdata-subloader")
 		};
 	static String[] jars = new String[] { 
-		"../testdata-groovy/groovy-1.8.2.jar"
+		"../testdata-groovy/groovy-all-1.8.6.jar"
 		};
 	// @formatter:on
 
@@ -140,8 +140,8 @@ public class SubLoader extends ClassLoader {
 						c = defineClass(name, data, 0, data.length);
 						break;
 					}
+					zipfile.close();
 				}
-				// zipfile.close();
 			} catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException("Problem defining class", e);

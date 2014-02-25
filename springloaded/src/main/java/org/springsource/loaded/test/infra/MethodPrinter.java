@@ -21,17 +21,17 @@ import java.util.List;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.springsource.loaded.Utils;
 
-
 /**
  * 
  * @author Andy Clement
  */
-public class MethodPrinter implements MethodVisitor, Opcodes {
+public class MethodPrinter extends MethodVisitor implements Opcodes {
 
 	PrintStream to;
 
@@ -47,11 +47,21 @@ public class MethodPrinter implements MethodVisitor, Opcodes {
 	}
 
 	public MethodPrinter(PrintStream destination) {
+		super(ASM5);
 		this.to = destination;
 	}
 
 	public void visitCode() {
 		to.print("    CODE\n");
+	}
+	
+	@Override
+	public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
+		to.println("    INVOKEDYNAMIC " + name+"."+desc+"  bsm="+toString(bsm));
+	}
+
+	private String toString(Handle bsm) {
+		return "#"+bsm.getTag()+" "+bsm.getOwner()+"."+bsm.getName()+bsm.getDesc();
 	}
 
 	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
@@ -75,7 +85,11 @@ public class MethodPrinter implements MethodVisitor, Opcodes {
 		return new AnnotationVisitorPrinter();
 	}
 
-	class AnnotationVisitorPrinter implements AnnotationVisitor {
+	class AnnotationVisitorPrinter extends AnnotationVisitor {
+
+		public AnnotationVisitorPrinter() {
+			super(ASM5);
+		}
 
 		public void visit(String name, Object value) {
 			to.print(name + "=" + value + " ");

@@ -53,14 +53,6 @@ public class JavaMicroBenchmarkTests extends SpringLoadedTests {
 		average(rtype, 5);
 	}
 
-	private void pause(int seconds) {
-		System.out.println("waiting...");
-		try {
-			Thread.sleep(seconds * 1000);
-		} catch (Exception e) {
-		}
-	}
-
 	// TODO fibonacci
 
 	private void average(ReloadableType rtype, int count) throws Exception {
