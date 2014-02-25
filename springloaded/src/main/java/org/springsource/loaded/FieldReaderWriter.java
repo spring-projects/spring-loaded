@@ -55,7 +55,7 @@ public class FieldReaderWriter {
 	 * 
 	 * @param instance the object instance upon which to set the field
 	 * @param newValue the new value for that field
-	 * @param the optional state manager for this instance, which will be looked up (expensive) if not passed in
+	 * @param stateManager the optional state manager for this instance, which will be looked up (expensive) if not passed in
 	 */
 	public void setValue(Object instance, Object newValue, ISMgr stateManager) throws IllegalAccessException {
 		if (typeDescriptor.isReloadable()) {

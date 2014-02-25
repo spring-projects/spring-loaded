@@ -47,6 +47,7 @@ import org.objectweb.asm.Opcodes;
  * <li>getDeclaredConstructor
  * <li>getDeclaredMethods
  * <li>getDeclaredMethod</li>
+ * </ul>
  * <p>
  * Due to ProxyGenerator
  * <ul>

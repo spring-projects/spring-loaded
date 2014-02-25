@@ -35,7 +35,7 @@ public interface LoadtimeInstrumentationPlugin extends Plugin {
 	 * 
 	 * @param slashedTypeName the type name, slashed form (e.g. java/lang/String)
 	 * @param classLoader the classloader loading the type
-	 * @param protectionDomain
+	 * @param protectionDomain the ProtectionDomain for the class represented by the bytes
 	 * @param bytes the classfile contents for the type
 	 * @return true if this plugin wants to change the bytes for the named type
 	 */
@@ -44,7 +44,7 @@ public interface LoadtimeInstrumentationPlugin extends Plugin {
 	/**
 	 * Once accept has returned true for a type, the modify method will be called to make the actual change to the classfile bytes.
 	 * 
-	 * @param slashedTypeName the type name, slashed form (e.g. java/lang/String)
+	 * @param slashedClassName the class name, slashed form (e.g. java/lang/String)
 	 * @param classLoader the classloader loading the type
 	 * @param bytes the classfile contents for the type
 	 * @return the new (modified) bytes for the class

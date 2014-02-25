@@ -28,17 +28,17 @@ import org.objectweb.asm.MethodVisitor;
  * methods in the interface is that they contain an extra (leading) parameter that is the type of the original loaded class.<br>
  * For example:<br>
  * 
- * <tt> <pre>
+ * <pre><tt>
  * class Foo {
- * public String foo(int i) {}
+ *   public String foo(int i) {}
  * }
- * </pre></tt>
+ * </tt></pre>
  * 
  * will cause creation of an interface method:
  * 
- * <tt> <pre>
+ * <pre> <tt>
  * String foo(Foo instance, int i) {}
- * </pre></tt>
+ * </tt></pre>
  * 
  * @author Andy Clement
  * @since 0.5.0

@@ -112,10 +112,8 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 	 * because they may be either calling something that disappears on a later reload (so need to fail appropriately) or calling
 	 * something that isnt there on the first load - in this latter case they are changed to route the dynamic executor method.
 	 * 
-	 * @param classloader
-	 * @param name
-	 * @param bytes
-	 * @return
+	 * @param a the GeneratorStrategy being used
+	 * @param b the AbstractClassGenerator
 	 */
 	public static void record(Object a, Object b) {
 		// a is a Lnet/sf/cglib/core/GeneratorStrategy;

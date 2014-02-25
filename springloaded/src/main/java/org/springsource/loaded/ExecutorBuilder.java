@@ -40,7 +40,7 @@ import org.objectweb.asm.Opcodes;
  * can be accessed through reflection).
  * <p>
  * <b>Constructors</b>. Constructors are added to the executor as ___init___ methods, with the invokespecials within them
- * transformed, either removed if they are calls to Object.<init> or mutated into ___init___ calls on the supertype instance.
+ * transformed, either removed if they are calls to Object.&lt;init&gt; or mutated into ___init___ calls on the supertype instance.
  * 
  * @author Andy Clement
  * @since 0.5.0

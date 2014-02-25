@@ -23,7 +23,7 @@ import java.lang.instrument.Instrumentation;
  * it is 'plugged in' to the JVM when '-javaagent:springloaded.jar' is used.
  * 
  * @author Andy Clement
- * @sinc 0.5.0
+ * @since 0.5.0
  */
 public class SpringLoadedAgent {
 

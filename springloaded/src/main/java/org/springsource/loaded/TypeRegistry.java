@@ -889,7 +889,7 @@ public class TypeRegistry {
 	/**
 	 * Add a type to the registry. The name should have already passed the isReloadableTypeName() test.
 	 * 
-	 * @param dottedtypename type name of the form a.b.c.D
+	 * @param dottedname type name of the form a.b.c.D
 	 * @param initialbytes the first version of the bytes as loaded
 	 * @return the ReloadableType or null if it cannot be made reloadable
 	 */
@@ -988,6 +988,9 @@ public class TypeRegistry {
 	/**
 	 * Sometimes we discover the reloadabletype during program execution, for example A calls B and we haven't yet seen B. We find B
 	 * has been loaded by a parent classloader, let's remember B here so we can do fast lookups for it.
+	 * 
+	 * @param typeId the id for the type
+	 * @param rtype the ReloadableType to associate with the id
 	 */
 	public void rememberReloadableType(int typeId, ReloadableType rtype) {
 		if (typeId >= reloadableTypes.length) {
@@ -1002,9 +1005,12 @@ public class TypeRegistry {
 	/**
 	 * Determine the reloadabletype object representation for a specified class. If the caller already knows the ID for the type,
 	 * that would be a quicker way to locate the reloadable type object.
+	 * 
+	 * @param slashedClassName the slashed (e.g. java/lang/String) class name
+	 * @return the ReloadableType
 	 */
-	public ReloadableType getReloadableType(String slashedClassname) {
-		int id = getTypeIdFor(slashedClassname, true);
+	public ReloadableType getReloadableType(String slashedClassName) {
+		int id = getTypeIdFor(slashedClassName, true);
 		if (id >= reloadableTypesSize) {
 			return null;
 		}
@@ -1053,9 +1059,9 @@ public class TypeRegistry {
 	 * allocated for this classname if it hasn't previously been seen before. This method does not create new ReloadableType
 	 * objects, they are expected to come into existence when defined by the classloader.
 	 * 
-	 * @param slashedClassname
-	 * @param allocateIdIfNotYetLoaded
-	 * @return
+	 * @param slashedClassname the slashed class name (e.g. java/lang/String)
+	 * @param allocateIdIfNotYetLoaded if true an id will be allocated because sometime later the type will be loaded (and made reloadable)
+	 * @return the ReloadableType discovered or allocated, or null if not found and !allocateIdIfNotYetLoaded
 	 */
 	public ReloadableType getReloadableType(String slashedClassname, boolean allocateIdIfNotYetLoaded) {
 		if (allocateIdIfNotYetLoaded) {
@@ -1072,7 +1078,7 @@ public class TypeRegistry {
 	}
 
 	/**
-	 * @param name dotted name
+	 * @param name dotted name (e.g. java.lang.String)
 	 * @param bytes bytes for the class
 	 * @param permanent determines if the type should be defined in the classloader attached to this registry or in the child
 	 *        classloader that can periodically by discarded
@@ -1145,6 +1151,10 @@ public class TypeRegistry {
 	 * Determine if something has changed in a particular type related to a particular descriptor and so the dispatcher interface
 	 * should be used. The type registry ID and class ID are merged in the 'ids' parameter. This method is for INVOKESTATIC rewrites
 	 * and so performs additional checks because it assumes the target is static.
+	 * 
+	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
+	 * @param nameAndDescriptor the name and descriptor of the method about to be INVOKESTATIC'd
+	 * @return null if the original code can run otherwise return the dispatcher to use
 	 */
 	@UsedByGeneratedCode
 	public static Object istcheck(int ids, String nameAndDescriptor) {
@@ -1270,6 +1280,11 @@ public class TypeRegistry {
 	/**
 	 * See notes.md#001
 	 * 
+	 * @param instance the object instance on which the INVOKEINTERFACE is being called
+	 * @param params the parameters to the INVOKEINTERFACE call
+	 * @param instance2 the object instance on which the INVOKEINTERFACE is being called
+	 * @param nameAndDescriptor the name and descriptor of what is being called (e.g. foo(Ljava/lang/String)I)
+	 * @return the result of making the INVOKEINTERFACE call
 	 */
 	public static Object iiIntercept(Object instance, Object[] params, Object instance2, String nameAndDescriptor) {
 		Class<?> clazz= instance.getClass();
@@ -1349,6 +1364,10 @@ public class TypeRegistry {
 	 * everything that the descriptor embodies everything about a method interface. Therefore, if something changes about the
 	 * descriptor it is considered an entirely different method (and the old form is a deleted method). For this reason there is no
 	 * need to consider 'changed' methods, because the static-ness nor visibility cannot change.
+	 * 
+	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
+	 * @param nameAndDescriptor the name and descriptor of the method about to be INVOKEINTERFACE'd
+	 * @return true if the original method operation must be intercepted
 	 */
 	@UsedByGeneratedCode
 	public static boolean iincheck(int ids, String nameAndDescriptor) {
@@ -1470,6 +1489,9 @@ public class TypeRegistry {
 	/**
 	 * Called for a field operation - trying to determine whether a particular field needs special handling.
 	 * 
+	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
+	 * @param name the name of the instance field about to be accessed
+	 * @return true if the field operation must be intercepted
 	 */
 	@UsedByGeneratedCode
 	public static boolean instanceFieldInterceptionRequired(int ids, String name) {
@@ -1491,6 +1513,10 @@ public class TypeRegistry {
 
 	/**
 	 * Called for a field operation - trying to determine whether a particular field needs special handling.
+	 *
+	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
+	 * @param name the name of the static field about to be accessed
+	 * @return true if the field operation must be intercepted
 	 */
 	@UsedByGeneratedCode
 	public static boolean staticFieldInterceptionRequired(int ids, String name) {
@@ -1527,6 +1553,10 @@ public class TypeRegistry {
 	 * 
 	 * This method will return FALSE if nothing has changed to interfere with the invocation and it should proceed. This method will
 	 * return TRUE if something has changed and the caller needs to do something different.
+	 *
+	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
+	 * @param nameAndDescriptor the name and descriptor of the method about to be INVOKEVIRTUAL'd
+	 * @return true if the original method operation must be intercepted
 	 */
 	@UsedByGeneratedCode
 	public static boolean ivicheck(int ids, String nameAndDescriptor) {
@@ -1605,6 +1635,10 @@ public class TypeRegistry {
 
 	/**
 	 * This method discovers the reloadable type instance for the registry and type id specified.
+	 * 
+	 * @param typeRegistryId the type registry id
+	 * @param typeId the type id
+	 * @return the ReloadableType (if there is no ReloadableType an exception will be thrown) 
 	 */
 	@UsedByGeneratedCode
 	public static ReloadableType getReloadableType(int typeRegistryId, int typeId) {
@@ -1836,6 +1870,8 @@ public class TypeRegistry {
 	/**
 	 * To avoid leaking permgen we want to periodically discard the child classloader and recreate a new one. We will need to then
 	 * redefine types again over time as they are used (the most recent variants of them).
+	 * 
+	 * @param currentlyDefining the reloadable type currently being defined reloaded
 	 */
 	public void checkChildClassLoader(ReloadableType currentlyDefining) {
 		ChildClassLoader ccl = childClassLoader == null ? null : childClassLoader.get();

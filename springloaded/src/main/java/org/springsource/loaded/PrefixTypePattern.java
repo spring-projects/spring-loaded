@@ -26,11 +26,10 @@ public class PrefixTypePattern extends TypePattern {
 	private String pattern;
 
 	/**
-	 * @param prefix prefix of the form 'com.foo.bar..*'
+	 * @param pattern the prefix pattern of the form 'com.foo.bar..*'
 	 */
 	public PrefixTypePattern(String pattern) {
-		this.pattern = pattern.substring(0, pattern.length() - 2); // chop off
-																	// the '.*'
+		this.pattern = pattern.substring(0, pattern.length() - 2); // chop off the '.*'
 	}
 
 	protected boolean internalMatches(String input) {

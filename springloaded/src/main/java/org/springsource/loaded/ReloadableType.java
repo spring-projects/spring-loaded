@@ -172,6 +172,10 @@ public class ReloadableType {
 	/**
 	 * Gets the 'orignal' method corresponding to given name and method descriptor. This only considers methods that exist in the
 	 * first (non-reloaded) version of the type.
+	 * 
+	 * @param name method name
+	 * @param descriptor method descriptor (e.g (Ljava/lang/String;)I)
+	 * @return the MethodMember or an exception if not found
 	 */
 	// TODO introduce a cache for people trolling through the methods array? same for fields?
 	public MethodMember getMethod(String name, String descriptor) {
@@ -270,6 +274,9 @@ public class ReloadableType {
 
 	/**
 	 * Load a new version of this type, using the specified suffix to tag the newly generated artifact class names.
+	 * 
+	 * @param versionsuffix the String suffix to append to classnames being created for the reloaded class
+	 * @param newbytedata the class bytes for the new version of this class
 	 */
 	public boolean loadNewVersion(String versionsuffix, byte[] newbytedata) {
 		javaMethodCache = null;
@@ -742,6 +749,11 @@ public class ReloadableType {
 	/**
 	 * Gets the method corresponding to given name and descriptor, taking into consideration changes that have happened by
 	 * reloading.
+	 * 
+	 * @param name the member name
+	 * @param descriptor the member descriptor (e.g. (Ljava/lang/String;)I)
+	 * @return the MethodMember for that name and descriptor. Null if not found on a live version, or an exception if there is no live version and
+	 * it cannot be found.
 	 */
 	public MethodMember getCurrentMethod(String name, String descriptor) {
 		if (liveVersion == null) {
@@ -1186,7 +1198,7 @@ public class ReloadableType {
 	 * 
 	 * @param instance the object upon which to set the field (maybe null for static fields)
 	 * @param fieldname the name of the field
-	 * @param
+	 * @param isStatic whether the field is static
 	 * @param newValue the new value to put into the field
 	 */
 	public void setField(Object instance, String fieldname, boolean isStatic, Object newValue) throws IllegalAccessException {
@@ -1219,8 +1231,7 @@ public class ReloadableType {
 	 * 
 	 * @param instance the object upon which to set the field (maybe null for static fields)
 	 * @param fieldname the name of the field
-	 * @param
-	 * @param newValue the new value to put into the field
+	 * @param isStatic whether the field is static or not
 	 */
 	public Object getField(Object instance, String fieldname, boolean isStatic) throws IllegalAccessException {
 		FieldReaderWriter fieldReaderWriter = locateField(fieldname);

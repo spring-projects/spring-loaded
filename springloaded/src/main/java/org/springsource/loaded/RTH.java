@@ -30,9 +30,12 @@ public class RTH {
 
 	/**
 	 * Collapse a String and int into an array
+	 * 
+	 * @param aString some string
+	 * @param anInt some int
 	 */
-	public static Object[] collapse(String arg0, int arg1) {
-		return new Object[] { arg0, Integer.valueOf(arg1) };
+	public static Object[] collapse(String aString, int anInt) {
+		return new Object[] { aString, Integer.valueOf(anInt) };
 	}
 
 }

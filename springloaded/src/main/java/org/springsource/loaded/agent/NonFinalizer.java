@@ -38,8 +38,7 @@ public class NonFinalizer extends ClassVisitor implements Constants {
 	 * just before each constructor returns. The target of the call should be a collecting method that will likely do something with
 	 * the instances later on class reload.
 	 * 
-	 * @param owner
-	 * @param name
+	 * @param fieldname the name of the field to be made non final
 	 */
 	public NonFinalizer(String fieldname) {
 		super(ASM5,new ClassWriter(0)); // TODO review 0 here

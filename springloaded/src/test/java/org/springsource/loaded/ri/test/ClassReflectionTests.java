@@ -1124,7 +1124,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * To get coverage of {@link NonReloadableTypeMethodProvider} we need a scenario that where method lookup spills over from the
+	 * Scenario where method lookup spills over from the
 	 * reloadable world into the non-reloadable world. This can only happen if are looking for a method that is declared on a
 	 * reloadable type, but we need to find the implementation in a non-reloadable one.
 	 */

@@ -25,6 +25,7 @@ import org.springsource.loaded.TypeRegistry;
 
 
 /**
+ * Related to the groovy support, this modifies a piece of the groovy runtime so SpringLoaded can be in the mix.
  * 
  * @author Andy Clement
  * @since 0.7.3
@@ -67,18 +68,12 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor
 	}
 
 	/**
-	 * The classloader for class artifacts is used to load the generated classes for call sites. We need to rewrite these classes
+	 * The classloader for class artifacts (org/codehaus/groovy/reflection/ClassLoaderForClassArtifacts) is used to load the 
+	 * generated classes for call sites. We need to rewrite these classes
 	 * because they may be either calling something that disappears on a later reload (so need to fail appropriately) or calling
-	 * something that isnt there on the first load - in this latter case they are changed to route the dynamic executor method.
-	 * 
-	 * @param classloader
-	 * @param name
-	 * @param bytes
-	 * @return
+	 * something that is not there on the first load - in this latter case they are changed to route the dynamic executor method.
 	 */
 	public static byte[] modify(ClassLoader classloader, String name, byte[] bytes) {
-		//		System.out.println("Seen '" + name + "' being defined by " + classloader);
-		//		ClassPrinter.print(bytes, true);
 		ClassLoader parent = classloader.getParent();
 		if (parent != null) {
 			TypeRegistry typeRegistry = TypeRegistry.getTypeRegistryFor(parent);

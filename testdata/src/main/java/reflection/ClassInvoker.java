@@ -51,8 +51,7 @@ import java.util.List;
         return Class.forName(a0, a1, a2);
     }
     
-    public static Annotation callGetAnnotation(Class thiz, Class a0)
-    {
+    public static Annotation callGetAnnotation(Class thiz, Class a0) {
         return thiz.getAnnotation(a0);
     }
 

@@ -756,8 +756,8 @@ public class ReflectiveInterceptor {
 	/**
 	 * Retrieve modifiers for a Java class, which might or might not be reloadable or reloaded.
 	 * 
-	 * @param clazz
-	 * @return
+	 * @param clazz the class for which to discover modifiers
+	 * @return the modifiers
 	 */
 	public static int jlClassGetModifiers(Class<?> clazz) {
 		//		ReloadableType rtype = getReloadableTypeIfHasBeenReloaded(clazz);
@@ -844,8 +844,8 @@ public class ReflectiveInterceptor {
 	/**
 	 * Access and return the ReloadableType field on a specified class.
 	 * 
-	 * @param clazz
-	 * @return
+	 * @param clazz the class for which to discover the reloadable type
+	 * @return the reloadable type for the class, or null if not reloadable
 	 */
 	public static ReloadableType getRType(Class<?> clazz) {
 		//		ReloadableType rtype = null;

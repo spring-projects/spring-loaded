@@ -89,7 +89,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Decode a base62 encoded string into a number (base10). (More expensive than encoding)
 	 * 
-	 * @param the string to decode
+	 * @param s the string to decode
 	 * @return the number
 	 */
 	public static long decode(String s) {
@@ -607,6 +607,10 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Given a method descriptor, extract the parameter descriptor and convert into corresponding Class objects. This requires a
 	 * reference to a class loader to convert type names into Class objects.
+	 * 
+	 * @param methodDescriptor a method descriptor (e.g (Ljava/lang/String;)I)
+	 * @param classLoader a class loader that can be used to lookup types
+	 * @return an array for classes representing the types in the method descriptor
 	 */
 	public static Class<?>[] toParamClasses(String methodDescriptor, ClassLoader classLoader) throws ClassNotFoundException {
 		Type[] paramTypes = Type.getArgumentTypes(methodDescriptor);
@@ -620,6 +624,10 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Convert an asm Type into a corresponding Class object, requires a reference to a ClassLoader to be able to convert classnames
 	 * to class objects.
+	 * 
+	 * @param type the asm Type
+	 * @param classLoader a class loader that can be used to find types
+	 * @return the JVM Class for the type
 	 */
 	public static Class<?> toClass(Type type, ClassLoader classLoader) throws ClassNotFoundException {
 		switch (type.getSort()) {
@@ -839,6 +847,10 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Generate the name for the executor class. Must use '$' so that it is considered by some code (eclipse debugger for example)
 	 * to be an inner type of the original class (thus able to consider itself as being from the same source file).
+	 * 
+	 * @param name the name prefix for the executor class
+	 * @param versionstamp the suffix string for the executor class name
+	 * @return an executor class name
 	 */
 	public static String getExecutorName(String name, String versionstamp) {
 		StringBuilder s = new StringBuilder(name);
@@ -1407,6 +1419,10 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Utility method similar to Java 1.6 Arrays.copyOf, used instead of that method to stick to Java 1.5 only API.
+	 * 
+	 * @param array the array to copy
+	 * @param newSize the size of the new array
+	 * @return a new array of the specified size containing the supplied array elements at the beginning
 	 */
 	public static <T> T[] arrayCopyOf(T[] array, int newSize) {
 		@SuppressWarnings("unchecked")
@@ -1417,6 +1433,8 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Modify visibility to be public.
+	 * @param access existing access
+	 * @return modified access, adjusted to public non-final
 	 */
 	public static int makePublicNonFinal(int access) {
 		access = (access & ~(ACC_PRIVATE | ACC_PROTECTED)) | ACC_PUBLIC;
@@ -1503,6 +1521,7 @@ public class Utils implements Opcodes, Constants {
 	 * When this happens we will default the value for the new field and forget the one we were holding onto. note: array forms are
 	 * not compatible (e.g. int[] and Integer[])
 	 * 
+	 * @param registry the type registry that can be quizzed for type information
 	 * @param result the result we have discovered and are about to return - this is never null
 	 * @param expectedTypeDescriptor the type we are looking for (will be primitive or Ljava/lang/String style)
 	 * @return the result we can return, or null if it is not compatible
@@ -1651,9 +1670,12 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Looks at the supplied descriptor and inserts enough pops to remove all parameters. Should be used when about to avoid a
 	 * method call.
+	 * 
+	 * @param mv the method visitor to append instructions to
+	 * @param desc the method descriptor for the parameter sequence (e.g. (Ljava/lang/String;IZZ)V)
+	 * @return number of parameters popped
 	 */
 	public static int insertPopsForAllParameters(MethodVisitor mv, String desc) {
-		// Descriptor is of the format (Ljava/lang/String;IZZ)V
 		String descSequence = Utils.getParamSequence(desc);
 		if (descSequence == null) {
 			return 0; // nothing to do, there are no parameters
@@ -1674,7 +1696,6 @@ public class Utils implements Opcodes, Constants {
 			case 'J': // long - double slot
 			case 'D': // double - double slot
 				mv.visitInsn(POP2);
-				//				mv.visitInsn(POP);
 				break;
 			default:
 				throw new IllegalStateException("Unexpected character: " + ch + " from " + desc + ":" + dpos);

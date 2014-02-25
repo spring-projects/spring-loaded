@@ -57,7 +57,7 @@ public class ClassPreProcessorAgentAdapter implements ClassFileTransformer {
 	 * @param loader the defining class loader
 	 * @param className the name of class being loaded
 	 * @param classBeingRedefined when hotswap is called
-	 * @param protectionDomain
+	 * @param protectionDomain the ProtectionDomain for the class represented by the bytes
 	 * @param bytes the bytecode before weaving
 	 * @return the weaved bytecode
 	 */
