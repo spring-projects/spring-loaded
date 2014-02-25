@@ -49,7 +49,7 @@ public class SpringLoadedAgent {
 	}
 
 	/**
-	 * Returns the Instrumentation instance
+	 * @return the Instrumentation instance
 	 */
 	public static Instrumentation getInstrumentation() {
 		if (instrumentation == null) {

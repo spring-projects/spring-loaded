@@ -71,6 +71,7 @@ public class IncrementalTypeDescriptor implements Constants {
 	 * <li>method was represented as a catcher in the original, but is now 'real'
 	 * </ul>
 	 * It does not include catchers.
+	 * @return list of new or changed methods in this type
 	 */
 	public List<MethodMember> getNewOrChangedMethods() {
 		compute();
@@ -83,6 +84,7 @@ public class IncrementalTypeDescriptor implements Constants {
 	 * <li>constructors that did not exist in the original class as loaded, but do now
 	 * <li>constructors that did exist in the original class but have changed in some way (visibility)
 	 * </ul>
+	 * @return list of new or changed constructors in this type
 	 */
 	public List<MethodMember> getNewOrChangedConstructors() {
 		compute();
@@ -240,6 +242,7 @@ public class IncrementalTypeDescriptor implements Constants {
 	// For checking the bitflags:
 
 	/**
+	 * @param mm the MethodMember to check if brand new
 	 * @return true if the method is brand new after a reload (i.e. was never defined in the original type)
 	 */
 	public static boolean isBrandNewMethod(MethodMember mm) {

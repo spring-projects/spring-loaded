@@ -85,7 +85,7 @@ public class ReflectiveInterceptor {
 		}
 	}
 
-	/**
+	/*
 	 * Implementation of java.lang.class.getDeclaredMethod(String name, Class... params).
 	 */
 	@UsedByGeneratedCode
@@ -107,7 +107,7 @@ public class ReflectiveInterceptor {
 		}
 	}
 
-	/**
+	/*
 	 * Implementation of java.lang.class.getMethod(String name, Class... params).
 	 */
 	@UsedByGeneratedCode
@@ -180,7 +180,7 @@ public class ReflectiveInterceptor {
 	}
 
 	private static int depth = 4;
-	/**
+	/*
 	 * Get the Class that declares the method calling interceptor method that called this method.
 	 */
 	@SuppressWarnings("restriction")
@@ -224,6 +224,7 @@ public class ReflectiveInterceptor {
 	 * Called to satisfy an invocation of java.lang.Class.getDeclaredAnnotations().
 	 * 
 	 * @param clazz the class upon which the original call was being invoked
+	 * @return array of annotations on the class
 	 */
 	public static Annotation[] jlClassGetDeclaredAnnotations(Class<?> clazz) {
 		if (TypeRegistry.nothingReloaded) {
@@ -237,7 +238,7 @@ public class ReflectiveInterceptor {
 		return clv.getExecutorClass().getDeclaredAnnotations();
 	}
 
-	/**
+	/*
 	 * Called to satisfy an invocation of java.lang.Class.getDeclaredAnnotations().
 	 * 
 	 * @param clazz the class upon which the original call was being invoked
@@ -1632,6 +1633,8 @@ public class ReflectiveInterceptor {
 	/**
 	 * Although fields are not reloadable, we have to intercept this because otherwise we'll return the r$type field as a result
 	 * here.
+	 * @param clazz the class for which to retrieve the fields
+	 * @return array of fields in the class
 	 */
 	public static Field[] jlClassGetFields(Class<?> clazz) {
 		ReloadableType rtype = getRType(clazz);
@@ -1646,6 +1649,9 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Gather up all (public) fields in an interface and all its super interfaces recursively.
+	 * @param clazz the class for which to collect up fields
+	 * @param collected a collector that has fields added to it as this method runs (recursively)
+	 * @param visited a set recording which types have already been visited
 	 */
 	private static void gatherFields(Class<?> clazz, List<Field> collected, HashSet<Class<?>> visited) {
 		if (visited.contains(clazz)) {

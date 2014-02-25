@@ -53,6 +53,7 @@ public class ISMgr {
 	 * @param name the name of the field
 	 * 
 	 * @return the value of the field
+	 * @throws IllegalAccessException if there is a problem accessing the field
 	 */
 	public Object getValue(ReloadableType rtype, Object instance, String name) throws IllegalAccessException {
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
@@ -152,7 +153,9 @@ public class ISMgr {
 	 * 
 	 * @param rtype the reloadabletype
 	 * @param instance the instance upon which to set the field
+	 * @param value the value to put into the field
 	 * @param name the name of the field
+	 * @throws IllegalAccessException if there is a problem setting the field value
 	 */
 	public void setValue(ReloadableType rtype, Object instance, Object value, String name) throws IllegalAccessException {
 		//		System.err.println(">setValue(rtype=" + rtype + ",instance=" + instance + ",value=" + value + ",name=" + name + ")");

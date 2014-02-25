@@ -30,6 +30,8 @@ public class StaticLookup {
 
 	/**
 	 * Create an object capable of performing a dynamic method lookup in some MethodProvider
+	 * @param name the method name
+	 * @param methodDescriptor the method descriptor (e.g. (Ljava/lang/String;)I)
 	 */
 	public StaticLookup(String name, String methodDescriptor) {
 		this.name = name;

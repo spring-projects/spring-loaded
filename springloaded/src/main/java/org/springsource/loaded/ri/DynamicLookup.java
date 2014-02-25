@@ -31,6 +31,8 @@ public class DynamicLookup {
 
 	/**
 	 * Create an object capable of performing a dynamic method lookup in some MethodProvider
+	 * @param name method name
+	 * @param methodDescriptor method descriptor (e.g. (Ljava/lang/String;)V)
 	 */
 	public DynamicLookup(String name, String methodDescriptor) {
 		this.name = name;

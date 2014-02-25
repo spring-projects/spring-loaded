@@ -36,8 +36,8 @@ public class ClassVisitingConstructorAppender extends ClassVisitor implements Co
 	 * just before each constructor returns. The target of the call should be a collecting method that will likely do something with
 	 * the instances later on class reload.
 	 * 
-	 * @param owner
-	 * @param name
+	 * @param owner the owning class of the method to call
+	 * @param name the method to call
 	 */
 	public ClassVisitingConstructorAppender(String owner, String name) {
 		super(ASM5,new ClassWriter(0)); // TODO review 0 here

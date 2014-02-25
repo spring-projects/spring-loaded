@@ -105,6 +105,7 @@ public class Utils implements Opcodes, Constants {
 	 * 
 	 * @param mv where to visit to append the instructions
 	 * @param returnType return type descriptor
+	 * @param createCast whether to include CHECKCAST instructions for return type values
 	 */
 	public static void addCorrectReturnInstruction(MethodVisitor mv, ReturnType returnType, boolean createCast) {
 		if (returnType.isPrimitive()) {
@@ -611,6 +612,7 @@ public class Utils implements Opcodes, Constants {
 	 * @param methodDescriptor a method descriptor (e.g (Ljava/lang/String;)I)
 	 * @param classLoader a class loader that can be used to lookup types
 	 * @return an array for classes representing the types in the method descriptor
+	 * @throws ClassNotFoundException if there is a problem finding the Class for a particular name in the descriptor
 	 */
 	public static Class<?>[] toParamClasses(String methodDescriptor, ClassLoader classLoader) throws ClassNotFoundException {
 		Type[] paramTypes = Type.getArgumentTypes(methodDescriptor);
@@ -628,6 +630,7 @@ public class Utils implements Opcodes, Constants {
 	 * @param type the asm Type
 	 * @param classLoader a class loader that can be used to find types
 	 * @return the JVM Class for the type
+	 * @throws ClassNotFoundException if there is a problem finding the Class for the type
 	 */
 	public static Class<?> toClass(Type type, ClassLoader classLoader) throws ClassNotFoundException {
 		switch (type.getSort()) {
@@ -1011,6 +1014,7 @@ public class Utils implements Opcodes, Constants {
 	 * 
 	 * @param mv the method visitor to receive the unpack instructions
 	 * @param toCallDescriptor the descriptor for the method whose parameters describe the array contents
+	 * @param arrayVariableIndex index of the array variable
 	 */
 	public static void generateInstructionsToUnpackArrayAccordingToDescriptor(MethodVisitor mv, String toCallDescriptor,
 			int arrayVariableIndex) {
@@ -1081,11 +1085,11 @@ public class Utils implements Opcodes, Constants {
 	 * Dump the specified bytes under the specified name in the filesystem. If the location hasn't been configured then
 	 * File.createTempFile() is used to determine where the file will be put.
 	 * 
-	 * @param slashname
-	 * @param bytesLoaded
+	 * @param slashname the slashed class name (e.g. java/lang/String)
+	 * @param bytes the bytes to dump
 	 * @return the path to the file
 	 */
-	public static String dump(String slashname, byte[] bytesLoaded) {
+	public static String dump(String slashname, byte[] bytes) {
 		if (GlobalConfiguration.assertsMode) {
 			if (slashname.indexOf('.') != -1) {
 				throw new IllegalStateException("Slashed type name expected, not '" + slashname + "'");
@@ -1110,7 +1114,7 @@ public class Utils implements Opcodes, Constants {
 			System.out.println("dump to " + dumplocation);
 			f = new File(dumplocation);
 			FileOutputStream fos = new FileOutputStream(f);
-			fos.write(bytesLoaded);
+			fos.write(bytes);
 			fos.flush();
 			fos.close();
 			return f.toString();
@@ -1330,6 +1334,9 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Load the contents of an input stream.
+	 * 
+	 * @param stream input stream that contains the bytes to load
+	 * @return the byte array loaded from the input stream
 	 */
 	public static byte[] loadFromStream(InputStream stream) {
 		try {
@@ -1364,6 +1371,9 @@ public class Utils implements Opcodes, Constants {
 	 * If the flags indicate it is not public, private or protected, then it is default and make it public.
 	 * 
 	 * Default visibility needs promoting because package visibility is determined by classloader+package, not just package.
+	 * 
+	 * @param access incoming access modifiers
+	 * @return adjusted modifiers
 	 */
 	public static int promoteDefaultOrProtectedToPublic(int access) {
 		if ((access & Constants.ACC_PUBLIC_PRIVATE_PROTECTED) == 0) {
@@ -1420,6 +1430,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Utility method similar to Java 1.6 Arrays.copyOf, used instead of that method to stick to Java 1.5 only API.
 	 * 
+	 * @param <T> the type of the array entries
 	 * @param array the array to copy
 	 * @param newSize the size of the new array
 	 * @return a new array of the specified size containing the supplied array elements at the beginning
@@ -1452,6 +1463,8 @@ public class Utils implements Opcodes, Constants {
 	}
 
 	/**
+	 * @param possiblyBoxedType a reference type that may be the boxed form of a primitive
+	 * @param primitive the primitive we are looking for
 	 * @return true if the possiblyBoxedType is the boxed form of the primitive
 	 */
 	public static boolean isObjectIsUnboxableTo(Class<?> possiblyBoxedType, char primitive) {
@@ -1484,6 +1497,7 @@ public class Utils implements Opcodes, Constants {
 	 * 
 	 * @param value the value
 	 * @param desc the type the caller would like it to be
+	 * @return the converted value or possibly a default value for the type if the incoming value is null
 	 */
 	public static Object toResultCheckIfNull(Object value, String desc) {
 		if (value == null) {
@@ -1571,7 +1585,7 @@ public class Utils implements Opcodes, Constants {
 		return isAssignableFrom(reg, clazz.getSuperclass(), lookingFor);
 	}
 
-	/**
+	/*
 	 * Determine if the type specified in lookingFor is a supertype (class/interface) of the specified typedescriptor, i.e. can an
 	 * object of type 'candidate' be assigned to a variable of typ 'lookingFor'.
 	 * 
@@ -1598,7 +1612,7 @@ public class Utils implements Opcodes, Constants {
 		return isAssignableFrom(lookingFor, candidate.getTypeRegistry().getDescriptorFor(supertypename));
 	}
 
-	/**
+	/*
 	 * Produce the bytecode that will collapse the stack entries into an array - the descriptor describes what is being packed.
 	 * 
 	 * @param mv the method visitor to receive the instructions to package the data

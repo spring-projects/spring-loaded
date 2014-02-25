@@ -98,6 +98,10 @@ public class SpringLoadedPreProcessor implements Constants {
 	 * order to determine whether the type should be made reloadable. Non-reloadable types will at least get their call sites
 	 * rewritten.
 	 * 
+	 * @param classLoader the classloader loading this type
+	 * @param slashedClassName the slashed class name (e.g. java/lang/String) being loaded
+	 * @param protectionDomain the protection domain for the loaded class
+	 * @param bytes the class bytes for the class being loaded
 	 * @return potentially modified bytes
 	 */
 	public byte[] preProcess(ClassLoader classLoader, String slashedClassName, ProtectionDomain protectionDomain, byte[] bytes) {

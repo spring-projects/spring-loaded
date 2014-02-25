@@ -81,11 +81,13 @@ public class Java8 {
 	 * Programmatic emulation of INVOKEDYNAMIC so initialize the callsite via use of the bootstrap method then
 	 * invoke the result.
 	 * 
-	 * @param executorClass null if not yet reloaded
-	 * @param handle
-	 * @param bsmArgs
-	 * @param lookup
-	 * @return
+	 * @param executorClass the executor that will contain the lambda function, null if not yet reloaded
+	 * @param handle bootstrap method handle
+	 * @param bsmArgs bootstrap method arguments
+	 * @param lookup The MethodHandles.Lookup object that can be used to find types 
+	 * @param indyNameAndDescriptor Method name and descriptor at invokedynamic site
+	 * @param indyParams parameters when the invokedynamic call is made
+	 * @return the result of the invokedynamic call
 	 */
 	public static Object emulateInvokeDynamic(Class<?> executorClass, Handle handle, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
 		try {
@@ -144,8 +146,8 @@ public class Java8 {
 	/**
 	 * The metafactory we are enhancing is responsible for generating the anonymous classes that will call the lambda methods in our type
 	 * 
-	 * @param bytes
-	 * @return
+	 * @param bytes the class bytes for the InnerClassLambdaMetaFactory that is going to be modified
+	 * @return the class bytes for the modified InnerClassLambdaMetaFactory
 	 */
 	public static byte[] enhanceInnerClassLambdaMetaFactory(byte[] bytes) {
 		// TODO Auto-generated method stub

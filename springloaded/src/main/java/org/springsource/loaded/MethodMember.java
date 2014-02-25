@@ -287,7 +287,7 @@ public class MethodMember extends AbstractMember {
 		return "[" + s.toString().trim() + "]";
 	}
 
-	/**
+	/*
 	 * Determine whether this method should replace the other method on reload. In accordance to how JVM works at class load time,
 	 * this will be the case if this and other have the same Class, name, parameter types and return type. I.e. formally, in JVM
 	 * bytecode (unlike source code) a method doesn't override a method with a different return type. When such a situation occurs

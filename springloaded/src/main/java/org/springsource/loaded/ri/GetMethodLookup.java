@@ -31,7 +31,7 @@ public class GetMethodLookup {
 	private String name;
 	private String paramsDescriptor;
 
-	/**
+	/*
 	 * Create an object capable of performing the lookup
 	 */
 	public GetMethodLookup(String name, String paramsDescriptor) {

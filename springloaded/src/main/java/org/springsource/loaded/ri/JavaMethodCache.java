@@ -38,7 +38,7 @@ public class JavaMethodCache {
 	//TODO: [...] This cache uses string+descriptor for key. It may be possible to cache method objects inside MethodMembers
 	// themselves, which would make for much quicker 'lookup'.
 
-	/**
+	/*
 	 * This class is used to initialise the cache in a thread safe manner. I.e. a fully filled map should be passed into the cache's
 	 * initialize method, so that the 'isInitialized' method will not return true unless initialisation is complete and all entries
 	 * are present.
@@ -54,7 +54,7 @@ public class JavaMethodCache {
 
 	}
 
-	/**
+	/*
 	 * Map indexed by name+descriptor.
 	 */
 	private Map<String, Method> cache = null;
@@ -63,7 +63,7 @@ public class JavaMethodCache {
 		return cache != null;
 	}
 
-	/**
+	/*
 	 * This method should be called to put all entries into the map.
 	 */
 	public void initialize(Initializer init) {

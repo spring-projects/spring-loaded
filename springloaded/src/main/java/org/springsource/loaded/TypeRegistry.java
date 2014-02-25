@@ -229,6 +229,9 @@ public class TypeRegistry {
 
 	/**
 	 * Factory access method for obtaining TypeRegistry instances. Returns a TypeRegistry for the specified classloader.
+	 * 
+	 * @param classloader The classloader to create/retrieve the type registry for
+	 * @return the TypeRegistry for the classloader
 	 */
 	public static TypeRegistry getTypeRegistryFor(ClassLoader classloader) {
 		if (classloader == null) {
@@ -288,10 +291,12 @@ public class TypeRegistry {
 
 	/**
 	 * Only checks the reloadable types this registry knows about, it doesn't search beyond that.
+	 * 
+	 * @param slashedClassname the slashed classname (e.g. java/lang/String)
+	 * @return the TypeDescriptor or null if that classname is unknown
 	 */
-	public TypeDescriptor getDescriptorForReloadableType(String slashedname) {
-		TypeDescriptor td = reloadableTypeDescriptorCache.get(slashedname);
-		return td;
+	public TypeDescriptor getDescriptorForReloadableType(String slashedClassname) {
+		return reloadableTypeDescriptorCache.get(slashedClassname);
 	}
 
 	public TypeDescriptor getDescriptorFor(String slashedname) {
@@ -676,6 +681,8 @@ public class TypeRegistry {
 	 * Determine if the type specified is a reloadable type. This method works purely by name, it does not load anything.
 	 * 
 	 * @param slashedName the type name, eg. a/b/c/D
+	 * @param protectionDomain the protection domain this class is being loaded under
+	 * @param bytes the class bytes for the class being loaded
 	 * @return true if the type is reloadable, false otherwise
 	 */
 	public boolean isReloadableTypeName(String slashedName, ProtectionDomain protectionDomain, byte[] bytes) {
@@ -805,7 +812,7 @@ public class TypeRegistry {
 		}
 	}
 
-	/**
+	/*
 	 * Rewrite the call sites in some class in the context of this registry (which knows about a particular set of types as being
 	 * Reloadable).
 	 */
@@ -813,7 +820,7 @@ public class TypeRegistry {
 		return MethodInvokerRewriter.rewrite(this, bytes);
 	}
 
-	/**
+	/*
 	 * This version will attempt to use a cache if one is being managed.
 	 */
 	public byte[] methodCallRewriteUseCacheIfAvailable(String slashedClassName, byte[] bytes) {
@@ -1961,6 +1968,9 @@ public class TypeRegistry {
 	 * recognizes that bsm and the parameters to that bsm. The index can be
 	 * used when rewriting that invokedynamic
 	 * 
+	 * @param slashedClassName the slashed class name containing the bootstrap method
+	 * @param bsm the bootstrap methods
+	 * @param bsmArgs the bootstrap method arguments (asm types)
 	 * @return id that represents this bootstrap method usage
 	 */
 	public synchronized int recordBootstrapMethod(String slashedClassName, Handle bsm, Object[] bsmArgs) {

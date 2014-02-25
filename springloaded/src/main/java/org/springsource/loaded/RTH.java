@@ -33,6 +33,7 @@ public class RTH {
 	 * 
 	 * @param aString some string
 	 * @param anInt some int
+	 * @return the collapsed array
 	 */
 	public static Object[] collapse(String aString, int anInt) {
 		return new Object[] { aString, Integer.valueOf(anInt) };

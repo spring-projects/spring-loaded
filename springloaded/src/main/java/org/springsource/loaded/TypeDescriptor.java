@@ -139,7 +139,8 @@ public class TypeDescriptor implements Constants {
 	 * Check if this descriptor defines the specified method. A strict check on all aspects of the method - names/exceptions/flags,
 	 * etc.
 	 * 
-	 * @return true if this descriptor defines the specified method.
+	 * @param method the method to check the existence of in this type descriptor
+	 * @return true if this descriptor defines the specified method
 	 */
 	public boolean defines(MethodMember method) {
 		for (MethodMember existingMethod : methods) {
@@ -154,6 +155,10 @@ public class TypeDescriptor implements Constants {
 	/**
 	 * Check if this descriptor defines a method with the specified name and descriptor. Return the method if it is found.
 	 * Modifiers, generic signature and exceptions are ignored in this search.
+	 * 
+	 * @param name the member name
+	 * @param descriptor the member descriptor (e.g. (Ljava/lang/String;)I)
+	 * @return the MethodMember if there is one
 	 */
 	public MethodMember getByDescriptor(String name, String descriptor) {
 		for (MethodMember existingMethod : methods) {
@@ -229,7 +234,7 @@ public class TypeDescriptor implements Constants {
 	 * Search for a field on this type descriptor - do not try supertypes. This lookup does not differentiate between
 	 * static/instance fields.
 	 * 
-	 * @param name
+	 * @param name the name of the field
 	 * @return a FieldMember if the field is found, otherwise null
 	 */
 	public FieldMember getField(String name) {

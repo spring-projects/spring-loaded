@@ -28,7 +28,7 @@ public class GetDeclaredMethodLookup {
 	private String name;
 	private String paramsDescriptor;
 
-	/**
+	/*
 	 * Create an object capable of performing the lookup in some MethodProvider
 	 */
 	public GetDeclaredMethodLookup(String name, String paramsDescriptor) {
@@ -49,7 +49,7 @@ public class GetDeclaredMethodLookup {
 		return found;
 	}
 
-	/**
+	/*
 	 * @return true if m2 has a more specific return type than m1
 	 */
 	private boolean isMoreSpecificReturnTypeThan(Invoker m1, Invoker m2) {

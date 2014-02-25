@@ -103,7 +103,7 @@ public class JVM {
 		sun.reflect.Reflection.ensureMemberAccess(callerClass, declaringClass, target, mods);
 	}
 
-	/**
+	/*
 	 * Create a new Method object from scratch. This Method object is 'fake' and will not be "invokable". ReflectionInterceptor will
 	 * be responsible to make sure user code calling 'invoke' on this object will be intercepted and handled appropriately.
 	 */
@@ -126,7 +126,7 @@ public class JVM {
 		return returnMethod;
 	}
 
-	/**
+	/*
 	 * Creates a copy of a method object that is equivalent to the original.
 	 */
 	public static Method copyMethod(Method method) {

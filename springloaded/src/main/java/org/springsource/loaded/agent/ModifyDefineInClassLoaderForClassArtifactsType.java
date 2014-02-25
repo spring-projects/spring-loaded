@@ -67,7 +67,7 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor
 
 	}
 
-	/**
+	/*
 	 * The classloader for class artifacts (org/codehaus/groovy/reflection/ClassLoaderForClassArtifacts) is used to load the 
 	 * generated classes for call sites. We need to rewrite these classes
 	 * because they may be either calling something that disappears on a later reload (so need to fail appropriately) or calling

@@ -277,6 +277,7 @@ public class ReloadableType {
 	 * 
 	 * @param versionsuffix the String suffix to append to classnames being created for the reloaded class
 	 * @param newbytedata the class bytes for the new version of this class
+	 * @return true if the reload succeeded
 	 */
 	public boolean loadNewVersion(String versionsuffix, byte[] newbytedata) {
 		javaMethodCache = null;
@@ -765,6 +766,9 @@ public class ReloadableType {
 
 	/**
 	 * Gets the method corresponding to given name and descriptor, from the original type descriptor.
+	 * 
+	 * @param nameAndDescriptor the method name and descriptor (e.g. foo(Ljava/lang/String;)I)
+	 * @return the MethodMember for the name and descriptor if it exists, otherwise null
 	 */
 	public MethodMember getOriginalMethod(String nameAndDescriptor) {
 		return getMethod(nameAndDescriptor);
@@ -999,8 +1003,9 @@ public class ReloadableType {
 	 * Intended to handle dynamic dispatch. This will determine the right type to handle the specified method and return a
 	 * dispatcher that can handle it.
 	 * 
-	 * @param instance
+	 * @param instance the target instance for the invocation
 	 * @param nameAndDescriptor an encoded method name and descriptor, e.g. foo(Ljava/langString;)V
+	 * @return a dispatcher that can handle the method indicated
 	 */
 	@UsedByGeneratedCode
 	public __DynamicallyDispatchable determineDispatcher(Object instance, String nameAndDescriptor) {
@@ -1200,6 +1205,7 @@ public class ReloadableType {
 	 * @param fieldname the name of the field
 	 * @param isStatic whether the field is static
 	 * @param newValue the new value to put into the field
+	 * @throws IllegalAccessException if there is a problem setting the field value
 	 */
 	public void setField(Object instance, String fieldname, boolean isStatic, Object newValue) throws IllegalAccessException {
 		FieldReaderWriter fieldReaderWriter = locateField(fieldname);
@@ -1232,6 +1238,8 @@ public class ReloadableType {
 	 * @param instance the object upon which to set the field (maybe null for static fields)
 	 * @param fieldname the name of the field
 	 * @param isStatic whether the field is static or not
+	 * @return the field value
+	 * @throws IllegalAccessException if there is a problem accessing the field
 	 */
 	public Object getField(Object instance, String fieldname, boolean isStatic) throws IllegalAccessException {
 		FieldReaderWriter fieldReaderWriter = locateField(fieldname);
@@ -1252,7 +1260,7 @@ public class ReloadableType {
 		return o;
 	}
 
-	/**
+	/*
 	 * Find the field according to the rules of section 5.4.3.2 of the spec.
 	 */
 	// TODO [perf] performance sucks as we walk multiple times!
@@ -1341,7 +1349,7 @@ public class ReloadableType {
 		return hasFieldChangedInHierarchy(fieldname, originalTypeDescriptor.supertypeName);
 	}
 
-	/**
+	/*
 	 * Want to check if this field looks the same as originally declared and is on the same type as it was
 	 */
 	public boolean hasFieldChangedInHierarchy(String name) {

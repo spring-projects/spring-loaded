@@ -53,7 +53,12 @@ public class InterfaceExtractor {
 	}
 
 	/**
-	 * Extract the fixed interface for a class and a type descriptor with more details on the methods
+	 * Extract the fixed interface for a class and a type descriptor with more details on the methods.
+	 * 
+	 * @param classbytes bytes for the class which is going through interface extraction
+	 * @param registry type registry related to the classloader for this class
+	 * @param typeDescriptor previously extracted type descriptor for the class
+	 * @return class bytes for extracted interface
 	 */
 	public static byte[] extract(byte[] classbytes, TypeRegistry registry, TypeDescriptor typeDescriptor) {
 		return new InterfaceExtractor(registry).extract(classbytes, typeDescriptor);
