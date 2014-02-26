@@ -24,8 +24,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
 
-import sun.misc.Cleaner;
-
 /**
  * These tests use a harness that forks a JVM with the agent attached, closely simulating a real environment. The
  * forked process is running a special class that can be sent commands.
@@ -109,11 +107,13 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		pause(5);
 	}
 	
+	@SuppressWarnings("unused")
 	private final static void debug() {
 		jvm.shutdown();
 		jvm = ReloadingJVM.launch("",true);
 	}
 	
+	@SuppressWarnings("unused")
 	private final static void debug(String options) {
 		jvm = ReloadingJVM.launch(options,true);
 	}

@@ -18,7 +18,6 @@ package org.springsource.loaded.agent;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;

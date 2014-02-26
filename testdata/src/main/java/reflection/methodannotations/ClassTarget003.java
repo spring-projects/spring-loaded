@@ -4,7 +4,7 @@ import reflection.AnnoT;
 import reflection.AnnoT2;
 import reflection.AnnoT3;
 
-@SuppressWarnings("unused")
+//@SuppressWarnings("unused")
 public class ClassTarget003 {
 
 	@AnnoT3("field")

@@ -183,7 +183,7 @@ public class ReflectiveInterceptor {
 	/*
 	 * Get the Class that declares the method calling interceptor method that called this method.
 	 */
-	@SuppressWarnings("restriction")
+	@SuppressWarnings("deprecation")
 	public static Class<?> getCallerClass() {
 		//0 = sun.reflect.Reflection.getCallerClass
 		//1 = this method's frame

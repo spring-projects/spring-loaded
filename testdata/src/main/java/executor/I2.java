@@ -1,6 +1,6 @@
 package executor;
 
-@SuppressWarnings("unused")
+//@SuppressWarnings("unused")
 public interface I2 {
 
 	// annotation removed

@@ -18,7 +18,6 @@ package org.springsource.loaded.test;
 import org.junit.Test;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
-import org.springsource.loaded.test.infra.ClassPrinter;
 
 
 /**

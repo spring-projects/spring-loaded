@@ -140,7 +140,7 @@ public class EmptyCtor extends ClassVisitor implements Constants {
 		public void visitIincInsn(int var, int increment) {
 		}
 
-		public void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels) {
+		public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
 		}
 
 		public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {

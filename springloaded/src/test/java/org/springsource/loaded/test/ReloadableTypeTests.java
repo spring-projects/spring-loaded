@@ -190,7 +190,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	@Test
 	public void invokeStaticReloading_gh4_1() throws Exception {
 		TypeRegistry tr = getTypeRegistry("invokestatic..*");
-		ReloadableType A = tr.addType("invokestatic.issue4.A", loadBytesForClass("invokestatic.issue4.A"));
+		tr.addType("invokestatic.issue4.A", loadBytesForClass("invokestatic.issue4.A"));
 		ReloadableType B = tr.addType("invokestatic.issue4.B", loadBytesForClass("invokestatic.issue4.B"));
 		
 		Result r = runUnguarded(B.getClazz(), "getMessage");
@@ -315,7 +315,8 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	@Test
 	public void protectedFieldAccessors3() throws Exception {
 		TypeRegistry tr = getTypeRegistry("prot.SubThree,prot.PeerThree");
-		ReloadableType rtypePeer = tr.addType("prot.PeerThree", loadBytesForClass("prot.PeerThree"));
+//		ReloadableType rtypePeer = 
+		tr.addType("prot.PeerThree", loadBytesForClass("prot.PeerThree"));
 		ReloadableType rtype = tr.addType("prot.SubThree", loadBytesForClass("prot.SubThree"));
 
 		Object instance = rtype.getClazz().newInstance();

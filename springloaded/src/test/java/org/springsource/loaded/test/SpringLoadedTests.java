@@ -91,11 +91,12 @@ public abstract class SpringLoadedTests implements Constants {
 	protected String AspectjrtJar = "../testdata/aspectjrt.jar";
 	protected String CodeJar = "../testdata/code.jar";
 	// TODO [java8] replace this with project dependency when Java8 is out
-	protected String Java8CodeJar = "../testdata-java8/build/libs/testdata-java8.jar";
+	protected String Java8CodeJar = findJar("../testdata-java8/build/libs","testdata-java8");
 	protected String GroovyrtJar = "../testdata-groovy/groovy-all-1.8.6.jar";
 	protected Result result;
 	protected TypeRegistry registry;
 
+	
 	@Before
 	public void setup() throws Exception {
 		SpringLoadedPreProcessor.disabled = true;
@@ -601,6 +602,17 @@ public abstract class SpringLoadedTests implements Constants {
 		return sb.toString();
 	}
 
+	public static String findJar(String whereToLook, String jarPrefix) {
+		File dir = new File(whereToLook);
+		File[] fs = dir.listFiles();
+		for (File f: fs) {
+			if (f.getName().startsWith(jarPrefix)) {
+				return f.toString();
+			}
+		}
+		return null;
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected String toStringField(byte[] classdata, String fieldname) {
 		StringBuilder sb = new StringBuilder();

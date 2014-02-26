@@ -33,7 +33,7 @@ public class JavaMethodInvoker extends Invoker {
 
 	private Method method;
 
-	public JavaMethodInvoker(@SuppressWarnings("unused") JavaClassMethodProvider provider, Method method) {
+	public JavaMethodInvoker(/*@SuppressWarnings("unused")*/JavaClassMethodProvider provider, Method method) {
 		this.method = method;
 	}
 

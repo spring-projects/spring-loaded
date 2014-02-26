@@ -184,7 +184,7 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 		return null;
 	}
 
-	public void visitTableSwitchInsn(int min, int max, Label dflt, Label[] labels) {
+	public void visitTableSwitchInsn(int min, int max, Label dflt, Label... labels) {
 	}
 
 	public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {

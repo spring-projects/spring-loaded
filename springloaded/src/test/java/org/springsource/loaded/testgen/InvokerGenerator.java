@@ -62,9 +62,7 @@ public class InvokerGenerator {
 	}
 
 	/**
-	 * Get the generated code as a String.
-	 * 
-	 * @return
+	 * @return the generated code as a String
 	 */
 	public String getCode() {
 		imports = new HashSet<String>();

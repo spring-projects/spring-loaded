@@ -20,7 +20,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.StringTokenizer;
 
 import org.springsource.loaded.Utils;
 
@@ -52,7 +51,7 @@ public class ReloadingJVM {
 						return s;
 					}
 				}
-				else if (f.getName().startsWith("springloaded") && f.getName().endsWith(".jar") && !f.getName().contains("sources")) {
+				else if (f.getName().startsWith("springloaded") && f.getName().endsWith(".jar") && !f.getName().contains("sources") && !f.getName().contains("javadoc")) {
 					return f.getAbsolutePath();
 				}
 			}

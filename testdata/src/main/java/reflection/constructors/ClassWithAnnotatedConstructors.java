@@ -17,7 +17,7 @@ public class ClassWithAnnotatedConstructors {
 	//      - constructors with changed annotations
 	
 	//The annotation will be removed
-	@SuppressWarnings("unused")
+//	@SuppressWarnings("unused")
 	private @AnnoT ClassWithAnnotatedConstructors() {}
 	
 	//The attribute value will be changed

@@ -6,7 +6,7 @@ public class HelloWorldClinit002 {
 	}
 
 	static {
-		int i = 1;
+		@SuppressWarnings("unused") int i = 1;
 		int j = 2;
 		for (int k = 0; k < 5; k++) {
 			i += j;
