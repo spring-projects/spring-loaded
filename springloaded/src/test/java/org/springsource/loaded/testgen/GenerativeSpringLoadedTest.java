@@ -145,7 +145,8 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 		//To be deterministic we must sort these methods in a predictable fashion! Otherwise the test
 		//may compare results from one method in the first run with those of another method in the second
 		//run and fail.
-		Arrays.sort(methods, new ToStringComparator());
+		sort(methods);
+		// Arrays.sort(methods, new ToStringComparator());
 		Method method = choice(methods);
 		toStringValue.append(method);
 		return method;
@@ -169,7 +170,8 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 			break;
 		}
 		//To be deterministic we must sort these in a predictable fashion! 
-		Arrays.sort(fields, new ToStringComparator());
+//		Arrays.sort(fields, new ToStringComparator());
+		sort(fields);
 		Field f = choice(fields);
 		toStringValue.append(f.getName());
 		try {
@@ -196,7 +198,8 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	protected Constructor<?> targetConstructorFrom(Class<?> clazz) throws RejectedChoice {
 		Constructor<?>[] constructors = ReflectiveInterceptor.jlClassGetDeclaredConstructors(clazz);
 		//To be deterministic we must sort these methods in a predictable fashion! 
-		Arrays.sort(constructors, new ToStringComparator());
+		//Arrays.sort(constructors, new ToStringComparator());
+		sort(constructors);
 		Constructor<?> c = choice(constructors);
 		toStringValue.append(c);
 		return c;
@@ -292,6 +295,19 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 			result.add("" + obj);
 		}
 		return result;
+	}
+
+	protected void sort(Object[] os) {
+		for (int i = 0; i < os.length; i++) {
+		    for (int x = 1; x < os.length - i; x++) {
+		        if (os[x - 1].toString().compareTo(os[x].toString())>0) {
+		            Object temp = os[x - 1];
+		            os[x - 1] = os[x];
+		            os[x] = temp;
+
+		        }
+		    }
+		  }
 	}
 
 }

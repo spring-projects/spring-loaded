@@ -29,7 +29,6 @@ import org.springsource.loaded.test.infra.ResultException;
 import org.springsource.loaded.testgen.ExploreAllChoicesRunner;
 import org.springsource.loaded.testgen.GenerativeSpringLoadedTest;
 import org.springsource.loaded.testgen.RejectedChoice;
-import org.springsource.loaded.testgen.ToStringComparator;
 
 
 /**
@@ -84,7 +83,10 @@ public class FieldGetAnnotationTest extends GenerativeSpringLoadedTest {
 
 		Field[] fields = ReflectiveInterceptor.jlClassGetDeclaredFields(targetClass);
 		//To be deterministic we must sort these fields in a predictable fashion:
-		Arrays.sort(fields, new ToStringComparator());
+		
+		sort(fields);
+		
+//		Arrays.sort(fields, new ToStringComparator());
 
 		field = choice(fields);
 		toStringValue.append(field);

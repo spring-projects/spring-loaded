@@ -29,7 +29,6 @@ import org.springsource.loaded.test.infra.ResultException;
 import org.springsource.loaded.testgen.ExploreAllChoicesRunner;
 import org.springsource.loaded.testgen.GenerativeSpringLoadedTest;
 import org.springsource.loaded.testgen.RejectedChoice;
-import org.springsource.loaded.testgen.ToStringComparator;
 
 
 /**
@@ -93,7 +92,8 @@ public class MethodGetAnnotationTest extends GenerativeSpringLoadedTest {
 		
 		Method[] methods = ReflectiveInterceptor.jlClassGetDeclaredMethods(targetClass);
 		//To be deterministic we must sort these methods in a predictable fashion:
-		Arrays.sort(methods, new ToStringComparator());
+		// Arrays.sort(methods, new ToStringComparator());
+		sort(methods);
 		
 		method = choice(methods);
 		toStringValue.append(method);
