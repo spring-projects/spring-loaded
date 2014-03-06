@@ -509,7 +509,7 @@ public class SpringLoadedPreProcessor implements Constants {
 							} else if (uristring.startsWith("file:./")) {
 								file = new File(uristring.substring(7)).getAbsoluteFile();
 							}
-							if (file.exists()) {
+							if (file!=null && file.exists()) {
 								recovered = true;
 							}
 						}
