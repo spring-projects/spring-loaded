@@ -88,6 +88,12 @@ public class SpringLoadedPreProcessor implements Constants {
 		systemClassesContainingReflection.add("java/lang/reflect/Proxy");
 		// So that javabeans introspection is intercepter
 		systemClassesContainingReflection.add("java/beans/Introspector");
+		
+		// Related to serialization
+		// TODO [serialization] Caches in ObjectStreamClass for descriptors, need clearing on reload
+		systemClassesContainingReflection.add("java/io/ObjectStreamClass");
+		systemClassesContainingReflection.add("java/io/ObjectStreamClass$EntryFuture");
+		
 		// Don't need this right now, instead we are not removing 'final' from the serialVersionUID
 		//		// Need to catch at least the call to access the serialVersionUID made in getDeclaredSUID()
 		//		systemClassesContainingReflection.add("java/io/ObjectStreamClass$2");
@@ -133,8 +139,8 @@ public class SpringLoadedPreProcessor implements Constants {
 					try {
 						// TODO [perf] why are we not using the cache here, is it because the list is so short?
 						RewriteResult rr = SystemClassReflectionRewriter.rewrite(slashedClassName, bytes);
-						if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINER)) {
-							log.finer("System class rewritten: name="+slashedClassName+" rewrite summary="+rr.summarize());
+						if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
+							log.info("System class rewritten: name="+slashedClassName+" rewrite summary="+rr.summarize());
 						}
 						systemClassesRequiringInitialization.put(slashedClassName, rr.bits);
 						return rr.bytes;
@@ -421,13 +427,39 @@ public class SpringLoadedPreProcessor implements Constants {
 			f.setAccessible(true);
 			f.set(null, method_jlcgc);
 		}
+		if ((bits & Constants.JLC_GETDECLAREDCONSTRUCTORS) != 0) {
+			Field f = clazz.getDeclaredField(jlcGetDeclaredConstructorsMember);
+			f.setAccessible(true);
+			f.set(null,method_jlcgdcs);
+		}
+		if ((bits & Constants.JLRF_GET) != 0) {
+			Field f = clazz.getDeclaredField(jlrfGetMember);
+			f.setAccessible(true);
+			f.set(null,method_jlrfg);
+		}
+		if ((bits & Constants.JLRF_GETLONG) != 0) {
+			Field f = clazz.getDeclaredField(jlrfGetLongMember);
+			f.setAccessible(true);
+			f.set(null,method_jlrfgl);
+		}
+		if ((bits & Constants.JLRM_INVOKE) != 0) {
+			Field f = clazz.getDeclaredField(jlrmInvokeMember);
+			f.setAccessible(true);
+			f.set(null,method_jlrmi);
+		}
+		if ((bits & Constants.JLOS_HASSTATICINITIALIZER) != 0) {
+			Field f = clazz.getDeclaredField(jloObjectStream_hasInitializerMethod);
+			f.setAccessible(true);
+			f.set(null,method_jloObjectStream_hasInitializerMethod);
+		}
 	}
 
 	private static final Class<?> EMPTY_CLASS_ARRAY_CLAZZ = Class[].class;
 	// TODO threads
 	private static boolean prepared = false;
 	private static Method method_jlcgdfs, method_jlcgdf, method_jlcgf, method_jlcgdms, method_jlcgdm, method_jlcgm, method_jlcgdc,
-			method_jlcgc, method_jlcgmods, method_jlcgms;
+			method_jlcgc, method_jlcgmods, method_jlcgms, method_jlcgdcs, method_jlrfg, method_jlrfgl, method_jlrmi,
+			method_jloObjectStream_hasInitializerMethod;
 
 	/**
 	 * Cache the Method objects that will be injected.
@@ -447,6 +479,12 @@ public class SpringLoadedPreProcessor implements Constants {
 				method_jlcgc = clazz.getDeclaredMethod("jlClassGetConstructor", Class.class, EMPTY_CLASS_ARRAY_CLAZZ);
 				method_jlcgmods = clazz.getDeclaredMethod("jlClassGetModifiers", Class.class);
 				method_jlcgms = clazz.getDeclaredMethod("jlClassGetMethods", Class.class);
+				
+				method_jlcgdcs = clazz.getDeclaredMethod("jlClassGetDeclaredConstructors",Class.class);
+				method_jlrfg = clazz.getDeclaredMethod("jlrFieldGet",Field.class,Object.class);
+				method_jlrfgl = clazz.getDeclaredMethod("jlrFieldGetLong",Field.class,Object.class);
+				method_jlrmi = clazz.getDeclaredMethod("jlrMethodInvoke",Method.class,Object.class,Object[].class);
+				method_jloObjectStream_hasInitializerMethod = clazz.getDeclaredMethod("jlosHasStaticInitializer",Class.class);
 			} catch (NoSuchMethodException nsme) {
 				// cant happen, a-hahaha
 				throw new Impossible(nsme);

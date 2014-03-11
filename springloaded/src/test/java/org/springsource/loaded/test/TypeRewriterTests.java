@@ -262,7 +262,7 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		ReloadableType itype = r.addType(t, loadBytesForClass(t));
 		ReloadableType subitype = r.addType(t2, loadBytesForClass(t2));
 
-		ClassPrinter.print(subitype.bytesLoaded);
+//		ClassPrinter.print(subitype.bytesLoaded);
 
 		// An interface will get the reloadable type field
 		assertEquals("0x19(public static final) r$type Lorg/springsource/loaded/ReloadableType;",
@@ -399,7 +399,7 @@ public class TypeRewriterTests extends SpringLoadedTests {
 
 		// Load a real new version
 		rtype.loadNewVersion("002", retrieveRename(t, t + "2"));
-		ClassPrinter.print(rtype.getLatestExecutorBytes());
+//		ClassPrinter.print(rtype.getLatestExecutorBytes());
 		result = runConstructor(rtype.getClazz(), "java.lang.String", "Wabble");
 		assertEquals("WabbleWabble", result.stdout);
 		assertEquals(rtype.getClazz().getName(), result.returnValue.getClass().getName());
@@ -1321,7 +1321,7 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		// a new version of the concrete type without method() in it
 		rAbsimpl.loadNewVersion("2", retrieveRename(absimpl, absimpl + "2"));
 		rImpl.loadNewVersion("2", retrieveRename(impl, impl + "2", absimpl + "2:" + absimpl));
-		ClassPrinter.print(rAbsimpl.bytesLoaded);
+//		ClassPrinter.print(rAbsimpl.bytesLoaded);
 		result = runUnguarded(rImpl.getClazz(), "run");
 		assertEquals("2", result.stdout);
 	}
@@ -1347,7 +1347,7 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		result = runUnguarded(type.getClazz(), "run");
 		assertEquals("hello", result.returnValue);
 		type.loadNewVersion("2", retrieveRename(t, t + "2"));
-		ClassPrinter.print(type.getLatestExecutorBytes());
+//		ClassPrinter.print(type.getLatestExecutorBytes());
 		result = runUnguarded(type.getClazz(), "run");
 		assertEquals("world", result.returnValue);
 	}

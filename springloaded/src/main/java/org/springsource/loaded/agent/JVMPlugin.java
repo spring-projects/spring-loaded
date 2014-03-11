@@ -18,11 +18,14 @@ package org.springsource.loaded.agent;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.LoadtimeInstrumentationPlugin;
@@ -50,11 +53,58 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 	private Field threadGroupContext_contextsField; /* Map<ThreadGroup,ThreadGroupContext> */
 	private Method threadGroupContext_removeBeanInfoMethod; /*  removeBeanInfo(Class<?> type) { */
 
+	
+	private void tidySerialization(Class<?> reloadedClass) {
+//		if (true) return;
+		try {
+			Class<?> clazz = Class.forName("java.io.ObjectStreamClass$Caches");
+			Field localDescsField = clazz.getDeclaredField("localDescs");
+			localDescsField.setAccessible(true);
+			ConcurrentMap cm = (ConcurrentMap)localDescsField.get(null);
+			// TODO [serialization] a bit extreme to wipe out everything
+			cm.clear();
+//			Field reflectorsField = clazz.getDeclaredField("reflectors");
+//			reflectorsField.setAccessible(true);
+//			cm = (ConcurrentMap)reflectorsField.get(null);
+//			cm.clear();
+		} catch (ClassNotFoundException e) {
+			throw new IllegalStateException(e);
+		} catch (NoSuchFieldException e) {
+			throw new IllegalStateException(e);
+		} catch (SecurityException e) {
+			throw new IllegalStateException(e);
+		} catch (IllegalArgumentException e) {
+			throw new IllegalStateException(e);
+		} catch (IllegalAccessException e) {
+			throw new IllegalStateException(e);
+		}
+		
+		
+//		private static class Caches {
+//	        /** cache mapping local classes -> descriptors */
+//	        static final ConcurrentMap<WeakClassKey,Reference<?>> localDescs =
+//	            new ConcurrentHashMap<>();
+//
+//	        /** cache mapping field group/local desc pairs -> field reflectors */
+//	        static final ConcurrentMap<FieldReflectorKey,Reference<?>> reflectors =
+//	            new ConcurrentHashMap<>();
+//
+//	        /** queue for WeakReferences to local classes */
+//	        private static final ReferenceQueue<Class<?>> localDescsQueue =
+//	            new ReferenceQueue<>();
+//	        /** queue for WeakReferences to field reflectors keys */
+//	        private static final ReferenceQueue<Class<?>> reflectorsQueue =
+//	            new ReferenceQueue<>();
+//	    }	
+	}
+	
+	
 	@SuppressWarnings({ "restriction", "unchecked" })
 	public void reloadEvent(String typename, Class<?> clazz, String encodedTimestamp) {
 		if (pluginBroken) {
 			return;
 		}
+		tidySerialization(clazz);
 		if (introspectorLoaded) {
 			// Clear out the Introspector BeanInfo cache entry that might exist for this class
 

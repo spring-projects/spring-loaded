@@ -1480,4 +1480,8 @@ public class ReloadableType {
 			return superRtype;
 		}
 	}
+
+	public boolean hasStaticInitializer() {
+		return this.typedescriptor.hasClinit();
+	}
 }

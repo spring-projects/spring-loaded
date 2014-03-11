@@ -130,8 +130,14 @@ public interface Constants extends Opcodes {
 	public static int JLC_GETMODIFIERS = 0x0080;
 	public static int JLC_GETMETHODS = 0x0100;
 	public static int JLC_GETCONSTRUCTOR = 0x0200;
+	public static int JLC_GETDECLAREDCONSTRUCTORS = 0x0400;
+	public static int JLRM_INVOKE = 0x0800;
+	public static int JLRF_GET = 0x1000;
+	public static int JLRF_GETLONG = 0x2000;
+	public static int JLOS_HASSTATICINITIALIZER = 0x4000;
 
 	// For rewritten reflection in system classes, these are used:
+	// The member names are used for fields *and* methods
 	static final String jlcgdfs = "__sljlcgdfs";
 	static final String jlcgdfsDescriptor = "(Ljava/lang/Class;)[Ljava/lang/reflect/Field;";
 	static final String jlcgdf = "__sljlcgdf";
@@ -152,6 +158,17 @@ public interface Constants extends Opcodes {
 	static final String jlcgmodsDescriptor = "(Ljava/lang/Class;)I";
 	static final String jlcgms = "__sljlcgms";
 	static final String jlcgmsDescriptor = "(Ljava/lang/Class;)[Ljava/lang/reflect/Method;";
-
+	
+	// TODO migrate those above to this slightly more comprehensible format
+	static final String jlcGetDeclaredConstructorsMember = "__sljlcgdcs";
+	static final String jlcGetDeclaredConstructorsDescriptor = "(Ljava/lang/Class;)[Ljava/lang/reflect/Constructor;";
+	static final String jlrmInvokeMember = "__sljlrmi";
+	static final String jlrmInvokeDescriptor = "(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;";
+	static final String jlrfGetMember = "__sljlrfg";
+	static final String jlrfGetDescriptor = "(Ljava/lang/reflect/Field;Ljava/lang/Object;)Ljava/lang/Object;";
+	static final String jlrfGetLongMember = "__sljlrfgl";
+	static final String jlrfGetLongDescriptor = "(Ljava/lang/reflect/Field;Ljava/lang/Object;)J";
+	static final String jloObjectStream_hasInitializerMethod = "__sljlos_him";
+	
 	static final String methodSuffixSuperDispatcher = "_$superdispatcher$";
 }

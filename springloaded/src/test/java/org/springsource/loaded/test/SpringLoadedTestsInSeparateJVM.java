@@ -15,8 +15,6 @@
  */
 package org.springsource.loaded.test;
 
-import static org.junit.Assert.fail;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -73,7 +71,66 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		JVMOutput output = jvm.run("issue34.Implementation3");
 		assertStdout("Hello World!\n", output);		
 	}
+	
+	@Test
+	public void serialization() throws Exception {
+		jvm.copyToTestdataDirectory("remote.Serialize");
+		jvm.copyToTestdataDirectory("remote.Person");
+		JVMOutput output = null;
 
+		// When the Serialize class is run directly, we see: byteinfo:len=98:crc=c1047cf6
+		// When run via the non separate JVM test, we see: byteinfo:len=98:crc=7e07276a
+		// When run here, we see: byteinfo:len=98:crc=c1047cf6
+	
+		output = jvm.run("remote.Serialize");
+		assertStdoutContains("check ok\n", output);
+
+		// Load new Person
+		jvm.updateClass("remote.Person", retrieveRename("remote.Person","remote.Person2"));
+		pause(2);
+		
+		output = jvm.run("remote.Serialize");
+		assertStdoutContains("check ok\n", output);
+
+		// Load original Person
+		jvm.updateClass("remote.Person", loadBytesForClass("remote.Person"));
+		pause(2);
+
+		output = jvm.run("remote.Serialize");
+		assertStdoutContains("check ok\n", output);
+	}
+	
+	// Deserializing something serialized earlier
+	@Test
+	public void serialization2() throws Exception {
+		jvm.copyToTestdataDirectory("remote.Serialize");
+		jvm.copyToTestdataDirectory("remote.Person");
+		JVMOutput output = null;
+		
+		output = jvm.run("remote.Serialize");
+		assertStdoutContains("check ok\n", output);
+
+		jvm.newInstance("a", "remote.Serialize");
+		JVMOutput jo = jvm.call("a","checkPredeserializedData");
+		assertStdoutContains("Pre-serialized form checked ok\n", jo);
+	}
+	
+	// Deserialize a groovy closure
+	@Test
+	public void serializationGroovy() throws Exception {
+//		debug();
+		jvm.copyToTestdataDirectory("remote.SerializeG");
+		jvm.copyToTestdataDirectory("remote.FakeClosure");	
+		
+		// Notes on serialization
+		// When SerializeG run standalone, reports byteinfo:len=283:crc=245529d9
+		// When run in agented JVM, reports byteinfo:len=283:crc=245529d9
+		
+		jvm.newInstance("a", "remote.SerializeG");
+		JVMOutput jo = jvm.call("a","checkPredeserializedData");
+		assertStdoutContains("Pre-serialized groovy form checked ok\n", jo);
+	}
+	
 	@Test
 	public void githubIssue34_2() throws Exception {
 		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters"); 
@@ -175,23 +232,6 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		try { Thread.sleep(2000); } catch (Exception e) {}
 	}
 
-	private void assertStdout(String expectedStdout, JVMOutput actualOutput) {
-		if (!expectedStdout.equals(actualOutput.stdout)) {
-			//			assertEquals(expectedStdout, actualOutput.stdout);
-			fail("Expected stdout '" + expectedStdout + "' not found in \n" + actualOutput.toString());
-		}
-	}
 	
-	private void assertStdoutContains(String expectedStdout, JVMOutput actualOutput) {
-		if (!actualOutput.stdout.contains(expectedStdout)) {
-			fail("Expected stdout:\n" + expectedStdout + "\nbut was:\n" + actualOutput.stdout.toString()+"\nComplete output: \n"+actualOutput.toString());
-		}
-	}
-
-	private void assertStderrContains(String expectedStderrContains, JVMOutput actualOutput) {
-		if (actualOutput.stderr.indexOf(expectedStderrContains) == -1) {
-			fail("Expected stderr to contain '" + expectedStderrContains + "'\n" + actualOutput.toString());
-		}
-	}
 
 }

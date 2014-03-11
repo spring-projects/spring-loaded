@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2012 VMware and contributors
+ * Copyright 2010-2014 Pivotal Software, Inc. and contributors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.springsource.loaded;
 
+import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,9 +54,17 @@ import org.objectweb.asm.Opcodes;
  * <ul>
  * <li>getMethods
  * </ul>
+ * Due to ObjectStream (added in SL 1.2.0)
+ * <ul>
+ * <li>Class.getDeclaredConstructors
+ * <li>Field.get
+ * <li>Field.getLong
+ * <li>Method.invoke
+ * </ul>
+ * The method hasStaticInitializer(Class) in ObjectStream needs special handling.
  * 
  * <p>
- * This class modifiers the calls to the reflective APIs, adds the fields and helper methods. The wiring of the SpringLoaded
+ * This class modifies the calls to the reflective APIs, adds the fields and helper methods. The wiring of the SpringLoaded
  * reflectiveinterceptor into types affected by this rewriter is currently done in SpringLoadedPreProcessor.
  * 
  * @author Andy Clement
@@ -70,7 +79,8 @@ public class SystemClassReflectionRewriter {
 			log.info("SystemClassReflectionRewriter running for " + slashedClassName);
 		}
 		ClassReader fileReader = new ClassReader(bytes);
-		RewriteClassAdaptor classAdaptor = new RewriteClassAdaptor();
+		boolean is_jlObjectStream = slashedClassName.equals("java/io/ObjectStreamClass");
+		RewriteClassAdaptor classAdaptor = new RewriteClassAdaptor(is_jlObjectStream);
 		// TODO always skip frames? or just for javassist things?
 		fileReader.accept(classAdaptor, ClassReader.SKIP_FRAMES);
 		return new RewriteResult(classAdaptor.getBytes(), classAdaptor.getBits());
@@ -91,16 +101,21 @@ public class SystemClassReflectionRewriter {
 
 		public String summarize() {
 			StringBuilder s = new StringBuilder();
-			s.append((bits & JLC_GETDECLAREDCONSTRUCTOR) != 0 ? "getDeclaredConstructor()" : "");
-			s.append((bits & JLC_GETCONSTRUCTOR) != 0 ? "getConstructor()" : "");
-			s.append((bits & JLC_GETMODIFIERS) != 0 ? "getModifiers()" : "");
-			s.append((bits & JLC_GETDECLAREDFIELDS) != 0 ? "getDeclaredFields() " : "");
-			s.append((bits & JLC_GETDECLAREDFIELD) != 0 ? "getDeclaredField() " : "");
-			s.append((bits & JLC_GETFIELD) != 0 ? "getField() " : "");
-			s.append((bits & JLC_GETDECLAREDMETHODS) != 0 ? "getDeclaredMethods() " : "");
-			s.append((bits & JLC_GETDECLAREDMETHOD) != 0 ? "getDeclaredMethod() " : "");
-			s.append((bits & JLC_GETMETHOD) != 0 ? "getMethod() " : "");
-			s.append((bits & JLC_GETMETHODS) != 0 ? "getMethods() " : "");
+			s.append((bits & JLC_GETDECLAREDCONSTRUCTORS) != 0 ? "Class.getDeclaredConstructors()":"");
+			s.append((bits & JLC_GETDECLAREDCONSTRUCTOR) != 0 ? "Class.getDeclaredConstructor()" : "");
+			s.append((bits & JLC_GETCONSTRUCTOR) != 0 ? "Class.getConstructor()" : "");
+			s.append((bits & JLC_GETMODIFIERS) != 0 ? "Class.getModifiers()" : "");
+			s.append((bits & JLC_GETDECLAREDFIELDS) != 0 ? "Class.getDeclaredFields() " : "");
+			s.append((bits & JLC_GETDECLAREDFIELD) != 0 ? "Class.getDeclaredField() " : "");
+			s.append((bits & JLC_GETFIELD) != 0 ? "Class.getField() " : "");
+			s.append((bits & JLC_GETDECLAREDMETHODS) != 0 ? "Class.getDeclaredMethods() " : "");
+			s.append((bits & JLC_GETDECLAREDMETHOD) != 0 ? "Class.getDeclaredMethod() " : "");
+			s.append((bits & JLC_GETMETHOD) != 0 ? "Class.getMethod() " : "");
+			s.append((bits & JLC_GETMETHODS) != 0 ? "Class.getMethods() " : "");
+			s.append((bits & JLRM_INVOKE) != 0 ? "Method.invoke() " : "");
+			s.append((bits & JLRF_GET) != 0 ? "Field.get() " : "");
+			s.append((bits & JLRF_GETLONG) != 0 ? "Field.getLong() " : "");
+			s.append((bits & JLOS_HASSTATICINITIALIZER) != 0 ? "jlObjectStream.hasStaticInitializer() " : "");
 			return s.toString().trim();
 		}
 	}
@@ -110,6 +125,7 @@ public class SystemClassReflectionRewriter {
 		private ClassWriter cw;
 		int bits = 0x0000;
 		private String classname;
+		private boolean is_jlObjectStream;
 
 		//		enum SpecialRewrite { NotSpecial, java_io_ObjectStreamClass_2 };
 		//		private SpecialRewrite special = SpecialRewrite.NotSpecial;
@@ -119,11 +135,14 @@ public class SystemClassReflectionRewriter {
 			String s = new StringBuilder(owner).append(".").append(methodName).toString();
 			return MethodInvokerRewriter.RewriteClassAdaptor.intercepted.contains(s);
 		}
-
-		public RewriteClassAdaptor() {
-			// TODO should it also compute frames?
+		
+		public RewriteClassAdaptor(boolean is_jlObjectStream) {
 			super(ASM5,new ClassWriter(ClassWriter.COMPUTE_MAXS));
 			cw = (ClassWriter) cv;
+			this.is_jlObjectStream = is_jlObjectStream;
+			if (this.is_jlObjectStream) {
+				bits |= JLOS_HASSTATICINITIALIZER;
+			}
 		}
 
 		public byte[] getBytes() {
@@ -143,9 +162,29 @@ public class SystemClassReflectionRewriter {
 			//				special = SpecialRewrite.java_io_ObjectStreamClass_2;
 			//			}
 		}
+		
+		static Method m = null;
+		
+		private static boolean hasStaticInitializer(Class cl) {
+			try {
+				return (Boolean)m.invoke(null,cl);
+			}catch (Exception e) {
+				return false;
+			}
+		}
 
 		@Override
 		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
+//			if (is_jlObjectStream) {
+//				// TODO [serialization] clear those caches in the JVMPlugin
+//				// TODO [serialization] deal with FieldReflectors and changing formats? Maybe leave that for now and assume all the real fields are 'first'?
+//				// TODO [serialization] because not all classes to be serialized are reloadable ones, we'll need to change what we do here, generate the existing native method but an additional one that can delegate to it or call our SL layer
+//				if (name.equals("hasStaticInitializer")) {
+//					bits |= JLOS_HASSTATICINITIALIZER;
+//					SystemClassReflectionGenerator.generateJLObjectStream_hasStaticInitializer(cw, classname);
+//					return null;
+//				}
+//			}
 			MethodVisitor mv = super.visitMethod(flags, name, descriptor, signature, exceptions);
 			return new RewritingMethodAdapter(mv);
 		}
@@ -181,11 +220,26 @@ public class SystemClassReflectionRewriter {
 			if ((bits & JLC_GETDECLAREDCONSTRUCTOR) != 0) {
 				SystemClassReflectionGenerator.generateJLCGDC(cw, classname);
 			}
+			if ((bits & JLC_GETDECLAREDCONSTRUCTORS) != 0) {
+				SystemClassReflectionGenerator.generateJLC_GetDeclaredConstructors(cw, classname);
+			}
 			if ((bits & JLC_GETMETHODS) != 0) {
 				SystemClassReflectionGenerator.generateJLCGetXXXMethods(cw, classname, "getMethods");
 			}
 			if ((bits & JLC_GETCONSTRUCTOR) != 0) {
 				SystemClassReflectionGenerator.generateJLCGC(cw, classname);
+			}
+			if ((bits & JLRM_INVOKE) != 0) {
+				SystemClassReflectionGenerator.generateJLRM_Invoke(cw, classname);
+			}
+			if ((bits & JLRF_GET) != 0) {
+				SystemClassReflectionGenerator.generateJLRF_Get(cw, classname);
+			}
+			if ((bits & JLRF_GETLONG) != 0) {
+				SystemClassReflectionGenerator.generateJLRF_GetLong(cw, classname);
+			}
+			if (this.is_jlObjectStream) {
+				SystemClassReflectionGenerator.generateJLObjectStream_hasStaticInitializer(cw, classname);
 			}
 		}
 
@@ -279,6 +333,11 @@ public class SystemClassReflectionRewriter {
 						return true;
 					}
 				}
+				else if (is_jlObjectStream && owner.equals(classname) && name.equals("hasStaticInitializer")) {
+					// Call our interception method generated into this type
+					mv.visitMethodInsn(INVOKESTATIC,classname,jloObjectStream_hasInitializerMethod,desc);
+					return true;
+				}
 				return false;
 			}
 
@@ -319,6 +378,11 @@ public class SystemClassReflectionRewriter {
 						bits |= JLC_GETDECLAREDCONSTRUCTOR;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdc, jlcgdcDescriptor);
 						return true;
+					} else if (name.equals("getDeclaredConstructors")) {
+						// stack on arrival: <Class instance>
+						bits |= JLC_GETDECLAREDCONSTRUCTORS;
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcGetDeclaredConstructorsMember,jlcGetDeclaredConstructorsDescriptor);
+						return true;
 					} else if (name.equals("getConstructor")) {
 						// stack on arrival: <Class instance> <Class[] paramTypes>
 						bits |= JLC_GETCONSTRUCTOR;
@@ -344,10 +408,28 @@ public class SystemClassReflectionRewriter {
 						// seen: in Proxy Constructor.newInstance() is used on the newly created proxy class - we don't need to intercept that
 						return false;
 					}
+				} else if (owner.equals("java/lang/reflect/Method")) {
+					if (name.equals("invoke")) {
+						bits |= JLRM_INVOKE;
+						// stack on arrival: <Method> <target instance> <parameters array>
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlrmInvokeMember, jlrmInvokeDescriptor);
+						return true;
+					}
+				} else if (owner.equals("java/lang/reflect/Field")) {
+					if (name.equals("get")) {
+						bits |= JLRF_GET;
+						// stack on arrival: <Field> <target instance>
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlrfGetMember, jlrfGetDescriptor);
+						return true;
+					} else if (name.equals("getLong")) {
+						bits |= JLRF_GETLONG;
+						// stack on arrival: <Field> <target instance>
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlrfGetLongMember, jlrfGetLongDescriptor);
+						return true;
+					}
 				}
 				System.err.println("!!! SystemClassReflectionRewriter: nyi for " + owner + "." + name);
 				return false;
-				//throw new IllegalStateException("nyi for " + owner + "." + name);
 			}
 		}
 	}
@@ -463,6 +545,312 @@ class SystemClassReflectionGenerator implements Constants {
 	//			return 0;
 	//		}
 	//	}
+	
+//	public static Method __sljlcgdcs;
+//	private static Constructor[] __sljlcgdcs(Class<?> clazz) {
+//		if (__sljlcgdcs == null) {
+//			return clazz.getDeclaredConstructors();
+//		}
+//		try {
+//			return (Constructor[])__sljlcgdcs.invoke(null,clazz);
+//		} catch (Exception e) {
+//			return null;
+//		}
+//	}
+	
+//	public static Method __sljlrmi;
+//	private static Object __sljlrmi(Method method, Object instance, Object[] args) throws InvocationTargetException, IllegalAccessException {
+//		if (__sljlrmi == null) {
+//			return method.invoke(instance,args);
+//		}
+//		try {
+//			return __sljlrmi.invoke(null, method, instance, args);
+//		} catch (Exception e) {
+//			return null;
+//		}
+//	}
+	
+//	public static Method __sljlrfg;
+//	private static Object __sljlrfg(Field field, Object instance) throws IllegalArgumentException, IllegalAccessException {
+//		if (__sljlrfg == null) {
+//			return field.get(instance);
+//		}
+//		try {
+//			return __sljlrfg.invoke(null, field,instance);
+//		} catch (Exception e) {
+//			return null;
+//		}
+//	}
+
+//	public static Method __sljlrfgl;
+//	private static long __sljlrfgl(Field field, Object instance) throws IllegalArgumentException, IllegalAccessException {
+//		if (__sljlrfgl == null) {
+//			return field.getLong(instance);
+//		}
+//		try {
+//			return (Long)__sljlrfgl.invoke(null, field, instance);
+//		} catch (Exception e) {
+//			return 0;
+//		}
+//	}
+
+	public static void generateJLRF_GetLong(ClassWriter cw, String classname) {
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrfGetLongMember, "Ljava/lang/reflect/Method;", null, null);
+		fv.visitEnd();
+
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlrfGetLongMember, jlrfGetLongDescriptor,
+				null, new String[]{"java/lang/IllegalAccessException","java/lang/IllegalArgumentException"});
+		mv.visitCode();
+		Label l0 = new Label();
+		Label l1 = new Label();
+		Label l2 = new Label();
+		mv.visitTryCatchBlock(l0, l1, l2, "java/lang/Exception");
+		Label l3 = new Label();
+		mv.visitLabel(l3);
+		mv.visitFieldInsn(GETSTATIC, classname, jlrfGetLongMember, "Ljava/lang/reflect/Method;");
+		mv.visitJumpInsn(IFNONNULL, l0);
+		Label l4 = new Label();
+		mv.visitLabel(l4);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Field", "getLong", "(Ljava/lang/Object;)J");
+		mv.visitInsn(LRETURN);
+		mv.visitLabel(l0);
+		mv.visitFieldInsn(GETSTATIC, classname, jlrfGetLongMember, "Ljava/lang/reflect/Method;");
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ICONST_2);
+		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_0);
+		mv.visitVarInsn(ALOAD, 0); // target field
+		mv.visitInsn(AASTORE);
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_1);
+		mv.visitVarInsn(ALOAD, 1); // instance on which to get the field
+		mv.visitInsn(AASTORE);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitLabel(l1);
+		mv.visitTypeInsn(CHECKCAST, "java/lang/Long");
+		mv.visitMethodInsn(INVOKEVIRTUAL,"java/lang/Long","longValue","()J");
+		mv.visitInsn(LRETURN);
+		mv.visitLabel(l2);
+		mv.visitVarInsn(ASTORE, 2);
+		Label l5 = new Label();
+		mv.visitLabel(l5);
+		Label l6 = new Label();
+		mv.visitLabel(l6);
+		mv.visitLdcInsn(0L);
+		mv.visitInsn(LRETURN);
+		Label l7 = new Label();
+		mv.visitLabel(l7);
+		mv.visitMaxs(8, 4);
+		mv.visitEnd();
+	}
+
+	/**
+	 * Create a method that can be used to intercept the calls to hasStaticInitializer made in the ObjectStreamClass.
+	 * The method will ask SpringLoaded whether the type has a static initializer. SpringLoaded will be able to answer
+	 * if it is a reloadable type. If it is not a reloadable type then springloaded will throw an exception which will
+	 * be caught here and the 'regular' call to hasStaticInitializer will be made.
+	 * 
+	 * @param cw the classwriter to create the method in
+	 * @param classname the name of the class being visited
+	 */
+	public static void generateJLObjectStream_hasStaticInitializer(
+			ClassWriter cw, String classname) {
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jloObjectStream_hasInitializerMethod, "Ljava/lang/reflect/Method;", null, null);
+		fv.visitEnd();
+
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jloObjectStream_hasInitializerMethod, "(Ljava/lang/Class;)Z", null, null);
+		mv.visitCode();
+		Label l0 = new Label();
+		Label l1 = new Label();
+		Label l2 = new Label();
+		mv.visitTryCatchBlock(l0, l1, l2, "java/lang/Exception");
+		mv.visitLabel(l0);
+		mv.visitFieldInsn(GETSTATIC, classname, jloObjectStream_hasInitializerMethod, "Ljava/lang/reflect/Method;");
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ICONST_1);
+		mv.visitTypeInsn(ANEWARRAY,"java/lang/Object");
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_0);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitInsn(AASTORE);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitTypeInsn(CHECKCAST, "java/lang/Boolean");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z");
+		mv.visitLabel(l1);
+		mv.visitInsn(IRETURN);
+		mv.visitLabel(l2);
+		// If not a reloadable type, we'll end up here (the method we called threw IllegalStateException), just make that native method call
+		mv.visitVarInsn(ASTORE, 1);
+		mv.visitVarInsn(ALOAD,0);
+		mv.visitMethodInsn(INVOKESTATIC, classname, "hasStaticInitializer","(Ljava/lang/Class;)Z");
+		mv.visitInsn(IRETURN);
+		mv.visitMaxs(3, 1);
+		mv.visitEnd();
+	}
+
+	public static void generateJLRF_Get(ClassWriter cw, String classname) {
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrfGetMember, "Ljava/lang/reflect/Method;", null, null);
+		fv.visitEnd();
+
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlrfGetMember, jlrfGetDescriptor,
+				null, new String[]{"java/lang/IllegalAccessException","java/lang/IllegalArgumentException"});
+		mv.visitCode();
+		Label l0 = new Label();
+		Label l1 = new Label();
+		Label l2 = new Label();
+		mv.visitTryCatchBlock(l0, l1, l2, "java/lang/Exception");
+		Label l3 = new Label();
+		mv.visitLabel(l3);
+		mv.visitFieldInsn(GETSTATIC, classname, jlrfGetMember, "Ljava/lang/reflect/Method;");
+		mv.visitJumpInsn(IFNONNULL, l0);
+		Label l4 = new Label();
+		mv.visitLabel(l4);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Field", "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(l0);
+		mv.visitFieldInsn(GETSTATIC, classname, jlrfGetMember, "Ljava/lang/reflect/Method;");
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ICONST_2);
+		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_0);
+		mv.visitVarInsn(ALOAD, 0); // target field
+		mv.visitInsn(AASTORE);
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_1);
+		mv.visitVarInsn(ALOAD, 1); // instance on which to get the field
+		mv.visitInsn(AASTORE);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitLabel(l1);
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(l2);
+		mv.visitVarInsn(ASTORE, 2);
+		Label l5 = new Label();
+		mv.visitLabel(l5);
+		Label l6 = new Label();
+		mv.visitLabel(l6);
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ARETURN);
+		Label l7 = new Label();
+		mv.visitLabel(l7);
+		mv.visitMaxs(8, 4);
+		mv.visitEnd();
+	}
+	
+	public static void generateJLRM_Invoke(ClassWriter cw, String classname) {
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrmInvokeMember, "Ljava/lang/reflect/Method;", null, null);
+		fv.visitEnd();
+
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlrmInvokeMember, jlrmInvokeDescriptor,
+				null, new String[]{"java/lang/IllegalAccessException","java/lang/reflect/InvocationTargetException"});
+		mv.visitCode();
+		Label l0 = new Label();
+		Label l1 = new Label();
+		Label l2 = new Label();
+		mv.visitTryCatchBlock(l0, l1, l2, "java/lang/Exception");
+		Label l3 = new Label();
+		mv.visitLabel(l3);
+		mv.visitFieldInsn(GETSTATIC, classname, jlrmInvokeMember, "Ljava/lang/reflect/Method;");
+		mv.visitJumpInsn(IFNONNULL, l0);
+		Label l4 = new Label();
+		mv.visitLabel(l4);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitVarInsn(ALOAD, 1);
+		mv.visitVarInsn(ALOAD, 2);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(l0);
+		mv.visitFieldInsn(GETSTATIC, classname, jlrmInvokeMember, "Ljava/lang/reflect/Method;");
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ICONST_3);
+		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_0);
+		mv.visitVarInsn(ALOAD, 0); // target method
+		mv.visitInsn(AASTORE);
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_1);
+		mv.visitVarInsn(ALOAD, 1); // instance on which to call the method
+		mv.visitInsn(AASTORE);
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_2);
+		mv.visitVarInsn(ALOAD, 2); // arguments to method call
+		mv.visitInsn(AASTORE);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitLabel(l1);
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(l2);
+		mv.visitVarInsn(ASTORE, 3);
+		Label l5 = new Label();
+		mv.visitLabel(l5);
+		Label l6 = new Label();
+		mv.visitLabel(l6);
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ARETURN);
+		Label l7 = new Label();
+		mv.visitLabel(l7);
+		mv.visitMaxs(8, 4);
+		mv.visitEnd();
+	}
+	
+	public static void generateJLC_GetDeclaredConstructors(ClassWriter cw, String classname) {
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlcGetDeclaredConstructorsMember, "Ljava/lang/reflect/Method;", null, null);
+		fv.visitEnd();
+
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlcGetDeclaredConstructorsMember, jlcGetDeclaredConstructorsDescriptor,
+				null, null);
+		mv.visitCode();
+		Label l0 = new Label();
+		Label l1 = new Label();
+		Label l2 = new Label();
+		mv.visitTryCatchBlock(l0, l1, l2, "java/lang/Exception");
+		Label l3 = new Label();
+		mv.visitLabel(l3);
+		mv.visitFieldInsn(GETSTATIC, classname, jlcGetDeclaredConstructorsMember, "Ljava/lang/reflect/Method;");
+		mv.visitJumpInsn(IFNONNULL, l0);
+		Label l4 = new Label();
+		mv.visitLabel(l4);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(l0);
+		mv.visitFieldInsn(GETSTATIC, classname, jlcGetDeclaredConstructorsMember, "Ljava/lang/reflect/Method;");
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ICONST_1);
+		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
+		mv.visitInsn(DUP);
+		mv.visitInsn(ICONST_0);
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitInsn(AASTORE);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitTypeInsn(CHECKCAST, "[Ljava/lang/reflect/Constructor;");
+		mv.visitLabel(l1);
+		mv.visitInsn(ARETURN);
+		mv.visitLabel(l2);
+		mv.visitVarInsn(ASTORE, 1);
+		Label l5 = new Label();
+		mv.visitLabel(l5);
+		Label l6 = new Label();
+		mv.visitLabel(l6);
+		mv.visitInsn(ACONST_NULL);
+		mv.visitInsn(ARETURN);
+		Label l7 = new Label();
+		mv.visitLabel(l7);
+		//		mv.visitLocalVariable("clazz", "Ljava/lang/Class;", "Ljava/lang/Class<*>;", l3, l7, 0);
+		//		mv.visitLocalVariable("e", "Ljava/lang/Exception;", null, l5, l7, 1);
+		mv.visitMaxs(6, 2);
+		mv.visitEnd();
+	}
 
 	public static void generateJLCGMODS(ClassWriter cw, String classname) {
 		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, "__sljlcgmods", "Ljava/lang/reflect/Method;", null, null);

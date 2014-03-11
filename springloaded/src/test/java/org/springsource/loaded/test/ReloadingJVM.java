@@ -78,6 +78,7 @@ public class ReloadingJVM {
 				System.out.println("Found agent at "+agentJarLocation);
 				System.out.println("(client) Test data directory is "+testdataDirectory);
 			}
+			javaclasspath = javaclasspath + File.pathSeparator + new File("../testdata-groovy/groovy-all-1.8.6.jar").toString();
 			javaclasspath = javaclasspath + File.pathSeparator + testdataDirectory.toString();
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) Classpath for JVM that is being launched: " + javaclasspath);
@@ -87,15 +88,18 @@ public class ReloadingJVM {
 			if (agentOptions!=null && agentOptions.length()>0) {
 				AGENT_OPTION_STRING = "-Dspringloaded="+agentOptions;
 			}
+			if (DEBUG_CLIENT_SIDE) {
+				System.out.println("java.home="+System.getProperty("java.home"));
+			}
 			process = Runtime.getRuntime().exec(
-					"java -noverify -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " " + AGENT_OPTION_STRING +
+					System.getProperty("java.home")+"/bin/java -noverify -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " " + AGENT_OPTION_STRING +
 					" "+OPTS+" "
 							+ ReloadingJVMCommandProcess.class.getName(), new String[] { OPTS });
 			writer = new DataOutputStream(process.getOutputStream());
 			reader = new DataInputStream(process.getInputStream());
 			readerErrors = new DataInputStream(process.getErrorStream());
 			if (debug) {
-				System.out.println("Debugging launched VM, port 5000");
+				System.out.println("Debugging launched VM, port 5100");
 			}
 			JVMOutput text = waitFor("ReloadingJVM:started");
 			if (DEBUG_CLIENT_SIDE) {
@@ -119,7 +123,7 @@ public class ReloadingJVM {
 		return captureOutput(message);
 	}
 
-	private final static boolean DEBUG_CLIENT_SIDE = false;
+	private final static boolean DEBUG_CLIENT_SIDE = true;
 
 	private JVMOutput sendAndReceive(String message) {
 		try {
@@ -227,6 +231,9 @@ public class ReloadingJVM {
 		}
 		String classfile = classname.replaceAll("\\.",File.separator)+".class";
 		File f = new File("../testdata/bin",classfile);
+		if (!f.exists()) {
+			f = new File("../testdata-groovy/bin",classfile);
+		}
 		byte[] data = Utils.load(f);
 		// Ensure directories exist
 		int dotPos = classname.lastIndexOf(".");
@@ -235,6 +242,22 @@ public class ReloadingJVM {
 		}
 		Utils.write(new File(testdataDirectory,classfile),data);
 	}
+
+	public void copyResourceToTestDataDirectory(String resourcename) {
+		if (DEBUG_CLIENT_SIDE) {
+			System.out.println("(client) copying resource to test data directory: "+resourcename);
+		}
+		File f = new File("../testdata-groovy/",resourcename);
+		byte[] data = Utils.load(f);
+//		// Ensure directories exist
+//		int dotPos = classname.lastIndexOf(".");
+//		if (dotPos!=-1) {
+//			new File(testdataDirectory,classname.substring(0,dotPos).replaceAll("\\.",File.separator)).mkdirs();
+//		}
+		Utils.write(new File(testdataDirectory,resourcename),data);
+	}
+	
+	
 	
 	public void clearTestdataDirectory() {
 		File[] fs = testdataDirectory.listFiles();

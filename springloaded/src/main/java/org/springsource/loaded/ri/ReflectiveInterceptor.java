@@ -84,6 +84,16 @@ public class ReflectiveInterceptor {
 			classToRType = new WeakHashMap<Class<?>, WeakReference<ReloadableType>>();
 		}
 	}
+	
+	@UsedByGeneratedCode
+	public static boolean jlosHasStaticInitializer(Class<?> clazz) {
+		ReloadableType rtype = getRType(clazz);
+		if (rtype == null) {
+			// Exception tells the caller to use the 'old way' to determine if there is a static initializer
+			throw new IllegalStateException();
+		}
+		return rtype.hasStaticInitializer();
+	}
 
 	/*
 	 * Implementation of java.lang.class.getDeclaredMethod(String name, Class... params).

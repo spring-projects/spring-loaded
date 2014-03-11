@@ -18,8 +18,8 @@ package org.springsource.loaded.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Modifier;
 
@@ -30,7 +30,6 @@ import org.springsource.loaded.SpringLoaded;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils.ReturnType;
 import org.springsource.loaded.test.infra.Result;
-
 
 /**
  * Tests for the TypeRegistry that exercise it in the same way it will actively be used when managing ReloadableType instances.
@@ -268,6 +267,103 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		assertEquals("Hello",(String)r.returnValue);
 	}
 	
+	// Basic write/read then reload then write/read again
+	@Test
+	public void serialization1() throws Exception {
+		TypeRegistry tr = getTypeRegistry("remote..*");
+		ReloadableType person = tr.addType("remote.Person", loadBytesForClass("remote.Person"));
+		
+		// When the Serialize class is run directly, we see: byteinfo:len=98:crc=c1047cf6
+		// When run via this test, we see: byteinfo:len=98:crc=7e07276a
+		// Tried running the Serialize code directly but with a clinit in the Person class: 2b4c0df4
+
+		ReloadableType runner = tr.addType("remote.Serialize", loadBytesForClass("remote.Serialize"));
+		
+		Result r = null;
+		r = runUnguarded(runner.getClazz(), "run");
+		assertContains("check ok", r.stdout);
+
+		person.loadNewVersion("2",retrieveRename("remote.Person", "remote.Person2"));
+		
+		r = runUnguarded(runner.getClazz(), "run");
+		assertContains("check ok", r.stdout);		
+	}
+	
+
+	// Unlike the first test, this one will reload the class in between serialize and deserialize
+	@Test
+	public void serialization2() throws Exception {
+		TypeRegistry tr = getTypeRegistry("remote..*");
+		ReloadableType person = tr.addType("remote.Person", loadBytesForClass("remote.Person"));
+		
+		// byteinfo:len=98:crc=7e07276a
+		ReloadableType runner = tr.addType("remote.Serialize", loadBytesForClass("remote.Serialize"));
+		
+		Class<?> clazz = runner.getClazz();
+		Object instance = clazz.newInstance();
+		
+		Result r = null;
+		
+		// Basic: write and read the same Person
+		r = runOnInstance(clazz,instance,"writePerson");
+		assertStdoutContains("Person stored ok", r);
+		r = runOnInstance(clazz,instance,"readPerson");
+		assertContains("Person read ok", r.stdout);
+
+		// Advanced: write it, reload, then read back from the written form
+		r = runOnInstance(clazz,instance,"writePerson");
+		assertStdoutContains("Person stored ok", r);
+		person.loadNewVersion("2",retrieveRename("remote.Person", "remote.Person2"));
+		r = runOnInstance(clazz,instance,"readPerson");
+		assertContains("Person read ok", r.stdout);
+	}
+	
+	// Variant of the second test but using serialVersionUID and adding methods to the class on reload
+	@Test
+	public void serialization3() throws Exception {
+		TypeRegistry tr = getTypeRegistry("remote..*");
+		ReloadableType person = tr.addType("remote.PersonB", loadBytesForClass("remote.PersonB"));
+		ReloadableType runner = tr.addType("remote.SerializeB", loadBytesForClass("remote.SerializeB"));
+		
+		Class<?> clazz = runner.getClazz();
+		Object instance = clazz.newInstance();
+		
+		Result r = null;
+		
+		// Basic: write and read the same Person
+		r = runOnInstance(runner.getClazz(),instance,"writePerson");
+		assertStdoutContains("Person stored ok", r);
+		r = runOnInstance(runner.getClazz(),instance,"readPerson");
+		assertContains("Person read ok", r.stdout);
+
+		// Advanced: write it, reload, then read back from the written form
+		r = runOnInstance(runner.getClazz(),instance,"writePerson");
+		assertStdoutContains("Person stored ok", r);
+		person.loadNewVersion("2",retrieveRename("remote.PersonB", "remote.PersonB2"));
+		r = runOnInstance(runner.getClazz(),instance,"readPerson");
+		assertContains("Person read ok", r.stdout);
+		
+		r = runOnInstance(clazz,instance,"printInitials");
+		assertContains("Person read ok\nWS", r.stdout);
+	}
+	
+	// Deserialize something we serialized earlier
+	// This test cannot work without the agent. The agent must intercept java.lang.ObjectStream and its use of reflection
+	// There is a test that will work in the SpringLoadedTestsInSeparateJVM
+	public void serialization4() throws Exception {
+		TypeRegistry tr = getTypeRegistry("remote..*");
+//		ReloadableType person = 
+		tr.addType("remote.Person", loadBytesForClass("remote.Person"));
+		
+		// When the Serialize class is run directly, we see: byteinfo:len=98:crc=c1047cf6
+		// When run via this test, we see: byteinfo:len=98:crc=7e07276a
+		ReloadableType runner = tr.addType("remote.Serialize", loadBytesForClass("remote.Serialize"));
+		Class<?> clazz = runner.getClazz();
+		Object instance = clazz.newInstance();		
+		Result r = runOnInstance(clazz,instance,"checkPredeserializedData");
+		assertStdoutContains("Person stored ok", r);
+	}
+
 	// extra class in the middle: A in jar, subtype AB reloadable, subtype BBBBB reloadable
 	@Test
 	public void invokeStaticReloading_gh4_6() throws Exception {

@@ -65,6 +65,7 @@ import org.springsource.loaded.TypeDescriptor;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils;
 import org.springsource.loaded.agent.SpringLoadedPreProcessor;
+import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
 import org.springsource.loaded.test.infra.ClassPrinter;
 import org.springsource.loaded.test.infra.MethodPrinter;
 import org.springsource.loaded.test.infra.Result;
@@ -1278,5 +1279,29 @@ public abstract class SpringLoadedTests implements Constants {
 		} catch (Exception e) {}
 	}
 	
+	protected void assertStdout(String expectedStdout, JVMOutput actualOutput) {
+		if (!expectedStdout.equals(actualOutput.stdout)) {
+			//			assertEquals(expectedStdout, actualOutput.stdout);
+			fail("Expected stdout '" + expectedStdout + "' not found in \n" + actualOutput.toString());
+		}
+	}
+	
+	protected void assertStdoutContains(String expectedStdout, JVMOutput actualOutput) {
+		if (!actualOutput.stdout.contains(expectedStdout)) {
+			fail("Expected stdout:\n" + expectedStdout + "\nbut was:\n" + actualOutput.stdout.toString()+"\nComplete output: \n"+actualOutput.toString());
+		}
+	}
+	
+	protected void assertStdoutContains(String expectedStdout, Result r) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	protected void assertStderrContains(String expectedStderrContains, JVMOutput actualOutput) {
+		if (actualOutput.stderr.indexOf(expectedStderrContains) == -1) {
+			fail("Expected stderr to contain '" + expectedStderrContains + "'\n" + actualOutput.toString());
+		}
+	}
 	
 }
