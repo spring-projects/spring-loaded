@@ -109,7 +109,10 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			// May have to do something special for CGLIB types
 			// These will have a type name of something like: grails/plugin/springsecurity/SpringSecurityService$$EnhancerByCGLIB$$8f956be2
 			// But a codesource location of file:/Users/aclement/.m2/repository/org/springframework/spring-core/3.2.5.RELEASE/spring-core-3.2.5.RELEASE.jar
-			int cglibIndex = typename.indexOf("ByCGLIB$$"); // catches fastclass too
+			int cglibIndex = typename.indexOf("$$EnhancerBy");
+			if (cglibIndex == -1) {
+				cglibIndex = typename.indexOf("$$FastClassBy");
+			}
 			if (cglibIndex != -1) {
 				String originalType = typename.substring(0, typename.indexOf("$$")); // assuming first $$ is good enough
 				while (typeRegistry != null) {

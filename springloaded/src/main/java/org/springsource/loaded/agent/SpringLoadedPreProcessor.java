@@ -134,7 +134,7 @@ public class SpringLoadedPreProcessor implements Constants {
 		}
 
 		if (typeRegistry == null) { // A null type registry indicates nothing is being made reloadable for the classloader
-			if (classLoader == null) { // Indicates loading of a system class
+			if (classLoader == null && slashedClassName != null) { // Indicates loading of a system class
 				if (systemClassesContainingReflection.contains(slashedClassName)) {
 					try {
 						// TODO [perf] why are we not using the cache here, is it because the list is so short?
@@ -204,7 +204,7 @@ public class SpringLoadedPreProcessor implements Constants {
 					// codesource determined to be: file:/Users/aclement/springsource/tc-server-developer-2.1.1.RELEASE/spring-insight-instance/wtpwebapps/hello-rabbit-client/WEB-INF/lib/cglib-nodep-2.2.jar <no signer certificates>
 					// But if the type 'com/vmware/rabbit/ApplicationContext' is reloadable, then this should be too
 					boolean makeReloadableAnyway = false;
-					int cglibIndex = slashedClassName.indexOf("$$EnhancerByCGLIB");
+					int cglibIndex = slashedClassName.indexOf("$$EnhancerBy");
 
 					if (cglibIndex != -1) {
 						String originalType = slashedClassName.substring(0, cglibIndex);

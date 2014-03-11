@@ -63,6 +63,7 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 			ConcurrentMap cm = (ConcurrentMap)localDescsField.get(null);
 			// TODO [serialization] a bit extreme to wipe out everything
 			cm.clear();
+			// For some reason clearing the reflectors damages serialization - is it not a true cache?
 //			Field reflectorsField = clazz.getDeclaredField("reflectors");
 //			reflectorsField.setAccessible(true);
 //			cm = (ConcurrentMap)reflectorsField.get(null);

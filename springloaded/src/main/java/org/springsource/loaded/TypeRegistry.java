@@ -599,8 +599,8 @@ public class TypeRegistry {
 				}
 			}
 		}
-		if (slashedName.startsWith("$Proxy") || slashedName.indexOf("EnhancerByCGLIB") != -1
-				|| slashedName.indexOf("FastClassByCGLIB") != -1) {
+		if (slashedName.startsWith("$Proxy") || slashedName.indexOf("$$EnhancerBy") != -1
+				|| slashedName.indexOf("$$FastClassBy") != -1) {
 			return true;
 		}
 		// TODO review all these... are these four only loaded by jasperloader?
@@ -940,8 +940,8 @@ public class TypeRegistry {
 		}
 		// allocatedIds.put(slashname, rtype);
 		// allocatedButNotYetRegisteredItds.remove(slashname);
-		int cglibIndex = slashname.indexOf("$$EnhancerByCGLIB");
-		int fcIndex = slashname.indexOf("$$FastClassByCGLIB"); // a type can have both (the fast class for a proxy)
+		int cglibIndex = slashname.indexOf("$$EnhancerBy");
+		int fcIndex = slashname.indexOf("$$FastClassBy"); // a type can have both (the fast class for a proxy)
 		if (fcIndex != -1) {
 			String originalType = slashname.substring(0, fcIndex);
 			cglibProxiesFastClass.put(originalType, rtype);
