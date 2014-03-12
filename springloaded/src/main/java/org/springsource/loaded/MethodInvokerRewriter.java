@@ -778,13 +778,13 @@ public class MethodInvokerRewriter {
 							super.visitFieldInsn(opcode, owner, name, desc);
 							return;
 						}
-						if (isEnum && isClinitOrEnumInit && fieldcount > 1000) {
+						if (isEnum && isClinitOrEnumInit && fieldcount > GlobalConfiguration.enumLimit) {
 							super.visitFieldInsn(opcode, owner, name, desc);
 							return;
 						}
 						rewriteGETSTATIC(opcode, owner, name, desc);
 					} else if (opcode == PUTSTATIC) {
-						if (isEnum && isClinitOrEnumInit && fieldcount > 1000) {
+						if (isEnum && isClinitOrEnumInit && fieldcount > GlobalConfiguration.enumLimit) {
 							super.visitFieldInsn(opcode, owner, name, desc);
 							return;
 						}
@@ -1335,7 +1335,7 @@ public class MethodInvokerRewriter {
 				if (name.charAt(0) == '<') {
 					// constructor
 
-					if (isEnum && isClinitOrEnumInit && fieldcount > 1000 && owner.equals(slashedclassname)) {
+					if (isEnum && isClinitOrEnumInit && fieldcount > GlobalConfiguration.enumLimit && owner.equals(slashedclassname)) {
 						super.visitMethodInsn(opcode, owner, name, desc);
 						return;
 					}

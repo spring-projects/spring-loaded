@@ -864,7 +864,7 @@ public class ReloadableType {
 
 			public byte[] getBytes() {
 				RewriteClassAdaptor rca = (RewriteClassAdaptor) cv;
-				if (rca.isEnum && rca.fieldcount > 1000) {
+				if (rca.isEnum && rca.fieldcount > GlobalConfiguration.enumLimit) {
 					// that is too many fields, marking this as not reloadable
 					// TODO ... 
 				}

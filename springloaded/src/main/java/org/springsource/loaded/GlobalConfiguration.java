@@ -107,6 +107,9 @@ public class GlobalConfiguration {
 	public static boolean directlyDefineTypes = true;
 
 	public final static boolean interceptReflection = true;
+	
+	// max number of values before we prevent them being reloaded (the clinit rewrite blows the codesize limit)
+	public static int enumLimit = 1000;
 
 	public static boolean reloadMessages = false;// can be forced on for testing
 
@@ -210,6 +213,9 @@ public class GlobalConfiguration {
 							isCaching = kv.substring(equals + 1).equalsIgnoreCase("true");
 						} else if (key.equals("debugplugins")) {
 							debugPlugins = true;
+						}
+						else if(key.equals("enumlimit")) {
+							enumLimit = toInt(kv.substring(equals+1),enumLimit);
 						} else if (key.equals("profile")) {
 							profile = kv.substring(equals + 1);
 						} else if (key.equals("cacheDir")) {
@@ -356,11 +362,25 @@ public class GlobalConfiguration {
 					e.printStackTrace();
 				}
 			}
+			
+			// Alternative route for specifying values
+			value = System.getProperty("springloaded.enumlimit");
+			if (value != null) {
+				enumLimit = toInt(value,enumLimit);
+			}
 		} catch (Throwable t) {
 			System.err.println("Unexpected problem reading global configuration setting:" + t.toString());
 			t.printStackTrace();
 		}
 		debugplugins = debugPlugins;
+	}
+	
+	private static int toInt(String value, int defaultValue) {
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException nfe) {
+			return defaultValue;
+		}
 	}
 	
 	public final static boolean isJava18orHigher;

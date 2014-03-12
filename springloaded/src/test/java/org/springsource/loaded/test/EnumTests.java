@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
+import org.springsource.loaded.Utils;
 import org.springsource.loaded.test.infra.TestClassloaderWithRewriting;
 
 
@@ -269,7 +270,7 @@ public class EnumTests extends SpringLoadedTests {
 
 		// Check we loaded it as reloadable
 		ReloadableType rtype = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(t), false);
-		//		Utils.dump(rtype.getSlashedName(), rtype.bytesLoaded);
+		// Utils.dump(rtype.getSlashedName(), rtype.bytesLoaded);
 		assertNotNull(rtype);
 		ReloadableType rtypeRunner = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(runner), false);
 		assertNotNull(rtypeRunner);
