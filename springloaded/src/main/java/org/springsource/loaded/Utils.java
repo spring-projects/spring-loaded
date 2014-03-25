@@ -687,6 +687,11 @@ public class Utils implements Opcodes, Constants {
 	}
 
 	public static void appendDescriptor(Class<?> p, StringBuilder s) {
+		if (p == null) {
+			// Could do with a real working scenario that leads to this problem - see https://github.com/spring-projects/spring-loaded/issues/52
+			s.append("null");
+			return;
+		}
 		if (p.isArray()) {
 			while (p.isArray()) {
 				s.append("[");
