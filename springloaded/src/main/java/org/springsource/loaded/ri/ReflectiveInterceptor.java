@@ -183,7 +183,12 @@ public class ReflectiveInterceptor {
 			if (i > 0) {
 				s.append(", ");
 			}
-			s.append(params[i].getName());
+			if (params[i] == null) {
+				s.append("null");
+			}
+			else {
+				s.append(params[i].getName());
+			}
 		}
 		s.append(')');
 		return s.toString();
