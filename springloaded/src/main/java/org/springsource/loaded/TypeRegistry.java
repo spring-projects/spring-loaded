@@ -599,7 +599,7 @@ public class TypeRegistry {
 				}
 			}
 		}
-		if (slashedName.startsWith("$Proxy") || slashedName.indexOf("$$EnhancerBy") != -1
+		if (slashedName.indexOf("$Proxy") != -1 || slashedName.indexOf("$$EnhancerBy") != -1
 				|| slashedName.indexOf("$$FastClassBy") != -1) {
 			return true;
 		}
