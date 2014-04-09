@@ -3,6 +3,8 @@ apply plugin: 'maven'
 group = "org.springframework"
 jar.baseName = 'springloaded'
 
+sourceCompatibility = 1.5
+targetCompatibility = 1.5
 
 task writeNewPom << {
   pom {
