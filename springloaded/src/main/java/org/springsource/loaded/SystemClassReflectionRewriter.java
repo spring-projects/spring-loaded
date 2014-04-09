@@ -164,14 +164,6 @@ public class SystemClassReflectionRewriter {
 		}
 		
 		static Method m = null;
-		
-		private static boolean hasStaticInitializer(Class cl) {
-			try {
-				return (Boolean)m.invoke(null,cl);
-			}catch (Exception e) {
-				return false;
-			}
-		}
 
 		@Override
 		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
