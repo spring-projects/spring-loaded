@@ -12,6 +12,7 @@ def customizePom(pom, gradleProject) {
 		generatedPom.dependencies = generatedPom.dependencies.sort { dep ->
 			"$dep.scope:$dep.groupId:$dep.artifactId"
 		}
+		generatedPom.dependencies.clear();
 
 		// add all items necessary for maven central publication
 		generatedPom.project {
