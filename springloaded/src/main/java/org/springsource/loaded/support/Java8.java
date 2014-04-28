@@ -120,15 +120,27 @@ public class Java8 {
 		// Looking up the lambda$run method in the caller class (note the caller class is the executor, which gets us around the
 		// problem of having to hack into LambdaMetafactory to intercept reflection)
 		MethodHandle implMethod = null;
-		// TODO [lambda] need to handle invokevirtual, surely
 		switch (bsmArgsHandle.getTag()) {
 			case Opcodes.H_INVOKESTATIC:
 				implMethod = caller.findStatic(caller.lookupClass(), name, implMethodType);
 				break;
 			case Opcodes.H_INVOKESPECIAL:
-				// If there is an executor, the lambda function is actually modified from 'private instance' to 'public static' so adjust lookup:
+				// If there is an executor, the lambda function is actually modified from 'private instance' to 'public static' so adjust lookup. The method 
+				// will be static with a new leading parameter.
 				if (executorClass == null) {
+					// TODO is final parameter here correct?
 					implMethod = caller.findSpecial(caller.lookupClass(), name, implMethodType, caller.lookupClass());
+				}
+				else {
+					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString("(L"+owner+";"+descriptor.substring(1),callerLoader));
+				}
+				break;
+			case Opcodes.H_INVOKEVIRTUAL:
+				// If there is an executor, the lambda function is actually modified from 'private instance' to 'public static' so adjust lookup. The method 
+				// will be static with a new leading parameter.
+				if (executorClass == null) {
+					// TODO when can this scenario occur? Aren't we only here if reloading has happened?
+					implMethod = caller.findVirtual(caller.lookupClass(), name, implMethodType);
 				}
 				else {
 					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString("(L"+owner+";"+descriptor.substring(1),callerLoader));

@@ -267,6 +267,31 @@ public class Java8Tests extends SpringLoadedTests {
 		r = runUnguarded(simpleClass, "run");
 		assertEquals("ab", r.returnValue);
 	}
+	
+
+	@Test
+	public void lambdaInvokeVirtual() throws Exception {
+		String t = "basic.LambdaJ";
+		TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+		
+		// Since Foo needs promoting to public, have to ensure it is directly loaded:
+		ReloadableType itype = typeRegistry.addType(t+"$Foo", loadBytesForClass(t+"$Foo"));
+
+		byte[] sc = loadBytesForClass(t);
+		ReloadableType rtype = typeRegistry.addType(t, sc);
+
+		Class<?> simpleClass = rtype.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("fooa", r.returnValue);
+		
+		itype.loadNewVersion("002", retrieveRename(t+"$Foo",t+"2$Foo"));
+		rtype.loadNewVersion("002", retrieveRename(t,t+"2",t+"2$Foo:"+t+"$Foo"));
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("fooab", r.returnValue);
+	}
 
 	@Ignore
 	@Test
