@@ -14,12 +14,10 @@ used in Grails 2.
 
 # Installation
 
-Version 1.2.0 includes preliminary Java8 support
+1.2.0 has now been released: [springloaded-1.2.0.RELEASE.jar](http://search.maven.org/remotecontent?filepath=org/springframework/springloaded/1.2.0.RELEASE/springloaded-1.2.0.RELEASE.jar)
 
-1.2.0 snapshots can be found in this repo folder (grab the most recently built .jar):
-<a href="http://repo.spring.io/webapp/browserepo.html?3&pathId=libs-snapshot-local:org/springframework/springloaded/1.2.0.BUILD-SNAPSHOT">repo.spring.io</a>
-
-1.1.5 release [springloaded-1.1.5.RELEASE.jar](http://dist.springframework.org/snapshot/SPRING-LOADED/springloaded-1.1.5.RELEASE.jar)
+1.2.1 snapshots are in this repo area (grab the most recently built .jar):
+<a href="http://repo.spring.io/webapp/browserepo.html?3&pathId=libs-snapshot-local:org/springframework/springloaded/1.2.1.BUILD-SNAPSHOT">repo.spring.io</a>
 
 The download is the agent jar and needs no further unpacking before use.
 
