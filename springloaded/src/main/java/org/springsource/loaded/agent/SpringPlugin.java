@@ -46,25 +46,36 @@ import org.springsource.loaded.ReloadEventProcessorPlugin;
  */
 public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventProcessorPlugin {
 
+	private static final String THIS_CLASS = "org/springsource/loaded/agent/SpringPlugin";
+
 	private static Logger log = Logger.getLogger(SpringPlugin.class.getName());
 
+	private static boolean debug = true;
+	
 	// TODO [gc] what about GC here - how do we know when they are finished with?
 	public static List<Object> instancesOf_AnnotationMethodHandlerAdapter = new ArrayList<Object>();
 	public static List<Object> instancesOf_DefaultAnnotationHandlerMapping = new ArrayList<Object>();
 	public static List<Object> instancesOf_RequestMappingHandlerMapping = new ArrayList<Object>();
+	public static List<Object> instancesOf_LocalVariableTableParameterNameDiscoverer = null;
 
+	ClassLoader springLoader = null;
+	
 	public static boolean support305 = true;
 
 	private Field classCacheField;
+	private Field field_parameterNamesCache; // From LocalVariableTableParameterNameDiscoverer
 
 	private boolean cachedIntrospectionResultsClassLoaded = false;
-
+	
 	private Class<?> cachedIntrospectionResultsClass = null;
 
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
 		// TODO take classloader into account?
 		if (slashedTypeName == null) {
 			return false;
+		}
+		if (slashedTypeName.equals("org/springframework/core/LocalVariableTableParameterNameDiscoverer")) {
+			return true;
 		}
 		// Just interested in whether this type got loaded
 		if (slashedTypeName.equals("org/springframework/beans/CachedIntrospectionResults")) {
@@ -75,21 +86,27 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				(support305 && slashedTypeName
 						.equals("org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"));
 	}
+	
 
 	public byte[] modify(String slashedClassName, ClassLoader classLoader, byte[] bytes) {
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 			log.info("loadtime modifying " + slashedClassName);
 		}
 		if (slashedClassName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter")) {
-			return bytesWithInstanceCreationCaptured(bytes, "org/springsource/loaded/agent/SpringPlugin",
+			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
 					"recordAnnotationMethodHandlerAdapterInstance");
-					} else if (slashedClassName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")) {
-						// springmvc spring 3.1 - doesnt work on 3.1 post M2 snapshots
-						return bytesWithInstanceCreationCaptured(bytes, "org/springsource/loaded/agent/SpringPlugin",
-								"recordRequestMappingHandlerMappingInstance");
-		} else { // "org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"
+		} 
+		else if (slashedClassName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")) {
+			// springmvc spring 3.1 - doesnt work on 3.1 post M2 snapshots
+			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
+					"recordRequestMappingHandlerMappingInstance");
+		}
+		else if (slashedClassName.equals("org/springframework/core/LocalVariableTableParameterNameDiscoverer")) {
+			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,"recordLocalVariableTableParameterNameDiscoverer");
+		}
+		else { // "org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"
 			// springmvc spring 3.0
-			return bytesWithInstanceCreationCaptured(bytes, "org/springsource/loaded/agent/SpringPlugin",
+			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
 					"recordDefaultAnnotationHandlerMappingInstance");
 		}
 	}
@@ -103,8 +120,13 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		instancesOf_RequestMappingHandlerMapping.add(obj);
 	}
 
-	private static boolean debug = false;
-	
+	public static void recordLocalVariableTableParameterNameDiscoverer(Object obj) {
+		if (instancesOf_LocalVariableTableParameterNameDiscoverer == null) {
+			instancesOf_LocalVariableTableParameterNameDiscoverer = new ArrayList<Object>();
+		}
+		instancesOf_LocalVariableTableParameterNameDiscoverer.add(obj);
+	}
+
 	static {
 		try {
 			String debugString = System.getProperty("springloaded.plugins.spring.debug","false");
@@ -127,6 +149,40 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		clearCachedIntrospectionResults(clazz);
 		reinvokeDetectHandlers(); // Spring 3.0
 		reinvokeInitHandlerMethods(); // Spring 3.1
+		clearLocalVariableTableParameterNameDiscovererCache(clazz);
+	}
+
+	/**
+	 * The Spring class LocalVariableTableParameterNameDiscoverer holds a cache of parameter names discovered for members within
+	 * classes and needs clearing if the class changes.
+	 * @param clazz the class being reloaded, which may exist in a parameter name discoverer cache
+	 */
+	private void clearLocalVariableTableParameterNameDiscovererCache(Class<?> clazz) {
+		if (instancesOf_LocalVariableTableParameterNameDiscoverer == null) {
+			return;
+		}
+		if (debug) {
+			System.out.println("ParameterNamesCache: Clearing parameter name discoverer caches");
+		}
+		if (field_parameterNamesCache == null) {
+			try {
+				field_parameterNamesCache = instancesOf_LocalVariableTableParameterNameDiscoverer.get(0).getClass().getDeclaredField("parameterNamesCache");
+			} catch (NoSuchFieldException nsfe) {
+				log.log(Level.SEVERE, "Unexpectedly cannot find parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
+			}
+		}
+		for (Object instance: instancesOf_LocalVariableTableParameterNameDiscoverer) {
+			field_parameterNamesCache.setAccessible(true);
+			try {
+				Map<?,?> parameterNamesCache = (Map<?,?>)field_parameterNamesCache.get(instance);
+				Object o = parameterNamesCache.remove(clazz);
+				if (debug) {
+					System.out.println("ParameterNamesCache: Removed "+clazz.getName()+" from cache?"+(o!=null));
+				}
+			} catch (IllegalAccessException e) {
+				log.log(Level.SEVERE, "Unexpected IllegalAccessException trying to access parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
+			}
+		}
 	}
 
 	private void removeClazzFromMethodResolverCache(Class<?> clazz) {
