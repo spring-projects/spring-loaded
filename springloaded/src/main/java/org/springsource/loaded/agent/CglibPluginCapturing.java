@@ -88,8 +88,8 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 		 * this type so that we can remember the generator used (and drive it again later when the related type is reloaded).
 		 */
 		@Override
-		public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
-			super.visitMethodInsn(opcode, owner, name, desc);
+		public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
+			super.visitMethodInsn(opcode, owner, name, desc, itf);
 			if (name.equals("generate")) {
 				// Code that calls generate:
 				//	ALOAD 0
@@ -101,7 +101,7 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 						"L"+prefix+"/cglib/core/GeneratorStrategy;");
 				mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
 				mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/agent/CglibPluginCapturing", "record",
-						"(Ljava/lang/Object;Ljava/lang/Object;)V");//Lnet/sf/cglib/core/GeneratorStrategy;Lnet/sf/cglib/core/AbstractClassGenerator);");			
+						"(Ljava/lang/Object;Ljava/lang/Object;)V", false);//Lnet/sf/cglib/core/GeneratorStrategy;Lnet/sf/cglib/core/AbstractClassGenerator);");			
 			}
 		}
 

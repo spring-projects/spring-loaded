@@ -91,7 +91,7 @@ public class DispatcherBuilder {
 			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "()V", null, null);
 			mv.visitCode();
 			mv.visitVarInsn(ALOAD, 0);
-			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 			mv.visitInsn(RETURN);
 			mv.visitMaxs(1, 1);
 			mv.visitEnd();
@@ -100,7 +100,7 @@ public class DispatcherBuilder {
 		private void generateClinitDispatcher() {
 			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, mStaticInitializerName, "()V", null, null);
 			mv.visitCode();
-			mv.visitMethodInsn(INVOKESTATIC, executorClassName, mStaticInitializerName, "()V");
+			mv.visitMethodInsn(INVOKESTATIC, executorClassName, mStaticInitializerName, "()V", false);
 			mv.visitInsn(RETURN);
 			mv.visitMaxs(1, 1);
 			mv.visitEnd();
@@ -175,7 +175,7 @@ public class DispatcherBuilder {
 				// 2. Load the input name+descriptor and compare it with this method:
 				mv.visitVarInsn(ALOAD, 3);
 				mv.visitLdcInsn(nameWithDescriptor);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false);
 				Label label = new Label();
 				mv.visitJumpInsn(IFEQ, label); // means if false
 
@@ -196,7 +196,7 @@ public class DispatcherBuilder {
 				Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(mv, method.descriptor, 1);
 
 				ReturnType returnType = Utils.getReturnTypeDescriptor(method.descriptor);
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, method.name, callDescriptor);
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, method.name, callDescriptor, false);
 				if (returnType.isVoid()) {
 					mv.visitInsn(ACONST_NULL);
 				} else if (returnType.isPrimitive()) {
@@ -212,7 +212,7 @@ public class DispatcherBuilder {
 				//    if (nameAndDescriptor.equals(xxx)) {
 				mv.visitVarInsn(ALOAD, indexNameAndDescriptor);
 				mv.visitLdcInsn(nameWithDescriptor);
-				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z");
+				mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/String", "equals", "(Ljava/lang/Object;)Z", false);
 				Label label = new Label();
 				mv.visitJumpInsn(IFEQ, label); // means if false
 
@@ -230,7 +230,7 @@ public class DispatcherBuilder {
 				Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(mv, ctor.descriptor, 1);
 
 				//				ReturnType returnType = Utils.getReturnTypeDescriptor(method.descriptor);
-				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, "___init___", callDescriptor);
+				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, "___init___", callDescriptor, false);
 				//				if (returnType.isVoid()) {
 				mv.visitInsn(ACONST_NULL);
 				//				} else if (returnType.isPrimitive()) {
@@ -254,7 +254,7 @@ public class DispatcherBuilder {
 			// getDispatcher will give us the dispatcher for the supertype
 			mv.visitFieldInsn(Opcodes.GETSTATIC, slashedSupertypeName, fReloadableTypeFieldName, lReloadableType);
 			mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "getDispatcher",
-					"()Lorg/springsource/loaded/__DynamicallyDispatchable;");
+					"()Lorg/springsource/loaded/__DynamicallyDispatchable;", false);
 
 			// alternative 2: find the right dispatcher - i.e. who in the super hierarchy provides that nameAndDescriptor
 
@@ -262,7 +262,7 @@ public class DispatcherBuilder {
 			mv.visitVarInsn(ALOAD, indexArgs);
 			mv.visitVarInsn(ALOAD, indexTarget);
 			mv.visitVarInsn(ALOAD, indexNameAndDescriptor);
-			mv.visitMethodInsn(INVOKEINTERFACE, tDynamicallyDispatchable, mDynamicDispatchName, mDynamicDispatchDescriptor);
+			mv.visitMethodInsn(INVOKEINTERFACE, tDynamicallyDispatchable, mDynamicDispatchName, mDynamicDispatchDescriptor, false);
 			mv.visitInsn(ARETURN);
 
 			//			mv.visitTypeInsn(NEW, "java/lang/IllegalStateException");
@@ -313,7 +313,7 @@ public class DispatcherBuilder {
 			int params = Utils.getParameterCount(descriptor);
 			String callDescriptor = isStatic ? originalDescriptor : descriptor;
 			Utils.createLoadsBasedOnDescriptor(mv, callDescriptor, isStatic ? 2 : 1);
-			mv.visitMethodInsn(INVOKESTATIC, executorClassName, name, callDescriptor);
+			mv.visitMethodInsn(INVOKESTATIC, executorClassName, name, callDescriptor, false);
 			Utils.addCorrectReturnInstruction(mv, returnTypeDescriptor, false);
 			mv.visitMaxs(params, params + 1);
 			mv.visitEnd();

@@ -271,7 +271,7 @@ public class ClassRenamer {
 				mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);	
 			}
 			
-			public void visitMethodInsn(int opcode, String owner, String name, String desc) {
+			public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 				if (owner.equals(oldname)) {
 					owner = newname;
 				} else {
@@ -282,7 +282,7 @@ public class ClassRenamer {
 				} else {
 					desc = checkIfShouldBeRewritten(desc);
 				}
-				mv.visitMethodInsn(opcode, owner, name, desc);
+				mv.visitMethodInsn(opcode, owner, name, desc, itf);
 			}
 
 			private String checkIfShouldBeRewritten(String desc) {

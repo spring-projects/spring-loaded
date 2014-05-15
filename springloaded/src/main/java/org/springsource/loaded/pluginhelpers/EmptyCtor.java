@@ -127,6 +127,10 @@ public class EmptyCtor extends ClassVisitor implements Constants {
 
 		public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 		}
+		
+	    public void visitMethodInsn(int opcode, String owner, String name,
+	            String desc, boolean itf) {
+	    }
 
 		public void visitJumpInsn(int opcode, Label label) {
 		}
@@ -164,7 +168,7 @@ public class EmptyCtor extends ClassVisitor implements Constants {
 
 		public void visitEnd() {
 			mv.visitVarInsn(ALOAD, 0);
-			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
+			mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false);
 			mv.visitInsn(RETURN);
 		}
 

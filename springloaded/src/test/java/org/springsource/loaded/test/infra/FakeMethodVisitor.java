@@ -98,7 +98,7 @@ public class FakeMethodVisitor extends MethodVisitor implements Constants {
 	public void visitMaxs(int maxStack, int maxLocals) {
 	}
 
-	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
+	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 		events.append("visitMethodInsn(" + Utils.toOpcodeString(opcode) + "," + owner + "," + name + "," + desc + ") ");
 	}
 

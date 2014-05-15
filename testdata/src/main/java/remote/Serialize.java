@@ -159,6 +159,9 @@ public class Serialize {
 		}
 	}
 	
+//	java.io.InvalidClassException: remote.Person; local class incompatible: //
+	// stream classdesc serialVersionUID = 1687514539110537173,
+	// local class serialVersionUID = 510407729579040532
 	public static Object read(byte[] bs) {
 		try {
 			ByteArrayInputStream bais = new ByteArrayInputStream(bs);

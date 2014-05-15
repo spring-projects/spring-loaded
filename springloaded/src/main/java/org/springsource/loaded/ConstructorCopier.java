@@ -67,8 +67,9 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 		super.visitTypeInsn(opcode, type);
 	}
 
+	// TODO may need to pay attention itf==true
 	@Override
-	public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
+	public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, boolean itf) {
 		// If this is an invokespecial, first determine if it is the one of interest (the one calling our super constructor)
 		if (opcode == INVOKESPECIAL && name.charAt(0) == '<') {
 			if (unitializedObjectsCount != 0) {
@@ -114,11 +115,11 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 								// no stack is instance then params then instance
 								mv.visitLdcInsn("<init>" + desc);
 								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(), mDynamicDispatchName,
-										mDynamicDispatchDescriptor);
+										mDynamicDispatchDescriptor, false);
 								mv.visitInsn(POP);
 							} else {
 								// it did exist in the original, so there will be parallel constructor
-								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(), mInitializerName, desc);
+								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(), mInitializerName, desc, false);
 							}
 						}
 					}
@@ -134,19 +135,19 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 		if (opcode == INVOKESPECIAL && name.charAt(0) != '<' && owner.equals(classname) && !name.startsWith("r$")) {
 			// leaving the invokespecial alone will cause a verify error
 			String descriptor = Utils.insertExtraParameter(owner, desc);
-			super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor);
+			super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor, false);
 		} else {
 			boolean done = false;
 			// TODO dup of code in method copier - can we refactor?
 			if (opcode == INVOKESTATIC) {
 				MethodMember mm = typeDescriptor.getByDescriptor(name, desc);
 				if (mm != null && mm.isPrivate()) {
-					super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, desc);
+					super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, desc, false);
 					done = true;
 				}
 			}
 			if (!done) {
-				super.visitMethodInsn(opcode, owner, name, desc);
+				super.visitMethodInsn(opcode, owner, name, desc, itf);
 			}
 		}
 	}

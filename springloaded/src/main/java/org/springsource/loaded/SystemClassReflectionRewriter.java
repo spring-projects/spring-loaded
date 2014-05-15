@@ -269,7 +269,7 @@ public class SystemClassReflectionRewriter {
 			}
 
 			@Override
-			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
+			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
 				if (!GlobalConfiguration.interceptReflection || rewriteReflectiveCall(opcode, owner, name, desc)) {
 					return;
 				}
@@ -309,7 +309,7 @@ public class SystemClassReflectionRewriter {
 				//////							    }
 				//					}
 				//				}
-				super.visitMethodInsn(opcode, owner, name, desc);
+				super.visitMethodInsn(opcode, owner, name, desc, itf);
 			}
 
 			/**
@@ -338,57 +338,57 @@ public class SystemClassReflectionRewriter {
 					if (name.equals("getDeclaredFields")) {
 						// stack on arrival: <Class instance>
 						bits |= JLC_GETDECLAREDFIELDS;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdfs, jlcgdfsDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdfs, jlcgdfsDescriptor, false);
 						return true;
 					} else if (name.equals("getDeclaredField")) {
 						// stack on arrival: <Class instance> <String fieldname>
 						bits |= JLC_GETDECLAREDFIELD;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdf, jlcgdfDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdf, jlcgdfDescriptor, false);
 						return true;
 					} else if (name.equals("getField")) {
 						// stack on arrival: <Class instance> <String fieldname>
 						bits |= JLC_GETFIELD;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgf, jlcgfDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgf, jlcgfDescriptor, false);
 						return true;
 					} else if (name.equals("getDeclaredMethods")) {
 						// stack on arrival: <Class instance>
 						bits |= JLC_GETDECLAREDMETHODS;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdms, jlcgdmsDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdms, jlcgdmsDescriptor, false);
 						return true;
 					} else if (name.equals("getDeclaredMethod")) {
 						// stack on arrival: <Class instance> <String methodname> <Class[] paramTypes>
 						bits |= JLC_GETDECLAREDMETHOD;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdm, jlcgdmDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdm, jlcgdmDescriptor, false);
 						return true;
 					} else if (name.equals("getMethod")) {
 						// stack on arrival: <Class instance> <String methodname> <Class[] paramTypes>
 						bits |= JLC_GETMETHOD;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgm, jlcgmDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgm, jlcgmDescriptor, false);
 						return true;
 					} else if (name.equals("getDeclaredConstructor")) {
 						// stack on arrival: <Class instance> <Class[] paramTypes>
 						bits |= JLC_GETDECLAREDCONSTRUCTOR;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdc, jlcgdcDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdc, jlcgdcDescriptor, false);
 						return true;
 					} else if (name.equals("getDeclaredConstructors")) {
 						// stack on arrival: <Class instance>
 						bits |= JLC_GETDECLAREDCONSTRUCTORS;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcGetDeclaredConstructorsMember,jlcGetDeclaredConstructorsDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcGetDeclaredConstructorsMember,jlcGetDeclaredConstructorsDescriptor, false);
 						return true;
 					} else if (name.equals("getConstructor")) {
 						// stack on arrival: <Class instance> <Class[] paramTypes>
 						bits |= JLC_GETCONSTRUCTOR;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgc, jlcgcDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgc, jlcgcDescriptor, false);
 						return true;
 					} else if (name.equals("getModifiers")) {
 						// stack on arrival: <Class instance>
 						bits |= JLC_GETMODIFIERS;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgmods, jlcgmodsDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgmods, jlcgmodsDescriptor, false);
 						return true;
 					} else if (name.equals("getMethods")) {
 						// stack on arrival: <class instance>
 						bits |= JLC_GETMETHODS;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgms, jlcgmsDescriptor);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgms, jlcgmsDescriptor, false);
 						return true;
 					} else if (name.equals("newInstance")) {
 						// TODO determine if this actually needs rewriting? Just catching in this if clause to avoid the message

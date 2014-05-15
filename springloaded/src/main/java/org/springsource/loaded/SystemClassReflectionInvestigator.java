@@ -101,14 +101,14 @@ public class SystemClassReflectionInvestigator {
 			}
 
 			@Override
-			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
+			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
 				if (!GlobalConfiguration.interceptReflection || rewriteReflectiveCall(opcode, owner, name, desc)) {
 					return;
 				}
 				if (opcode == INVOKESPECIAL) {
 					unitializedObjectsCount--;
 				}
-				super.visitMethodInsn(opcode, owner, name, desc);
+				super.visitMethodInsn(opcode, owner, name, desc, itf);
 			}
 
 			/**

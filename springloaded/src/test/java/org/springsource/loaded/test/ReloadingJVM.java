@@ -92,6 +92,7 @@ public class ReloadingJVM {
 				System.out.println("java.home="+System.getProperty("java.home"));
 			}
 			process = Runtime.getRuntime().exec(
+					// Run on my Java6
 //					"/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home"+
 					System.getProperty("java.home")+
 					"/bin/java -noverify -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " " + AGENT_OPTION_STRING +

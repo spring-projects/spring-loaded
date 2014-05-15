@@ -64,7 +64,8 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 		return "#"+bsm.getTag()+" "+bsm.getOwner()+"."+bsm.getName()+bsm.getDesc();
 	}
 
-	public void visitMethodInsn(int opcode, String owner, String name, String desc) {
+	// TODO include 'itf' flag in output (maybe only if true)
+	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 		if (opcode == Opcodes.INVOKESTATIC) {
 			to.println("    INVOKESTATIC " + owner + "." + name + desc);
 		} else if (opcode == Opcodes.INVOKESPECIAL) {

@@ -818,7 +818,7 @@ public class MethodInvokerRewriter {
 				// Make a call to check if this field operation must be intercepted:
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				mv.visitLdcInsn(name);
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mInstanceFieldInterceptionRequired, "(ILjava/lang/String;)Z");
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mInstanceFieldInterceptionRequired, "(ILjava/lang/String;)Z", false);
 				Label l1 = new Label();
 				mv.visitJumpInsn(IFEQ, l1); // IF (false) GOTO l1
 				Utils.insertBoxInsns(mv, desc); // box the value if necessary
@@ -827,7 +827,7 @@ public class MethodInvokerRewriter {
 				// now stack is: FieldAccessor|newValue|target
 				mv.visitLdcInsn(name);
 				mv.visitMethodInsn(INVOKESPECIAL, owner, mInstanceFieldSetterName,
-						"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V");
+						"(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V", false);
 				Label l2 = new Label();
 				mv.visitJumpInsn(GOTO, l2);
 				mv.visitLabel(l1); // Did not need intercepting, do what you were going to do:
@@ -847,13 +847,13 @@ public class MethodInvokerRewriter {
 				// intercepted
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				mv.visitLdcInsn(name);
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mInstanceFieldInterceptionRequired, "(ILjava/lang/String;)Z");
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mInstanceFieldInterceptionRequired, "(ILjava/lang/String;)Z", false);
 				Label l1 = new Label();
 				mv.visitJumpInsn(IFEQ, l1); // IF (false) GOTO l1
 				mv.visitInsn(DUP);
 				mv.visitLdcInsn(name);
 				mv.visitMethodInsn(INVOKESPECIAL, owner, mInstanceFieldGetterName,
-						"(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;");
+						"(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;", false);
 				if (desc.length() != 1) {
 					if (!desc.equals(jlObject)) {
 						mv.visitTypeInsn(CHECKCAST, toDescriptor(desc));
@@ -874,13 +874,13 @@ public class MethodInvokerRewriter {
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				// Make a call to check if this field operation must be intercepted:
 				mv.visitLdcInsn(name);
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mStaticFieldInterceptionRequired, "(ILjava/lang/String;)Z");
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mStaticFieldInterceptionRequired, "(ILjava/lang/String;)Z", false);
 				Label l1 = new Label();
 				mv.visitJumpInsn(IFEQ, l1); // IF (false) GOTO l1
 				// top of heap will be the new value
 				Utils.insertBoxInsns(mv, desc);
 				mv.visitLdcInsn(name);
-				mv.visitMethodInsn(INVOKESTATIC, owner, mStaticFieldSetterName, "(Ljava/lang/Object;Ljava/lang/String;)V");
+				mv.visitMethodInsn(INVOKESTATIC, owner, mStaticFieldSetterName, "(Ljava/lang/Object;Ljava/lang/String;)V", false);
 				Label l2 = new Label();
 				mv.visitJumpInsn(GOTO, l2);
 				mv.visitLabel(l1);
@@ -893,12 +893,12 @@ public class MethodInvokerRewriter {
 				// Make a call to check if this field operation must be intercepted:
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				mv.visitLdcInsn(name);
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mStaticFieldInterceptionRequired, "(ILjava/lang/String;)Z");
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mStaticFieldInterceptionRequired, "(ILjava/lang/String;)Z", false);
 				Label l1 = new Label();
 				mv.visitJumpInsn(IFEQ, l1); // IF (false) GOTO l1
 				// top of heap will be the new value
 				mv.visitLdcInsn(name);
-				mv.visitMethodInsn(INVOKESTATIC, owner, mStaticFieldGetterName, "(Ljava/lang/String;)Ljava/lang/Object;");
+				mv.visitMethodInsn(INVOKESTATIC, owner, mStaticFieldGetterName, "(Ljava/lang/String;)Ljava/lang/Object;", false);
 				if (desc.length() != 1) {
 					if (!desc.equals(jlObject)) {
 						mv.visitTypeInsn(CHECKCAST, toDescriptor(desc));
@@ -1014,7 +1014,7 @@ public class MethodInvokerRewriter {
 					// do more hoop jumping.
 					
 					// Check on reloading having happened
-					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeDynamicName, "()Ljava/lang/Object;");
+					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeDynamicName, "()Ljava/lang/Object;", false);
 
 					// mv.visitInsn(DUP);
 
@@ -1029,10 +1029,10 @@ public class MethodInvokerRewriter {
 					 // Method java/lang/invoke/MethodHandles.lookup:()Ljava/lang/invoke/MethodHandles$Lookup;
 					mv.visitLdcInsn(typeRegistry.getId());
 					mv.visitLdcInsn(classId);
-					mv.visitMethodInsn(INVOKESTATIC,"java/lang/invoke/MethodHandles","lookup","()Ljava/lang/invoke/MethodHandles$Lookup;");
+					mv.visitMethodInsn(INVOKESTATIC,"java/lang/invoke/MethodHandles","lookup","()Ljava/lang/invoke/MethodHandles$Lookup;", false);
 					mv.visitLdcInsn(name+desc); // Ljava/lang/String;
 					mv.visitLdcInsn(bsmReferenceId); // I
-					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mPerformInvokeDynamicName, "([Ljava/lang/Object;IILjava/lang/Object;Ljava/lang/String;I)Ljava/lang/Object;");
+					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mPerformInvokeDynamicName, "([Ljava/lang/Object;IILjava/lang/Object;Ljava/lang/String;I)Ljava/lang/Object;", false);
 					
 					Label gotolabel = new Label();
 					mv.visitJumpInsn(GOTO, gotolabel);
@@ -1049,7 +1049,7 @@ public class MethodInvokerRewriter {
 			}
 			
 			@Override
-			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
+			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
 				if (GlobalConfiguration.interceptReflection && rewriteReflectiveCall(opcode, owner, name, desc)) {
 					return;
 				}
@@ -1057,7 +1057,7 @@ public class MethodInvokerRewriter {
 					unitializedObjectsCount--;
 				}
 				if (name.equals("$getCallSiteArray")) {
-					super.visitMethodInsn(opcode, owner, name, desc);
+					super.visitMethodInsn(opcode, owner, name, desc, itf);
 					return;
 				}
 				// TODO [cglib optimizations] could recognize things that dont
@@ -1069,7 +1069,7 @@ public class MethodInvokerRewriter {
 				boolean isReloadable = typeRegistry != null
 						&& (owner.equals(slashedclassname) ? thisClassIsReloadable : typeRegistry.isReloadableTypeName(owner));
 				if (!isReloadable) {
-					super.visitMethodInsn(opcode, owner, name, desc);
+					super.visitMethodInsn(opcode, owner, name, desc, itf);
 					return;
 				}
 				rewroteOtherKindOfOperation = true;
@@ -1078,13 +1078,13 @@ public class MethodInvokerRewriter {
 				// boolean isVoidReturn = returnType.isVoid();
 				int classId = typeRegistry.getTypeIdFor(owner, true);
 				if (opcode == INVOKESTATIC) {
-					rewriteINVOKESTATIC(opcode, owner, name, desc, hasParams, returnType, classId);
+					rewriteINVOKESTATIC(opcode, owner, name, desc, hasParams, returnType, classId, itf);
 				} else if (opcode == INVOKEINTERFACE) {
-					rewriteINVOKEINTERFACE(opcode, owner, name, desc, hasParams, returnType, classId);
+					rewriteINVOKEINTERFACE(opcode, owner, name, desc, hasParams, returnType, classId, itf);
 				} else if (opcode == INVOKEVIRTUAL) {
-					rewriteINVOKEVIRTUAL(opcode, owner, name, desc, hasParams, returnType, classId);
+					rewriteINVOKEVIRTUAL(opcode, owner, name, desc, hasParams, returnType, classId, itf);
 				} else if (opcode == INVOKESPECIAL) {
-					rewriteINVOKESPECIAL(opcode, owner, name, desc, hasParams, returnType, classId);
+					rewriteINVOKESPECIAL(opcode, owner, name, desc, hasParams, returnType, classId, itf);
 				} else {
 					Utils.logAndThrow(log, "Failed to rewrite instruction " + Utils.toOpcodeString(opcode) + " in method "
 							+ this.methodname);
@@ -1123,7 +1123,7 @@ public class MethodInvokerRewriter {
 			 * Rewrite an INVOKESTATIC instruction.
 			 */
 			private void rewriteINVOKESTATIC(final int opcode, final String owner, final String name, final String desc,
-					boolean hasParams, ReturnType returnType, int classId) {
+					boolean hasParams, ReturnType returnType, int classId, boolean itf) {
 				// 1. call istcheck(classId|methodId,
 				// methodName+methodDescriptor)
 				// If it returns 'null' then nothing has changed and the code
@@ -1133,7 +1133,7 @@ public class MethodInvokerRewriter {
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				mv.visitLdcInsn(name + desc);
 				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeStaticName,
-						"(ILjava/lang/String;)Ljava/lang/Object;");
+						"(ILjava/lang/String;)Ljava/lang/Object;", false);
 
 				// 2. preserve a copy of the return value (new target)
 				mv.visitInsn(DUP);
@@ -1168,7 +1168,7 @@ public class MethodInvokerRewriter {
 				mv.visitLdcInsn(name + desc);
 
 				// 7. calling __execute(params array,this,name+desc)
-				mv.visitMethodInsn(INVOKEINTERFACE, Utils.getInterfaceName(owner), mDynamicDispatchName, mDynamicDispatchDescriptor);
+				mv.visitMethodInsn(INVOKEINTERFACE, Utils.getInterfaceName(owner), mDynamicDispatchName, mDynamicDispatchDescriptor, true);
 				insertAppropriateReturn(returnType);
 
 				// 8. jump over the original call
@@ -1177,7 +1177,7 @@ public class MethodInvokerRewriter {
 				// 9. do what we were going to do
 				mv.visitLabel(l1);
 				mv.visitInsn(POP);
-				super.visitMethodInsn(opcode, owner, name, desc);
+				super.visitMethodInsn(opcode, owner, name, desc, itf);
 				mv.visitLabel(gotolabel);
 			}
 
@@ -1207,11 +1207,11 @@ public class MethodInvokerRewriter {
 			 * 
 			 */
 			private void rewriteINVOKEINTERFACE(final int opcode, final String owner, final String name, final String desc,
-					boolean hasParams, ReturnType returnType, int classId) {
+					boolean hasParams, ReturnType returnType, int classId, final boolean itf) {
 				// 1. call 'boolean iicheck(classId|methodId, methodName+methodDescriptor)' to see if this needs interception
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				mv.visitLdcInsn(name + desc);
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeInterfaceName, "(ILjava/lang/String;)Z");
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeInterfaceName, "(ILjava/lang/String;)Z", false);
 
 				// 3. if false, do what was going to be done anyway
 				Label l1 = new Label();
@@ -1239,11 +1239,11 @@ public class MethodInvokerRewriter {
 				if (GlobalConfiguration.isJava18orHigher) {
 					// if the target is a generated lambda callsite object then calling __execute isn't going to work as those
 					// types don't have the method in them!
-					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, "iiIntercept", "(Ljava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;");
+					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, "iiIntercept", "(Ljava/lang/Object;[Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;", false);
 				}
 				else {
 					// calling __execute(params array, this, name+desc)
-					mv.visitMethodInsn(INVOKEINTERFACE, owner, mDynamicDispatchName, mDynamicDispatchDescriptor);
+					mv.visitMethodInsn(INVOKEINTERFACE, owner, mDynamicDispatchName, mDynamicDispatchDescriptor, true);
 				}
 
 				insertAppropriateReturn(returnType);
@@ -1251,17 +1251,17 @@ public class MethodInvokerRewriter {
 				mv.visitJumpInsn(GOTO, gotolabel);
 				mv.visitLabel(l1);
 				// do what we were going to do:
-				super.visitMethodInsn(opcode, owner, name, desc);
+				super.visitMethodInsn(opcode, owner, name, desc, true);
 				mv.visitLabel(gotolabel);
 			}
 
 			private void rewriteINVOKEVIRTUAL(final int opcode, final String owner, final String name, final String desc,
-					boolean hasParams, ReturnType returnType, int classId) {
+					boolean hasParams, ReturnType returnType, int classId, final boolean itf) {
 				// 1. call icheck(classId|methodId, methodName+methodDescriptor)
 				// to see if this needs interception
 				mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 				mv.visitLdcInsn(name + desc);
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeVirtualName, "(ILjava/lang/String;)Z");
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeVirtualName, "(ILjava/lang/String;)Z", false);
 				// Return value is the extracted interface to call if there is a
 				// change and it can't be called directly
 
@@ -1299,7 +1299,7 @@ public class MethodInvokerRewriter {
 				mv.visitLdcInsn(name + desc);
 
 				// calling __execute(params array,this,name+desc)
-				mv.visitMethodInsn(INVOKEVIRTUAL, owner, mDynamicDispatchName, mDynamicDispatchDescriptor);
+				mv.visitMethodInsn(INVOKEVIRTUAL, owner, mDynamicDispatchName, mDynamicDispatchDescriptor, itf);
 
 				insertAppropriateReturn(returnType);
 				Label gotolabel = new Label();
@@ -1308,7 +1308,7 @@ public class MethodInvokerRewriter {
 				// mv.visitInsn(POP);
 				// Here is where we end up if the test for changes failed (ie.
 				// there were no changes - just 'do what you were going to do'
-				super.visitMethodInsn(opcode, owner, name, desc);
+				super.visitMethodInsn(opcode, owner, name, desc, itf);
 				mv.visitLabel(gotolabel);
 			}
 
@@ -1320,14 +1320,14 @@ public class MethodInvokerRewriter {
 			 * package up our parameters and invoke it.
 			 */
 			private void rewriteINVOKESPECIAL(final int opcode, final String owner, final String name, final String desc,
-					boolean hasParams, ReturnType returnType, int classId) {
+					boolean hasParams, ReturnType returnType, int classId, final boolean itf) {
 				if (unitializedObjectsCount == -1 && name.charAt(0) == '<') {
-					super.visitMethodInsn(opcode, owner, name, desc);
+					super.visitMethodInsn(opcode, owner, name, desc, itf);
 					return;
 				}
 				if (!name.equals("<init>") && owner.equals(slashedclassname)) {
 					// being used to invoke a private method
-					super.visitMethodInsn(opcode, owner, name, desc);
+					super.visitMethodInsn(opcode, owner, name, desc, itf);
 					// the executor builder will sort it out
 					return;
 				}
@@ -1336,7 +1336,7 @@ public class MethodInvokerRewriter {
 					// constructor
 
 					if (isEnum && isClinitOrEnumInit && fieldcount > GlobalConfiguration.enumLimit && owner.equals(slashedclassname)) {
-						super.visitMethodInsn(opcode, owner, name, desc);
+						super.visitMethodInsn(opcode, owner, name, desc, itf);
 						return;
 					}
 
@@ -1345,7 +1345,7 @@ public class MethodInvokerRewriter {
 					mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 					mv.visitLdcInsn(desc);
 					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForConstructorName,
-							"(ILjava/lang/String;)Ljava/lang/Object;");
+							"(ILjava/lang/String;)Ljava/lang/Object;", false);
 					mv.visitInsn(DUP);
 
 					// 3. Was it null?
@@ -1396,7 +1396,7 @@ public class MethodInvokerRewriter {
 							Utils.insertUnboxInsns(mv, 'I', true);
 
 							mv.visitInsn(ACONST_NULL);
-							mv.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Ljava/lang/String;ILorg/springsource/loaded/C;)V");
+							mv.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Ljava/lang/String;ILorg/springsource/loaded/C;)V", itf);
 						} else if (owner.contains("_closure")) { // TODO need more robust way to identify when target is a closure?
 							mv.visitInsn(SWAP); // now params array on top instance underneath
 							mv.visitInsn(DUP_X1); // give us an array instance to retrieve 1 from
@@ -1408,10 +1408,10 @@ public class MethodInvokerRewriter {
 							mv.visitInsn(AALOAD);
 							mv.visitInsn(ACONST_NULL);
 							mv.visitMethodInsn(INVOKESPECIAL, owner, "<init>",
-									"(Ljava/lang/Object;Ljava/lang/Object;Lorg/springsource/loaded/C;)V");
+									"(Ljava/lang/Object;Ljava/lang/Object;Lorg/springsource/loaded/C;)V", itf);
 						} else {
 							mv.visitInsn(ACONST_NULL);
-							mv.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/springsource/loaded/C;)V");
+							mv.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/springsource/loaded/C;)V", itf);
 						}
 
 						// stack is now an instance then the params
@@ -1428,7 +1428,7 @@ public class MethodInvokerRewriter {
 						// stack is now the two instances
 						mv.visitInsn(DUP);
 						mv.visitInsn(ACONST_NULL);
-						mv.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/springsource/loaded/C;)V");
+						mv.visitMethodInsn(INVOKESPECIAL, owner, "<init>", "(Lorg/springsource/loaded/C;)V", itf);
 						// stack is now an instance
 						mv.visitVarInsn(ALOAD, max + 1);
 						// stack is now an instance then the dispatcher instance
@@ -1440,7 +1440,7 @@ public class MethodInvokerRewriter {
 						// stack is now the dispatcher instance, null, the instance and the name+desc!
 					}
 					mv.visitMethodInsn(INVOKEINTERFACE, "org/springsource/loaded/__DynamicallyDispatchable", mDynamicDispatchName,
-							mDynamicDispatchDescriptor);
+							mDynamicDispatchDescriptor, true);
 					mv.visitInsn(POP);
 					//					mv.visitMethodInsn(INVOKESPECIAL, "ctors/Callee", "<init>", "()V");
 
@@ -1457,7 +1457,7 @@ public class MethodInvokerRewriter {
 					mv.visitJumpInsn(GOTO, gotolabel);
 					mv.visitLabel(l1);
 					mv.visitInsn(POP);
-					super.visitMethodInsn(opcode, owner, name, desc);
+					super.visitMethodInsn(opcode, owner, name, desc, itf);
 					mv.visitLabel(gotolabel);
 
 				} else {
@@ -1466,7 +1466,7 @@ public class MethodInvokerRewriter {
 					mv.visitLdcInsn(Utils.toCombined(typeRegistry.getId(), classId));
 					mv.visitLdcInsn(name + desc);
 					mv.visitMethodInsn(INVOKESTATIC, tRegistryType, mChangedForInvokeSpecialName,
-							descriptorChangedForInvokeSpecialName);
+							descriptorChangedForInvokeSpecialName, false);
 
 					// Return value is the dispatcher instance to call if there is a
 					// change such that it can't be called directly - the method we called
@@ -1506,14 +1506,14 @@ public class MethodInvokerRewriter {
 					mv.visitLdcInsn(name + desc);
 
 					mv.visitMethodInsn(INVOKEINTERFACE, "org/springsource/loaded/__DynamicallyDispatchable", mDynamicDispatchName,
-							mDynamicDispatchDescriptor);
+							mDynamicDispatchDescriptor, true);
 
 					insertAppropriateReturn(returnType);
 					Label gotolabel = new Label();
 					mv.visitJumpInsn(GOTO, gotolabel);
 					mv.visitLabel(l1);
 					mv.visitInsn(POP);
-					super.visitMethodInsn(opcode, owner, name, desc);
+					super.visitMethodInsn(opcode, owner, name, desc, itf);
 					mv.visitLabel(gotolabel);
 				}
 			}

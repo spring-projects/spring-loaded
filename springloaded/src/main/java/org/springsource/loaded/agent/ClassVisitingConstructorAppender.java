@@ -72,7 +72,7 @@ public class ClassVisitingConstructorAppender extends ClassVisitor implements Co
 		public void visitInsn(int opcode) {
 			if (opcode == RETURN) {
 				mv.visitVarInsn(ALOAD, 0);
-				mv.visitMethodInsn(INVOKESTATIC, calleeOwner, calleeName, "(Ljava/lang/Object;)V");
+				mv.visitMethodInsn(INVOKESTATIC, calleeOwner, calleeName, "(Ljava/lang/Object;)V", false);
 			}
 			super.visitInsn(opcode);
 		}

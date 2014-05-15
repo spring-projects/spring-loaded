@@ -1019,8 +1019,8 @@ public class TypeRewriter implements Constants {
 			}
 
 			@Override
-			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
-				super.visitMethodInsn(opcode, owner, name, desc);
+			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
+				super.visitMethodInsn(opcode, owner, name, desc, itf);
 				if (opcode == INVOKESPECIAL) {
 					unitializedObjectsCount--;
 				}
@@ -1037,7 +1037,7 @@ public class TypeRewriter implements Constants {
 						mv.visitVarInsn(ALOAD, 0);
 						mv.visitFieldInsn(Opcodes.GETSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
 						mv.visitMethodInsn(INVOKESPECIAL, tInstanceStateManager, "<init>",
-								"(Ljava/lang/Object;Lorg/springsource/loaded/ReloadableType;)V");
+								"(Ljava/lang/Object;Lorg/springsource/loaded/ReloadableType;)V", false);
 						//						mv.visitMethodInsn(INVOKESPECIAL, tInstanceStateManager, "<init>", "(Ljava/lang/Object;)V");
 						mv.visitFieldInsn(PUTFIELD, slashedname, fInstanceFieldsName, lInstanceStateManager);
 						mv.visitLabel(l1);

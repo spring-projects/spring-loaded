@@ -61,7 +61,7 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor
 			mv.visitVarInsn(ALOAD, 1); // String name
 			mv.visitVarInsn(ALOAD, 2); // byte[] bytes
 			mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/agent/ModifyDefineInClassLoaderForClassArtifactsType",
-					"modify", "(Ljava/lang/ClassLoader;Ljava/lang/String;[B)[B");
+					"modify", "(Ljava/lang/ClassLoader;Ljava/lang/String;[B)[B", false);
 			mv.visitVarInsn(ASTORE, 2);
 		}
 

@@ -108,16 +108,16 @@ class MethodCopier extends MethodVisitor implements Constants {
 			if (fm != null) {
 				switch (opcode) {
 				case GETFIELD:
-					mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldGetterName(name), "()" + desc);
+					mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldGetterName(name), "()" + desc, false);
 					return;
 				case PUTFIELD:
-					mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldSetterName(name), "(" + desc + ")V");
+					mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldSetterName(name), "(" + desc + ")V", false);
 					return;
 				case GETSTATIC:
-					mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldGetterName(name), "()" + desc);
+					mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldGetterName(name), "()" + desc, false);
 					return;
 				case PUTSTATIC:
-					mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldSetterName(name), "(" + desc + ")V");
+					mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldSetterName(name), "(" + desc + ")V", false);
 					return;
 				}
 			}
@@ -125,8 +125,9 @@ class MethodCopier extends MethodVisitor implements Constants {
 		super.visitFieldInsn(opcode, owner, name, desc);
 	}
 
+	// TODO maybe do something if 'itf==true'
 	@Override
-	public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc) {
+	public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, boolean itf) {
 		// Is it a private method call?
 		// TODO r$ check here because we use invokespecial to avoid virtual dispatch on field changes...
 		if (opcode == INVOKESPECIAL && name.charAt(0) != '<' && !name.startsWith("r$")) {
@@ -134,7 +135,7 @@ class MethodCopier extends MethodVisitor implements Constants {
 				// private method call
 				// leaving the invokespecial alone will cause a verify error
 				String descriptor = Utils.insertExtraParameter(owner, desc);
-				super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor);
+				super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor, false);
 				return;
 			} else {
 				// super call
@@ -146,9 +147,9 @@ class MethodCopier extends MethodVisitor implements Constants {
 				MethodMember target = supertypeDescriptor.getByNameAndDescriptor(name+desc);
 				if (target!=null && target.isProtected()) {
 					// A null target means that method is not in the supertype, so didn't get a superdispatcher
-					super.visitMethodInsn(INVOKESPECIAL,classname,name+methodSuffixSuperDispatcher,desc);
+					super.visitMethodInsn(INVOKESPECIAL,classname,name+methodSuffixSuperDispatcher,desc, false);
 				} else {
-					super.visitMethodInsn(opcode, owner, name, desc);
+					super.visitMethodInsn(opcode, owner, name, desc, itf);
 				}
 				return;
 			}
@@ -158,12 +159,12 @@ class MethodCopier extends MethodVisitor implements Constants {
 		if (opcode == INVOKESTATIC) {
 			MethodMember mm = typeDescriptor.getByDescriptor(name, desc);
 			if (mm != null && mm.isPrivate()) {
-				super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, desc);
+				super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, desc, false);
 				done = true;
 			}
 		}
 		if (!done) {
-			super.visitMethodInsn(opcode, owner, name, desc);
+			super.visitMethodInsn(opcode, owner, name, desc, itf);
 		}
 	}
 
