@@ -23,7 +23,6 @@ import java.util.Map;
 /**
  * @author Kris De Volder
  * @since 0.5.0
- * 
  */
 public class GetMethodsLookup {
 
@@ -37,25 +36,25 @@ public class GetMethodsLookup {
 	 * Collect all public methods from methodProvider and its supertypes into the 'found' hasmap, indexed by "name+descriptor".
 	 */
 	private void collectAll(MethodProvider methodProvider, Map<String, Invoker> found) {
-		//We do this in inverse order as in 'GetMethodLookup'. This is because GetMethodLookup
-		//is lazy and wants to stop when a method is found, but here we instead collect
-		//verything bottom up and 'overwrite' earlier results so the last one found is the
-		//one kept.
+		// We do this in inverse order as in 'GetMethodLookup'. This is because GetMethodLookup
+		// is lazy and wants to stop when a method is found, but here we instead collect
+		// everything bottom up and 'overwrite' earlier results so the last one found is the
+		// one kept.
 
-		//First interfaces in inverse order...
+		// First interfaces in inverse order...
 		MethodProvider[] itfs = methodProvider.getInterfaces();
 		for (int i = itfs.length - 1; i >= 0; i--) { // inverse order
 			collectAll(itfs[i], found);
 		}
 
-		//Then the superclass(es), but only if we're not an interface (interfaces do not report
+		// Then the superclass(es), but only if we're not an interface (interfaces do not report
 		// the methods of Object!
 		MethodProvider supr = methodProvider.getSuper();
 		if (supr != null && !methodProvider.isInterface()) {
 			collectAll(supr, found);
 		}
 
-		//Finally all our own public methods
+		// Finally all our own public methods
 		for (Invoker method : methodProvider.getDeclaredMethods()) {
 			if (Modifier.isPublic(method.getModifiers())) {
 				found.put(method.getName() + method.getMethodDescriptor(), method);
