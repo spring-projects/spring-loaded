@@ -670,9 +670,9 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/Boolean");
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Boolean", "booleanValue", "()Z", false);
 		mv.visitLabel(l1);
 		mv.visitInsn(IRETURN);
 		mv.visitLabel(l2);
@@ -704,7 +704,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitLabel(l4);
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Field", "get", "(Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Field", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, jlrfGetMember, "Ljava/lang/reflect/Method;");
@@ -720,7 +720,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 1); // instance on which to get the field
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l2);
@@ -757,7 +757,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, jlrmInvokeMember, "Ljava/lang/reflect/Method;");
@@ -777,7 +777,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 2); // arguments to method call
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l2);
@@ -812,7 +812,7 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l4 = new Label();
 		mv.visitLabel(l4);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, jlcGetDeclaredConstructorsMember, "Ljava/lang/reflect/Method;");
@@ -824,7 +824,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "[Ljava/lang/reflect/Constructor;");
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
@@ -862,7 +862,7 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l4 = new Label();
 		mv.visitLabel(l4);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getModifiers", "()I");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getModifiers", "()I", false);
 		mv.visitInsn(IRETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, "__sljlcgmods", "Ljava/lang/reflect/Method;");
@@ -874,9 +874,9 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/Integer");
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Integer", "intValue", "()I", false);
 		mv.visitLabel(l1);
 		mv.visitInsn(IRETURN);
 		mv.visitLabel(l2);
@@ -884,7 +884,7 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l5 = new Label();
 		mv.visitLabel(l5);
 		mv.visitVarInsn(ALOAD, 1);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Exception", "printStackTrace", "()V");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Exception", "printStackTrace", "()V", false);
 		Label l6 = new Label();
 		mv.visitLabel(l6);
 		mv.visitInsn(ICONST_0);
@@ -921,7 +921,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructor",
-				"([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;");
+				"([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, "__sljlcgdc", "Ljava/lang/reflect/Method;");
@@ -937,7 +937,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/reflect/Constructor");
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
@@ -946,18 +946,18 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l6 = new Label();
 		mv.visitLabel(l6);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V", false);
 		Label l7 = new Label();
 		mv.visitLabel(l7);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchMethodException");
 		Label l8 = new Label();
 		mv.visitJumpInsn(IFEQ, l8);
 		Label l9 = new Label();
 		mv.visitLabel(l9);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchMethodException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1003,7 +1003,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getConstructor",
-				"([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;");
+				"([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, "__sljlcgc", "Ljava/lang/reflect/Method;");
@@ -1019,7 +1019,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/reflect/Constructor");
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
@@ -1028,18 +1028,18 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l6 = new Label();
 		mv.visitLabel(l6);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V", false);
 		Label l7 = new Label();
 		mv.visitLabel(l7);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchMethodException");
 		Label l8 = new Label();
 		mv.visitJumpInsn(IFEQ, l8);
 		Label l9 = new Label();
 		mv.visitLabel(l9);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchMethodException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1086,7 +1086,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitVarInsn(ALOAD, 2);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", methodname,
-				"(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;");
+				"(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, membername, "Ljava/lang/reflect/Method;");
@@ -1106,7 +1106,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 2);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/reflect/Method");
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
@@ -1120,14 +1120,14 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l7 = new Label();
 		mv.visitLabel(l7);
 		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchMethodException");
 		Label l8 = new Label();
 		mv.visitJumpInsn(IFEQ, l8);
 		Label l9 = new Label();
 		mv.visitLabel(l9);
 		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchMethodException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1135,7 +1135,7 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l10 = new Label();
 		mv.visitLabel(l10);
 		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Exception", "printStackTrace", "()V");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Exception", "printStackTrace", "()V", false);
 		mv.visitLabel(l8);
 		mv.visitInsn(ACONST_NULL);
 		mv.visitInsn(ARETURN);
@@ -1192,7 +1192,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitLabel(l5);
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", methodname, "(Ljava/lang/String;)Ljava/lang/reflect/Field;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", methodname, "(Ljava/lang/String;)Ljava/lang/reflect/Field;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, fieldname, "Ljava/lang/reflect/Method;");
@@ -1208,7 +1208,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/reflect/Field");
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
@@ -1217,14 +1217,14 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l6 = new Label();
 		mv.visitLabel(l6);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchFieldException");
 		Label l7 = new Label();
 		mv.visitJumpInsn(IFEQ, l7);
 		Label l8 = new Label();
 		mv.visitLabel(l8);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchFieldException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1270,7 +1270,7 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l4 = new Label();
 		mv.visitLabel(l4);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", methodname, "()[Ljava/lang/reflect/Method;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", methodname, "()[Ljava/lang/reflect/Method;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, field, "Ljava/lang/reflect/Method;");
@@ -1282,7 +1282,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "[Ljava/lang/reflect/Method;");
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
@@ -1318,7 +1318,7 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l4 = new Label();
 		mv.visitLabel(l4);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredFields", "()[Ljava/lang/reflect/Field;");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredFields", "()[Ljava/lang/reflect/Field;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, "__sljlcgdfs", "Ljava/lang/reflect/Method;");
@@ -1330,7 +1330,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitInsn(AASTORE);
 		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
-				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitTypeInsn(CHECKCAST, "[Ljava/lang/reflect/Field;");
 		mv.visitLabel(l1);
 		mv.visitInsn(ARETURN);
