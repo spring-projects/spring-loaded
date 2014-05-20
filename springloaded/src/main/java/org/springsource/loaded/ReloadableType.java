@@ -95,11 +95,17 @@ public class ReloadableType {
 	private Class<?> superclazz;
 
 	private ReloadableType superRtype;
+	private ReloadableType[] interfaceRtypes;
+
+	List<Reference<ReloadableType>> associatedSubtypes = null;
 
 	/** Caches Method objects for this reloadable type. This cache should be invalidated (set to null) when a type is reloaded! */
 	private JavaMethodCache javaMethodCache;
 
 	private final static int IS_RESOLVED = 0x0001;
+	
+	// Indicates that this type or one in its hierarchy (super/sub) has been reloaded
+	private final static int IMPACTED_BY_RELOAD = 0x0002;
 
 	private int bits;
 
@@ -402,15 +408,63 @@ public class ReloadableType {
 			} else {
 				liveVersion.staticInitializedNeedsRerunningOnDefine = false;
 			}
+			// For performance:
+			// - tag the relevant types that may have been affected by this being reloaded, i.e. this type and any reloadable types in the same hierachy
+			tagAsAffectedByReload();
+			tagSupertypesAsAffectedByReload();
+			tagSubtypesAsAffectedByReload();
+
 			typeRegistry.fireReloadEvent(this, versionsuffix);
 
 			reloadProxiesIfNecessary(versionsuffix);
-
 		}
 
-		//		dump(newbytedata);
+		// dump(newbytedata);
 		return reload;
 	}
+
+	private void tagSupertypesAsAffectedByReload() {
+		ReloadableType superRtype = getSuperRtype();
+		if (superRtype!=null) {
+			superRtype.tagAsAffectedByReload();
+			// need to recurse up with the tagging
+			superRtype.tagSupertypesAsAffectedByReload();
+		}
+
+		// need to recurse through super interfaces too
+		ReloadableType[] superinterfaceRtypes = getInterfacesRtypes();
+		if (superinterfaceRtypes!=null) {
+			for (ReloadableType superinterfaceRtype: superinterfaceRtypes) {
+				superinterfaceRtype.tagAsAffectedByReload();
+				superinterfaceRtype.tagSupertypesAsAffectedByReload();
+			}
+		}
+	}
+
+	// TODO who is clearing up dead entries?
+	private void tagSubtypesAsAffectedByReload() {
+		if (associatedSubtypes !=null) {
+			for (Reference<ReloadableType> ref: associatedSubtypes) {
+				ReloadableType rsubtype = ref.get();
+				if (rsubtype != null) {
+					rsubtype.tagAsAffectedByReload();
+					rsubtype.tagSubtypesAsAffectedByReload();
+				}
+			}
+		}
+	}
+	
+	private void tagAsAffectedByReload() {
+		bits |= IMPACTED_BY_RELOAD;
+		invokersCache_getMethods = null;
+		invokersCache_getDeclaredMethods = null;
+	}
+	
+	public boolean isAffectedByReload() {
+		return (bits&IMPACTED_BY_RELOAD)!=0;
+	}
+	
+	
 
 	// TODO cache these field objects to avoid digging for them every time?
 	/**
@@ -984,6 +1038,10 @@ public class ReloadableType {
 	public String getSlashedSupertypeName() {
 		return getTypeDescriptor().getSupertypeName();
 	}
+	
+	public String[] getSlashedSuperinterfacesName() {
+		return getTypeDescriptor().getSuperinterfacesName();
+	}
 
 	@UsedByGeneratedCode
 	public __DynamicallyDispatchable getDispatcher() {
@@ -1467,21 +1525,101 @@ public class ReloadableType {
 		this.superclazz = superclazz;
 	}
 
+	/**
+	 * Return the ReloadableType representing the superclass of this type. If the supertype
+	 * is not reloadable, this method will return null. The ReloadableType that is returned
+	 * may not be within the same type registry, if the supertype was loaded by a different
+	 * classloader.
+	 * 
+	 * @return the ReloadableType for the supertype or null if it is not reloadable
+	 */
 	public ReloadableType getSuperRtype() {
 		if (superRtype != null) {
 			return superRtype;
 		}
 		if (superclazz == null) {
-			return null;
-		} else {
+			// Not filled in yet? Why is this code different to the interface case?
+			String name = this.getSlashedSupertypeName();
+			if (name == null) {
+				return null;
+			}
+			else {
+				ReloadableType rtype = typeRegistry.getReloadableSuperType(name);
+				superRtype = rtype;
+				return superRtype;
+			}
+		}
+		else {
 			ClassLoader superClassLoader = superclazz.getClassLoader();
 			TypeRegistry superTypeRegistry = TypeRegistry.getTypeRegistryFor(superClassLoader);
 			superRtype = superTypeRegistry.getReloadableType(superclazz);
 			return superRtype;
 		}
 	}
+	
+	public ReloadableType[] getInterfacesRtypes() {
+		if (interfaceRtypes != null) {
+			return interfaceRtypes;
+		}
+		if (this.getSlashedSuperinterfacesName() == null) {
+			return null;
+		} else {
+			List<ReloadableType> reloadableInterfaces = new ArrayList<ReloadableType>();
+			String[] names = this.getSlashedSuperinterfacesName();
+			for (String name: names) {
+				ReloadableType interfaceRtype = typeRegistry.getReloadableSuperType(name);
+				if (interfaceRtype != null) { // If null then that interface is not reloadable
+					reloadableInterfaces.add(interfaceRtype);
+				}
+			}
+			interfaceRtypes = reloadableInterfaces.toArray(new ReloadableType[reloadableInterfaces.size()]);
+			return interfaceRtypes;
+		}
+	}
+	
 
 	public boolean hasStaticInitializer() {
 		return this.typedescriptor.hasClinit();
+	}
+
+	/**
+	 * @param child the new reloadable subtype to record
+	 */
+	public void recordSubtype(ReloadableType child) {
+		if (associatedSubtypes == null) {
+			associatedSubtypes = new ArrayList<Reference<ReloadableType>>();
+		}
+		associatedSubtypes.add(new WeakReference<ReloadableType>(child));
+		if (this.isAffectedByReload()) {
+			child.tagAsAffectedByReload();
+			child.tagSubtypesAsAffectedByReload();
+		}
+	}
+
+	public List<Reference<ReloadableType>> getAssociatedSubtypes() {
+		return associatedSubtypes;
+	}
+	
+	/**
+	 * For this specified reloadable type, records the type with its parent types
+	 * (super class and super interfaces).  With this information the system can run faster
+	 * when reloading has occurred.
+	 */
+	public void createTypeAssociations() {
+		// Connect the child to the parent rtype and interface rtypes
+		ClassLoader classLoader = getClazz().getClassLoader();
+		if (classLoader == null) {
+			return;
+		}
+		ReloadableType srtype = getSuperRtype();
+		if (srtype!=null) {
+			srtype.recordSubtype(this);
+		}
+		ReloadableType[] irtypes = getInterfacesRtypes();
+		if (irtypes!=null) {
+			for (ReloadableType irtype: irtypes) {
+				irtype.recordSubtype(this);
+			}
+		}
 	}
 }

@@ -1176,6 +1176,11 @@ public class TypeRegistry {
 		if (reloadableType == null) {
 			reloadableType = searchForReloadableType(typeId, typeRegistry);
 		}
+		
+		// Check 2: Info computed earlier
+		if (reloadableType!=null && !reloadableType.isAffectedByReload()) {
+			return null;
+		}
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
 			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
@@ -1318,6 +1323,12 @@ public class TypeRegistry {
 
 	@UsedByGeneratedCode
 	public static __DynamicallyDispatchable ispcheck(int ids, String nameAndDescriptor) {
+		
+		// TOD why no check about whether anything has been reloaded???
+		if (nothingReloaded) {
+			return null;
+		}
+		
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
 			log.entering("TypeRegistry", "spcheck", new Object[] { ids, nameAndDescriptor });
 		}
@@ -1328,6 +1339,10 @@ public class TypeRegistry {
 		if (reloadableType == null) {
 			reloadableType = searchForReloadableType(typeId, typeRegistry);
 		}
+		// Check 2: Info computed earlier
+//		if (!reloadableType.isAffectedByReload()) {
+//			return false;
+//		}
 		// Search for the dispatcher we can call
 		__DynamicallyDispatchable o = (__DynamicallyDispatchable) invokespecialSearch(reloadableType, nameAndDescriptor);
 		return o;
@@ -1387,6 +1402,10 @@ public class TypeRegistry {
 		ReloadableType reloadableType = typeRegistry.getReloadableType(typeId);
 		if (reloadableType == null) {
 			reloadableType = searchForReloadableType(typeId, typeRegistry);
+		}
+		// Check 2: Info computed earlier
+		if (reloadableType!=null && !reloadableType.isAffectedByReload()) {
+			return false;
 		}
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
 			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
@@ -1567,6 +1586,7 @@ public class TypeRegistry {
 	 */
 	@UsedByGeneratedCode
 	public static boolean ivicheck(int ids, String nameAndDescriptor) {
+		// Check 1: FAST: Has anything at all been reloaded?
 		if (nothingReloaded) {
 			return false;
 		}
@@ -1574,13 +1594,14 @@ public class TypeRegistry {
 		//			log.entering("TypeRegistry", "ivicheck", new Object[] { ids, nameAndDescriptor });
 		//		}
 
-		// TODO [perf]  global check (anything been reloaded?)
+		// TODO [perf] global check (anything been reloaded?)
 		// TODO [perf] local check (type or anything in its hierarchy reloaded)
 
 		int registryId = ids >>> 16;
 		int typeId = ids & 0xffff;
 		TypeRegistry typeRegistry = registryInstances[registryId].get();
 		ReloadableType reloadableType = typeRegistry.getReloadableType(typeId);
+		
 
 		// Ok, think about what null means here.  It means this registry has not loaded this type as a reloadable type.  That doesn't
 		// mean it isn't reloadable as a parent loaded may have found it.  We have 3 options:
@@ -1595,6 +1616,11 @@ public class TypeRegistry {
 		// just do the search:
 		if (reloadableType == null) {
 			reloadableType = searchForReloadableType(typeId, typeRegistry);
+		}
+
+		// Check 2: Info computed earlier
+		if (reloadableType!=null && !reloadableType.isAffectedByReload()) {
+			return false;
 		}
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
@@ -1665,6 +1691,7 @@ public class TypeRegistry {
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
 			log.info("<TypeRegistry.getReloadableType(typeRegistryId=" + typeRegistryId + ",typeId=" + typeId + ") returning " + reloadableType);
 		}
+		reloadableType.createTypeAssociations();
 		return reloadableType;
 	}
 
@@ -2007,4 +2034,30 @@ public class TypeRegistry {
 			this.bsmArgs = bsmArgs;
 		}
 	}
+	
+	/**
+	 * Called from the static initializer of a reloadabletype, allowing it to connect
+	 * itself to the parent type, such that when reloading occurs we can mark all
+	 * relevant types in the hierarchy as being impacted by the reload.
+	 * 
+	 * @param child the ReloadableType actively being initialized
+	 * @param parent the superclass of the reloadable type (may or may not be reloadable!)
+	 */
+	@UsedByGeneratedCode
+	public static void associateReloadableType(ReloadableType child, Class<?> parent) {
+		// TODO performance - can we make this cheaper?
+		ClassLoader parentClassLoader = parent.getClassLoader();
+		if (parentClassLoader == null) {
+			return;
+		}
+		TypeRegistry parentTypeRegistry = TypeRegistry.getTypeRegistryFor(parent.getClassLoader());
+		ReloadableType parentReloadableType = parentTypeRegistry.getReloadableType(parent);
+		if (parentReloadableType != null) {
+			parentReloadableType.recordSubtype(child);
+		}
+	}
+	
 }
+
+
+

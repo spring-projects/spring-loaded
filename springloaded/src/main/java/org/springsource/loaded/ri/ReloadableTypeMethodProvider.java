@@ -71,7 +71,8 @@ public class ReloadableTypeMethodProvider extends TypeDescriptorMethodProvider {
 
 	@Override
 	public List<Invoker> getDeclaredMethods() {
-		if (TypeRegistry.nothingReloaded && rtype.invokersCache_getDeclaredMethods != null) {
+		if (rtype.invokersCache_getDeclaredMethods != null) {
+//		if (TypeRegistry.nothingReloaded && rtype.invokersCache_getDeclaredMethods != null) {
 			// use the cached version, it will not change if a reload hasn't occurred
 			return rtype.invokersCache_getDeclaredMethods;
 		}
@@ -82,8 +83,8 @@ public class ReloadableTypeMethodProvider extends TypeDescriptorMethodProvider {
 
 	@Override
 	public Collection<Invoker> getMethods() {
-		if (TypeRegistry.nothingReloaded && rtype.invokersCache_getMethods != null) {
-			// use the cached version, it will not change if a reload hasn't occurred
+//		if ((TypeRegistry.nothingReloaded || !rtype.isAffectedByReload()) && 
+		if (rtype.invokersCache_getMethods != null) {
 			return rtype.invokersCache_getMethods;
 		}
 		Collection<Invoker> invokers = super.getMethods();

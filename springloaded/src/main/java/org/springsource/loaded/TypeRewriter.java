@@ -26,6 +26,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 import org.springsource.loaded.Utils.ReturnType;
 
 
@@ -764,7 +765,10 @@ public class TypeRewriter implements Constants {
 		class ClinitPrepender implements Prepender, Constants {
 
 			MethodVisitor mv;
-
+			
+			private final static String descriptorFor_getReloadableType = "(II)"+lReloadableType;
+			private final static String descriptorFor_associateReloadableType = "("+lReloadableType+"Ljava/lang/Class;)V";
+			
 			ClinitPrepender(MethodVisitor mv) {
 				this.mv = mv;
 			}
@@ -775,12 +779,13 @@ public class TypeRewriter implements Constants {
 				// TODO optimization: could collapse ints into one but this snippet isn't put in many places
 				mv.visitLdcInsn(rtype.getTypeRegistryId());
 				mv.visitLdcInsn(rtype.getId());
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, "getReloadableType", "(II)" + lReloadableType);
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, "getReloadableType", descriptorFor_getReloadableType, false);
+				
 				mv.visitFieldInsn(PUTSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
 				//				mv.visitFieldInsn(GETSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
 				//				mv.visitLdcInsn(Type.getObjectType(rtype.getSlashedSupertypeName()));//Type("L" + rtype.getSlashedSupertypeName() + ";")); // faster way?
 				//				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "setSuperclass", "(Ljava/lang/Class;)V");
-
+				
 				// only in the top most type - what about interfaces??
 				if (GlobalConfiguration.fieldRewriting) {
 					mv.visitFieldInsn(GETSTATIC, slashedname, fStaticFieldsName, lStaticStateManager);
@@ -795,14 +800,14 @@ public class TypeRewriter implements Constants {
 				// If the static initializer has changed, call the new version through the ___clinit___ method
 
 				mv.visitFieldInsn(Opcodes.GETSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
-				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, tReloadableType, "clinitchanged", "()I");
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, tReloadableType, "clinitchanged", "()I", false);
 				// 2. Create the if statement
 				Label wasZero = new Label();
 				mv.visitJumpInsn(Opcodes.IFEQ, wasZero); // if == 0, jump to where we can do the original thing
 
 				// 3. grab the latest dispatcher and call it through the interface
 				mv.visitFieldInsn(Opcodes.GETSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
-				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "fetchLatest", "()Ljava/lang/Object;");
+				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "fetchLatest", "()Ljava/lang/Object;", false);
 				mv.visitTypeInsn(CHECKCAST, Utils.getInterfaceName(slashedname));
 				mv.visitMethodInsn(INVOKEINTERFACE, Utils.getInterfaceName(slashedname), mStaticInitializerName, "()V");
 				mv.visitInsn(RETURN);
