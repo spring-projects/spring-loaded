@@ -329,14 +329,16 @@ public class GlobalConfiguration {
 				}
 			} else {
 				if (isCaching) {
-					try {
-						String userhome = System.getProperty("user.home");
-						if (userhome != null) {
-							cacheDir = userhome;
+					if (cacheDir == null) {
+						try {
+							String userhome = System.getProperty("user.home");
+							if (userhome != null) {
+								cacheDir = userhome;
+							}
+						} catch (Throwable t) {
+							System.err.println("looks like user.home is not set: cannot create cache.");
+							t.printStackTrace(System.err);
 						}
-					} catch (Throwable t) {
-						System.err.println("looks like user.home is not set: cannot create cache.");
-						t.printStackTrace(System.err);
 					}
 				}
 			}
