@@ -992,10 +992,11 @@ public class MethodInvokerRewriter {
 			@Override
 			public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
 				// TODO *shudder* what about invoke dynamic calls that target reflective APIs
-				int classId = typeRegistry.getTypeIdFor(slashedclassname, false);
+				int classId = typeRegistry.getTypeIdFor(slashedclassname, true);
 				if (classId==-1) {
-					throw new IllegalStateException();
+					throw new IllegalStateException("Unable to find classId for "+slashedclassname+" referenced from invokedynamic in "+this.methodname+"()");
 				}
+
 				// Initially only rewriting use of INVOKEDYNAMIC to support Lambda execution
 				// TODO support the more general invokedynamic usage
 				
