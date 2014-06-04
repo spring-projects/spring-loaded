@@ -31,9 +31,10 @@ import org.objectweb.asm.Opcodes;
  */
 public class SystemClassReflectionInvestigator {
 
-	public static int investigate(String slashedClassName, byte[] bytes) {
+	
+	public static int investigate(String slashedClassName, byte[] bytes, boolean print) {
 		ClassReader fileReader = new ClassReader(bytes);
-		RewriteClassAdaptor classAdaptor = new RewriteClassAdaptor();
+		RewriteClassAdaptor classAdaptor = new RewriteClassAdaptor(print);
 		fileReader.accept(classAdaptor, ClassReader.SKIP_FRAMES);
 		return classAdaptor.hitCount;
 	}
@@ -43,15 +44,17 @@ public class SystemClassReflectionInvestigator {
 		int hitCount = 0;
 		private ClassWriter cw;
 		int bits = 0x0000;
+		private boolean print;
 		private String classname;
 
 		private static boolean isInterceptable(String owner, String methodName) {
 			return MethodInvokerRewriter.RewriteClassAdaptor.intercepted.contains(owner + "." + methodName);
 		}
 
-		public RewriteClassAdaptor() {
+		public RewriteClassAdaptor(boolean print) {
 			// TODO should it also compute frames?
 			super(ASM5,new ClassWriter(ClassWriter.COMPUTE_MAXS));
+			this.print = print;
 			cw = (ClassWriter) cv;
 		}
 
@@ -85,7 +88,9 @@ public class SystemClassReflectionInvestigator {
 			private boolean interceptReflection(String owner, String name, String desc) {
 				if (isInterceptable(owner, name)) {
 					hitCount++;
-					System.out.println("SystemClassReflectionInvestigator: " + classname + "  uses " + owner + "." + name + desc);
+					if (print) {
+						System.out.println("SystemClassReflectionInvestigator: " + classname + "  uses " + owner + "." + name + desc);
+					}
 				}
 				return false;
 			}

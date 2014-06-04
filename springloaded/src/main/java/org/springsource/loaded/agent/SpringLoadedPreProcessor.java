@@ -36,6 +36,7 @@ import org.springsource.loaded.LoadtimeInstrumentationPlugin;
 import org.springsource.loaded.Log;
 import org.springsource.loaded.Plugin;
 import org.springsource.loaded.ReloadableType;
+import org.springsource.loaded.SystemClassReflectionInvestigator;
 import org.springsource.loaded.SystemClassReflectionRewriter;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils;
@@ -147,21 +148,25 @@ public class SpringLoadedPreProcessor implements Constants {
 					} catch (Exception re) {
 						re.printStackTrace();
 					}
-					// This block can help when you suspect there is a system class using reflection and that
-					// class isn't on the 'shortlist' (in systemClassesContainingReflection). Currently we skip
-					// this for performance, we could make it optional baed on a configuration option
-					//	} else {
-					//		// We should really track whether this type is using reflection...
-					//		if (SystemClassReflectionInvestigator.investigate(slashedClassName, bytes) > 0) {
-					//		RewriteResult rr = SystemClassReflectionRewriter.rewrite(slashedClassName, bytes);
-					//		System.err.println("Type " + slashedClassName + " rewrite summary: " + rr.summarize());
-					//		systemClassesRequiringInitialization.put(slashedClassName, rr.bits);
-					//		return rr.bytes;
-					//	}
+					
 				}
 				else if (slashedClassName.equals("java/lang/invoke/InnerClassLambdaMetafactory")) {
 					bytes = Java8.enhanceInnerClassLambdaMetaFactory(bytes);
 					return bytes;
+				} else if ((GlobalConfiguration.investigateSystemClassReflection || GlobalConfiguration.rewriteAllSystemClasses) && 
+						SystemClassReflectionInvestigator.investigate(slashedClassName, bytes, GlobalConfiguration.investigateSystemClassReflection) > 0) {
+					// This block can help when you suspect there is a system class using reflection and that
+					// class isn't on the 'shortlist' (in systemClassesContainingReflection). Basically turn on the 
+					// options to trigger this investigation then add them to the shortlist if it looks like they need rewriting.
+					RewriteResult rr = SystemClassReflectionRewriter.rewrite(slashedClassName, bytes);
+					if (GlobalConfiguration.rewriteAllSystemClasses) {
+						systemClassesRequiringInitialization.put(slashedClassName, rr.bits);
+						return rr.bytes;
+					}
+					else {
+						System.err.println("Type " + slashedClassName + " rewrite summary: " + rr.summarize());
+						return bytes;
+					}
 				}
 			}
 			return bytes;

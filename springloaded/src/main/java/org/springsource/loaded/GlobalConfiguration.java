@@ -86,6 +86,9 @@ public class GlobalConfiguration {
 	 * Determine whether on disk caching will be used.
 	 */
 	public static boolean isCaching = false;
+	
+	public static boolean investigateSystemClassReflection = false;
+	public static boolean rewriteAllSystemClasses = false;
 
 	/**
 	 * A well known profile (e.g. grails) can tweak a lot of the default options in a particular way.
@@ -285,6 +288,12 @@ public class GlobalConfiguration {
 							Log.log("[verbose mode on] Full configuration is:"+value);
 							verboseMode = true;
 							reloadMessages = true;
+						}
+						else if (kv.equals("investigateSystemClassReflection")) {
+							investigateSystemClassReflection = true;
+						}
+						else if (kv.equals("rewriteAllSystemClasses")) {
+							rewriteAllSystemClasses = true;
 						}
 						else if (kv.equals("asserts")) {
 							Log.log("[asserts mode on] Will verify system coherence");
