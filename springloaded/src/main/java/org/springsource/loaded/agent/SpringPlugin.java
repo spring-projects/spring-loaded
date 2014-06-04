@@ -225,7 +225,9 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 							.println("SpringPlugin: clearing CachedIntrospectionResults for " + clazz.getName() + " removed=" + o);
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				if (GlobalConfiguration.debugplugins) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
