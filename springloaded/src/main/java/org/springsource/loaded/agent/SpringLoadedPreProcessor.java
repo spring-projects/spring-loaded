@@ -19,7 +19,6 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -540,8 +539,8 @@ public class SpringLoadedPreProcessor implements Constants {
 					File file = null;
 					URI uri = null;
 					try {
-						uri = codeSource.getLocation().toURI();
-						file = new File(uri);
+						file = new File(codeSource.getLocation().getFile());
+						uri = file.toURI();
 					} catch (IllegalArgumentException iae) {
 						boolean recovered = false;
 						if (iae.toString().indexOf("URI is not hierarchical")!=-1) {
@@ -589,7 +588,7 @@ public class SpringLoadedPreProcessor implements Constants {
 						log.info("Watched location for changes to " + slashedClassName + " is " + watchPath);
 					}
 				}
-			} catch (URISyntaxException e) {
+			} catch (Exception e) {
 				throw new IllegalStateException("Unexpected problem processing URI ", e);
 			}
 		}
