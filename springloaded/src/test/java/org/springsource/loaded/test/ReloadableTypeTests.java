@@ -20,15 +20,20 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
+import java.lang.ref.Reference;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 import org.junit.Test;
 import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.SpringLoaded;
 import org.springsource.loaded.TypeRegistry;
+import org.springsource.loaded.Utils;
 import org.springsource.loaded.Utils.ReturnType;
+import org.springsource.loaded.test.infra.ClassPrinter;
 import org.springsource.loaded.test.infra.Result;
 
 /**
@@ -195,8 +200,9 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		Result r = runUnguarded(B.getClazz(), "getMessage");
 		assertEquals("String1",(String)r.returnValue);
 		
+		
 		B.loadNewVersion(B.bytesInitial);
-
+		
 		r = runUnguarded(B.getClazz(), "getMessage");
 		assertEquals("String1",(String)r.returnValue);
 	}
@@ -375,8 +381,6 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		assertEquals("Hello",(String)r.returnValue);
 		
 		ReloadableType thesuper = B.getSuperRtype();
-		System.out.println(thesuper);
-		assertNull(thesuper);
 		thesuper = tr.getReloadableType("invokestatic/issue4/subpkg/AAAA");
 		assertNull(thesuper);
 		
@@ -385,7 +389,72 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		r = runUnguarded(B.getClazz(), "getMessage");
 		assertEquals("Hello",(String)r.returnValue);
 	}
+	
+	@Test
+	public void verifyingAssociatedTypesInfo() throws Exception {
+		TypeRegistry tr = getTypeRegistry("invokestatic..*");
+		ReloadableType mid = tr.addType("invokestatic.issue4.AB", loadBytesForClass("invokestatic.issue4.AB"));
+		ReloadableType B = tr.addType("invokestatic.issue4.BBBBB", loadBytesForClass("invokestatic.issue4.BBBBB"));
+		
+		Result r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("Hello",(String)r.returnValue);
+		
+		ReloadableType thesuper = B.getSuperRtype();
+		thesuper = tr.getReloadableType("invokestatic/issue4/subpkg/AAAA");
+		assertNull(thesuper);
+		
+		B.loadNewVersion(B.bytesInitial);
 
+		r = runUnguarded(B.getClazz(), "getMessage");
+		assertEquals("Hello",(String)r.returnValue);
+		assertAssociateSubtypes(mid,"invokestatic.issue4.BBBBB");
+
+		assertTrue(B.isAffectedByReload());
+		assertTrue(mid.isAffectedByReload()); // supertype should also be marked as affected
+		// The super-super type is not reloadable so no need to check it is tagged
+	}
+	
+	/**
+	 * Verify that the reloadable type knows about the expected list of subtypes. Subtype names are
+	 * dotted (e.g. invokestatic.foo.Bar")
+	 * @param rtype the reloadabletype to check
+	 * @param expectedAssociateSubtypes the subtypes it should know about
+	 */
+	protected void assertAssociateSubtypes(ReloadableType rtype, String... expectedAssociateSubtypes) {
+		List<Reference<ReloadableType>> associates = rtype.getAssociatedSubtypes();
+		if (expectedAssociateSubtypes== null || expectedAssociateSubtypes.length==0) {
+			assertNull(associates);
+			return;
+		}
+		assertNotNull(associates);
+		assertEquals(expectedAssociateSubtypes.length,associates.size());
+		for (int i=0;i<expectedAssociateSubtypes.length;i++) {
+			boolean found = false;
+			for (Reference<ReloadableType> ref: associates) {
+				if (ref.get().getName().equals(expectedAssociateSubtypes[i])) {
+					found = true; 
+					break;
+				}
+			}
+			if (!found) {
+				fail("Unable to find expected subtype "+expectedAssociateSubtypes[i]+" in list of known subtypes: "+toList(associates));
+			}
+		}
+	}
+
+
+	private String toList(List<Reference<ReloadableType>> associates) {
+		StringBuilder b = new StringBuilder();
+		b.append("[");
+		for (int i=0;i<associates.size();i++) {
+			if (i>0) {
+				b.append(",");
+			}
+			b.append(associates.get(i).get().getName());
+		}
+		b.append("]");
+		return b.toString();
+	}
 
 	@Test
 	public void protectedFieldAccessors2() throws Exception {

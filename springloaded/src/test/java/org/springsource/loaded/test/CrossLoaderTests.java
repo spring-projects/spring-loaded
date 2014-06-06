@@ -16,11 +16,16 @@
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+import java.lang.ref.Reference;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,6 +37,7 @@ import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.test.infra.Result;
 import org.springsource.loaded.test.infra.SubLoader;
+import org.springsource.loaded.test.infra.SuperLoader;
 
 
 /**
@@ -395,6 +401,57 @@ public class CrossLoaderTests extends SpringLoadedTests {
 			assertTrue(ite.getCause() instanceof NoSuchMethodError);
 			assertEquals("TargetC.n()V", ite.getCause().getMessage());
 		}
+	}
+	
+
+	
+	// Large scale test loading a bunch of types and verifying what happens in terms of tagging
+	@Test
+	public void verifyingAssociatedTypesInfo2() throws Exception {
+		// associatedtypes (top and middle) are in the super loader
+		// subassociatedtypes (bottom) are in the sub loader
+				
+		ReloadableType bm = subLoader.loadAsReloadableType("associatedtypes.CM");
+
+		ReloadableType cm = subLoader.loadAsReloadableType("associatedtypes.CM");
+		assertNotNull(cm);
+		assertNotEquals(subLoader,cm.getClazz().getClassLoader());
+		ReloadableType im1 = subLoader.loadAsReloadableType("associatedtypes.IM");
+		assertNotNull(im1);
+		
+		runUnguarded(cm.getClazz(), "run"); // Cause clinit to run so associations are setup
+
+		assertContains("associatedtypes.CM", toString(im1.getAssociatedSubtypes()));
+		assertFalse(cm.isAffectedByReload());
+		assertFalse(cm.isAffectedByReload());
+		assertFalse(bm.isAffectedByReload());
+		
+		// Load CM again, should tag CM and IM
+		cm.loadNewVersion("2",cm.bytesInitial);
+		
+		assertTrue(cm.isAffectedByReload());
+		assertTrue(im1.isAffectedByReload());
+		assertTrue(bm.isAffectedByReload());
+	}
+	
+	public String toString(List<Reference<ReloadableType>> list) {
+		if (list==null) {
+			return "null";
+		}
+		StringBuilder b = new StringBuilder();
+		b.append("[");
+		for (int i=0;i<list.size();i++) {
+			if (i>0) {
+				b.append(",");
+			}
+			Reference<ReloadableType> ref = list.get(i);
+			ReloadableType rtype = ref.get();
+			if (rtype!=null) {
+				b.append(rtype.getName());
+			}
+		}
+		b.append("]");
+		return b.toString();
 	}
 
 	// TODO unfinished do I have to worry about proxies loaded by sub classloaders or not?
