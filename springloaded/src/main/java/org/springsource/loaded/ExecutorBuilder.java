@@ -152,7 +152,42 @@ public class ExecutorBuilder {
 		}
 
 		public void visitSource(String sourcefile, String debug) {
-			cw.visitSource(sourcefile, debug);
+			cw.visitSource(sourcefile, debug);//getSMAP(sourcefile));
+		}
+		
+		/**
+		 * Create the SMAP according to the JSR45 spec, *Note* this method is a work in progress not currently used.
+		 * 
+		 * @param sourcefile
+		 * @return debug extension attribute encoded into a string
+		 */
+		public String getSMAP(String sourcefile) {
+			System.out.println("Building smap for "+sourcefile);
+			StringBuilder s = new StringBuilder();
+			
+			// Header
+			s.append("SMAP\n");
+			s.append(sourcefile+"\n"); // name of the generated file
+			s.append("SpringLoaded\n"); // Default stratum (Java)	
+
+			// StratumSection
+			s.append("*S SpringLoaded\n");
+			
+			// FileSection
+			s.append("*F\n");
+			s.append("+ 1 "+sourcefile+"\n");
+			s.append("jaapplication1/"+sourcefile+"\n");
+//			s.append("1 javaapplication1/"+sourcefile+"\n");
+			
+			// LineSection
+			s.append("*L\n");
+			s.append("1#1,1000:1,1\n");
+			
+			// EndSection
+			s.append("*E\n");
+			
+			System.out.println(s.toString());
+			return s.toString();
 		}
 
 		private static class CopyingAnnotationVisitor extends AnnotationVisitor {
