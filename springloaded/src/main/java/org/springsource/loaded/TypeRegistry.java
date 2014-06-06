@@ -76,7 +76,7 @@ public class TypeRegistry {
 		ignorablePackagePrefixes['c' - 'a'] = new String[] { "com/springsource/tcserver/",
 				"com/springsource/insight" };
 		ignorablePackagePrefixes['g' - 'a'] = new String[] { "groovy/", "groovyjarjarantlr/", "groovyjarjarasm/", "grails/", };
-		ignorablePackagePrefixes['j' - 'a'] = new String[] { "java/", "javassist/" };
+		ignorablePackagePrefixes['j' - 'a'] = new String[] { "java/", "javassist/","javax/" };
 		ignorablePackagePrefixes['o' - 'a'] = new String[] { "org/springsource/loaded/", "org/objectweb/asm", "org/codehaus/groovy/", "org/apache/", "org/springframework/",
 				"org/hibernate/", "org/hsqldb/", "org/aspectj/", "org/xml/", "org/h2/"};
 	}
@@ -581,7 +581,7 @@ public class TypeRegistry {
 		if (slashedName==null) {
 			return false;
 		}
-		if (slashedName.startsWith("java")) {
+		if (slashedName.startsWith("java/")) {
 			return false;
 		}
 		char ch = slashedName.charAt(0);
