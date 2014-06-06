@@ -34,7 +34,7 @@ import org.springsource.loaded.Utils;
 public class MethodPrinter extends MethodVisitor implements Opcodes {
 
 	PrintStream to;
-
+	int includeFlags;
 	List<Label> labels = new ArrayList<Label>();
 
 	private String toString(Label label) {
@@ -45,9 +45,14 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 		labels.add(label);
 		return "L" + labels.indexOf(label);
 	}
-
+	
 	public MethodPrinter(PrintStream destination) {
+		this(destination,0);
+	}
+
+	public MethodPrinter(PrintStream destination, int includeFlags) {
 		super(ASM5);
+		this.includeFlags = includeFlags;
 		this.to = destination;
 	}
 
@@ -121,6 +126,7 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	}
 
 	public void visitAttribute(Attribute attr) {
+		to.println("    ATTRIBUTE: "+attr);
 	}
 
 	public void visitEnd() {
@@ -167,6 +173,9 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	}
 
 	public void visitLineNumber(int line, Label start) {
+		if ((includeFlags & ClassPrinter.INCLUDE_LINE_NUMBERS)!=0) {
+			to.println("  LINE:"+line);
+		}
 	}
 
 	public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {

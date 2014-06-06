@@ -36,20 +36,23 @@ public class ClassPrinter extends ClassVisitor implements Opcodes {
 
 	private PrintStream destination;
 	private boolean includeBytecode;
+	private int includeFlags = 0x0000;
+	public final static int INCLUDE_BYTECODE = 0x0001;
+	public final static int INCLUDE_LINE_NUMBERS = 0x0002;
 
 	public static void main(String[] argv) throws Exception {
 		ClassReader reader = new ClassReader(Utils.loadBytesFromStream(new FileInputStream(new File(argv[0]))));
-		reader.accept(new ClassPrinter(System.out, true), 0);
+		reader.accept(new ClassPrinter(System.out, INCLUDE_BYTECODE), 0);
 	}
 
 	public ClassPrinter(PrintStream destination) {
-		this(destination, true);
+		this(destination, INCLUDE_BYTECODE);
 	}
 
-	public ClassPrinter(PrintStream destination, boolean includeBytecode) {
+	public ClassPrinter(PrintStream destination, int includeFlags) {
 		super(ASM5);
 		this.destination = destination;
-		this.includeBytecode = includeBytecode;
+		this.includeFlags = includeFlags;
 	}
 
 	public static void print(String message, byte[] bytes) {
@@ -60,15 +63,20 @@ public class ClassPrinter extends ClassVisitor implements Opcodes {
 	public static void print(byte[] bytes) {
 		print(bytes, true);
 	}
-
+	
+	public static void print(byte[] bytes, int includeFlags) {
+		ClassReader reader = new ClassReader(bytes);
+		reader.accept(new ClassPrinter(System.out, includeFlags), 0);
+	}
+		
 	public static void print(byte[] bytes, boolean includeBytecode) {
 		ClassReader reader = new ClassReader(bytes);
-		reader.accept(new ClassPrinter(System.out, includeBytecode), 0);
+		reader.accept(new ClassPrinter(System.out, includeBytecode?INCLUDE_BYTECODE:0), 0);
 	}
 
 	public static void print(PrintStream printStream, byte[] bytes, boolean includeBytecode) {
 		ClassReader reader = new ClassReader(bytes);
-		reader.accept(new ClassPrinter(printStream, includeBytecode), 0);
+		reader.accept(new ClassPrinter(printStream, includeBytecode?INCLUDE_BYTECODE:0), 0);
 	}
 
 	public static void print(String message, byte[] bytes, boolean includeBytecode) {
@@ -242,7 +250,7 @@ public class ClassPrinter extends ClassVisitor implements Opcodes {
 		StringBuilder s = new StringBuilder();
 		s.append("METHOD: " + toHex(access, 4) + "(" + toAccessForMember(access) + ") " + name + desc + " " + fromArray(exceptions));
 		destination.println(s.toString().trim());
-		return includeBytecode ? new MethodPrinter(destination) : null;
+		return (includeFlags&INCLUDE_BYTECODE)!=0 ? new MethodPrinter(destination,includeFlags) : null;
 	}
 
 	private String fromArray(Object[] os) {
