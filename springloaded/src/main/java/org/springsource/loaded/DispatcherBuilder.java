@@ -144,7 +144,7 @@ public class DispatcherBuilder {
 
 			// Should be generating the code for each additional method in
 			// the executor (new version) that wasn't in the original. 
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, name, descriptor, signature, exceptions);
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC , name, descriptor, signature, exceptions);
 			mv.visitCode();
 
 			// Entries required here for all methods that exist in the new version but didn't exist in the original version
@@ -305,7 +305,7 @@ public class DispatcherBuilder {
 			}
 			boolean isStatic = method.isStatic();
 
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, name, descriptor, signature, exceptions);
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, name, descriptor, signature, exceptions);
 			mv.visitCode();
 			// The input descriptor will include the extra initial parameter (the instance, or null for static methods)
 			ReturnType returnTypeDescriptor = Utils.getReturnTypeDescriptor(descriptor);
