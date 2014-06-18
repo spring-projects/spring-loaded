@@ -1538,6 +1538,15 @@ public class TypeRegistry {
 	}
 
 	/**
+	 * Shuts down FileSystemWatcher thread and waits until it is finished.
+	 * @throws InterruptedException 
+	 */
+	public void shutdownFileSystemWatcherThread() throws InterruptedException {
+		if(fsWatcher != null)
+			fsWatcher.shutdownAndWait();
+	}
+
+	/**
 	 * Called for a field operation - trying to determine whether a particular field needs special handling.
 	 *
 	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)

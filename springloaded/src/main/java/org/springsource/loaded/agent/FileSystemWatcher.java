@@ -71,6 +71,17 @@ public class FileSystemWatcher {
 			watchThread.timeToStop();
 		}
 	}
+	
+	/**
+	 * Shutdown the thread and wait until it is finished.
+	 * @throws java.lang.InterruptedException
+	 */
+	public void shutdownAndWait() throws InterruptedException {
+		if (threadRunning) {
+			watchThread.timeToStop();
+			thread.join();
+		}
+	}
 
 	/**
 	 * Add a new file to the list of those being monitored. If the file is something that can be watched, then this method will
