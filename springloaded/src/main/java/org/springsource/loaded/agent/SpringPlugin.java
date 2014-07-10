@@ -288,7 +288,9 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 					}
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
+				if (GlobalConfiguration.debugplugins) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
