@@ -63,6 +63,9 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	public static boolean support305 = true;
 
 	private Field classCacheField;
+	private Field strongClassCacheField;
+	private Field softClassCacheField;
+
 	private Field field_parameterNamesCache; // From LocalVariableTableParameterNameDiscoverer
 
 	private boolean cachedIntrospectionResultsClassLoaded = false;
@@ -214,16 +217,41 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 					cachedIntrospectionResultsClass = clazz.getClassLoader().loadClass(
 							"org.springframework.beans.CachedIntrospectionResults");
 				}
-				if (classCacheField == null) {
-					classCacheField = cachedIntrospectionResultsClass.getDeclaredField("classCache");
+
+				if (classCacheField == null && strongClassCacheField == null) {
+					try {
+						classCacheField = cachedIntrospectionResultsClass.getDeclaredField("classCache");
+					} catch(NoSuchFieldException e) {
+						strongClassCacheField = cachedIntrospectionResultsClass.getDeclaredField("strongClassCache");
+						softClassCacheField = cachedIntrospectionResultsClass.getDeclaredField("softClassCache");
+					}
+
 				}
-				classCacheField.setAccessible(true);
-				Map m = (Map) classCacheField.get(null);
-				Object o = m.remove(clazz);
-				if (GlobalConfiguration.debugplugins) {
-					System.err
-							.println("SpringPlugin: clearing CachedIntrospectionResults for " + clazz.getName() + " removed=" + o);
+				if(classCacheField != null) {
+					classCacheField.setAccessible(true);
+					Map m = (Map) classCacheField.get(null);
+					Object o = m.remove(clazz);
+					if (GlobalConfiguration.debugplugins) {
+						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.classCache for " + clazz.getName() + " removed=" + o);
+					}
 				}
+				if(strongClassCacheField != null) {
+					strongClassCacheField.setAccessible(true);
+					Map m = (Map) strongClassCacheField.get(null);
+					Object o = m.remove(clazz);
+					if (GlobalConfiguration.debugplugins) {
+						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.strongClassCache for " + clazz.getName() + " removed=" + o);
+					}
+				}
+				if(softClassCacheField != null) {
+					softClassCacheField.setAccessible(true);
+					Map m = (Map) softClassCacheField.get(null);
+					Object o = m.remove(clazz);
+					if (GlobalConfiguration.debugplugins) {
+						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.softClassCache for " + clazz.getName() + " removed=" + o);
+					}
+				}
+
 			} catch (Exception e) {
 				if (GlobalConfiguration.debugplugins) {
 					e.printStackTrace();
