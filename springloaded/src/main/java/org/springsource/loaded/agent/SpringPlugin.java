@@ -65,12 +65,14 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	private Field classCacheField;
 	private Field strongClassCacheField;
 	private Field softClassCacheField;
-
+	private Field declaredMethodsCacheField;
 	private Field field_parameterNamesCache; // From LocalVariableTableParameterNameDiscoverer
 
 	private boolean cachedIntrospectionResultsClassLoaded = false;
-	
+	private boolean reflectionUtilsClassLoaded = false;
+
 	private Class<?> cachedIntrospectionResultsClass = null;
+	private Class<?> reflectionUtilsClass = null;
 
 	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
 		// TODO take classloader into account?
@@ -83,6 +85,10 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		// Just interested in whether this type got loaded
 		if (slashedTypeName.equals("org/springframework/beans/CachedIntrospectionResults")) {
 			cachedIntrospectionResultsClassLoaded = true;
+		}
+		// Just interested in whether this type got loaded
+		if (slashedTypeName.equals("org/springframework/util/ReflectionUtils")) {
+			reflectionUtilsClassLoaded = true;
 		}
 		return slashedTypeName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter") ||
 				slashedTypeName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping") || // 3.1
@@ -149,6 +155,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 
 	public void reloadEvent(String typename, Class<?> clazz, String versionsuffix) {
 		removeClazzFromMethodResolverCache(clazz);
+		removeClazzFromDeclaredMethodsCache(clazz);
 		clearCachedIntrospectionResults(clazz);
 		reinvokeDetectHandlers(); // Spring 3.0
 		reinvokeInitHandlerMethods(); // Spring 3.1
@@ -177,7 +184,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		for (Object instance: instancesOf_LocalVariableTableParameterNameDiscoverer) {
 			field_parameterNamesCache.setAccessible(true);
 			try {
-				Map<?,?> parameterNamesCache = (Map<?,?>)field_parameterNamesCache.get(instance);
+				Map<?,?> parameterNamesCache = (Map<?,?>) field_parameterNamesCache.get(instance);
 				Object o = parameterNamesCache.remove(clazz);
 				if (debug) {
 					System.out.println("ParameterNamesCache: Removed "+clazz.getName()+" from cache?"+(o!=null));
@@ -204,6 +211,41 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				}
 			} catch (Exception e) {
 				log.log(Level.SEVERE, "Unexpected problem accessing methodResolverCache on " + o, e);
+			}
+		}
+	}
+
+	private void removeClazzFromDeclaredMethodsCache(Class<?> clazz) {
+		if (reflectionUtilsClassLoaded) {
+			try {
+				// TODO not a fan of classloading like this
+				if (reflectionUtilsClass == null) {
+					// TODO what about two apps using reloading and diff versions of spring?
+					reflectionUtilsClass = clazz.getClassLoader().loadClass(
+							"org.springframework.util.ReflectionUtils");
+				}
+
+				if (declaredMethodsCacheField == null) {
+					try {
+						declaredMethodsCacheField = reflectionUtilsClass.getDeclaredField("declaredMethodsCache");
+					} catch(NoSuchFieldException e) {
+
+					}
+
+				}
+				if(declaredMethodsCacheField != null) {
+					declaredMethodsCacheField.setAccessible(true);
+					Map m = (Map) declaredMethodsCacheField.get(null);
+					Object o = m.remove(clazz);
+					if (GlobalConfiguration.debugplugins) {
+						System.err.println("SpringPlugin: clearing ReflectionUtils.declaredMethodsCache for " + clazz.getName() + " removed=" + o);
+					}
+				}
+
+			} catch (Exception e) {
+				if (GlobalConfiguration.debugplugins) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
