@@ -53,20 +53,18 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	private static boolean debug = true;
 	
 	// TODO [gc] what about GC here - how do we know when they are finished with?
-	public static List<Object> instancesOf_AnnotationMethodHandlerAdapter = new ArrayList<Object>();
-	public static List<Object> instancesOf_DefaultAnnotationHandlerMapping = new ArrayList<Object>();
-	public static List<Object> instancesOf_RequestMappingHandlerMapping = new ArrayList<Object>();
-	public static List<Object> instancesOf_LocalVariableTableParameterNameDiscoverer = null;
-
-	ClassLoader springLoader = null;
+	public static List<Object> annotationMethodHandlerAdapterInstances = new ArrayList<Object>();
+	public static List<Object> defaultAnnotationHandlerMappingInstances = new ArrayList<Object>();
+	public static List<Object> requestMappingHandlerMappingInstances = new ArrayList<Object>();
+	public static List<Object> localVariableTableParameterNameDiscovererInstances = null;
 	
 	public static boolean support305 = true;
 
-	private Field classCacheField;
-	private Field strongClassCacheField;
-	private Field softClassCacheField;
-	private Field declaredMethodsCacheField;
-	private Field field_parameterNamesCache; // From LocalVariableTableParameterNameDiscoverer
+	private Field classCacheField; // From CachedIntrospectionResults (Spring <= 4.0.x)
+	private Field strongClassCacheField; // From CachedIntrospectionResults (Spring >= 4.1.0)
+	private Field softClassCacheField; // From CachedIntrospectionResults (Spring >= 4.1.0)
+	private Field declaredMethodsCacheField;  // From ReflectionUtils
+	private Field parameterNamesCacheField; // From LocalVariableTableParameterNameDiscoverer
 
 	private boolean cachedIntrospectionResultsClassLoaded = false;
 	private boolean reflectionUtilsClassLoaded = false;
@@ -122,18 +120,18 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 
 	// called by the modified code
 	public static void recordAnnotationMethodHandlerAdapterInstance(Object obj) {
-		instancesOf_AnnotationMethodHandlerAdapter.add(obj);
+		annotationMethodHandlerAdapterInstances.add(obj);
 	}
 
 	public static void recordRequestMappingHandlerMappingInstance(Object obj) {
-		instancesOf_RequestMappingHandlerMapping.add(obj);
+		requestMappingHandlerMappingInstances.add(obj);
 	}
 
 	public static void recordLocalVariableTableParameterNameDiscoverer(Object obj) {
-		if (instancesOf_LocalVariableTableParameterNameDiscoverer == null) {
-			instancesOf_LocalVariableTableParameterNameDiscoverer = new ArrayList<Object>();
+		if (localVariableTableParameterNameDiscovererInstances == null) {
+			localVariableTableParameterNameDiscovererInstances = new ArrayList<Object>();
 		}
-		instancesOf_LocalVariableTableParameterNameDiscoverer.add(obj);
+		localVariableTableParameterNameDiscovererInstances.add(obj);
 	}
 
 	static {
@@ -150,7 +148,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		if (debug) {
 			System.out.println("Recording new instance of DefaultAnnotationHandlerMappingInstance");
 		}
-		instancesOf_DefaultAnnotationHandlerMapping.add(obj);
+		defaultAnnotationHandlerMappingInstances.add(obj);
 	}
 
 	public void reloadEvent(String typename, Class<?> clazz, String versionsuffix) {
@@ -168,23 +166,24 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	 * @param clazz the class being reloaded, which may exist in a parameter name discoverer cache
 	 */
 	private void clearLocalVariableTableParameterNameDiscovererCache(Class<?> clazz) {
-		if (instancesOf_LocalVariableTableParameterNameDiscoverer == null) {
+		if (localVariableTableParameterNameDiscovererInstances == null) {
 			return;
 		}
 		if (debug) {
 			System.out.println("ParameterNamesCache: Clearing parameter name discoverer caches");
 		}
-		if (field_parameterNamesCache == null) {
+		if (parameterNamesCacheField == null) {
 			try {
-				field_parameterNamesCache = instancesOf_LocalVariableTableParameterNameDiscoverer.get(0).getClass().getDeclaredField("parameterNamesCache");
+				parameterNamesCacheField = localVariableTableParameterNameDiscovererInstances
+						.get(0).getClass().getDeclaredField("parameterNamesCache");
 			} catch (NoSuchFieldException nsfe) {
 				log.log(Level.SEVERE, "Unexpectedly cannot find parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
 			}
 		}
-		for (Object instance: instancesOf_LocalVariableTableParameterNameDiscoverer) {
-			field_parameterNamesCache.setAccessible(true);
+		for (Object instance: localVariableTableParameterNameDiscovererInstances) {
+			parameterNamesCacheField.setAccessible(true);
 			try {
-				Map<?,?> parameterNamesCache = (Map<?,?>) field_parameterNamesCache.get(instance);
+				Map<?,?> parameterNamesCache = (Map<?,?>) parameterNamesCacheField.get(instance);
 				Object o = parameterNamesCache.remove(clazz);
 				if (debug) {
 					System.out.println("ParameterNamesCache: Removed "+clazz.getName()+" from cache?"+(o!=null));
@@ -196,7 +195,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	}
 
 	private void removeClazzFromMethodResolverCache(Class<?> clazz) {
-		for (Object o : instancesOf_AnnotationMethodHandlerAdapter) {
+		for (Object o : annotationMethodHandlerAdapterInstances) {
 			try {
 				Field f = o.getClass().getDeclaredField("methodResolverCache");
 				f.setAccessible(true);
@@ -305,7 +304,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	private void reinvokeDetectHandlers() {
 		// want to call detectHandlers on the DefaultAnnotationHandlerMapping type
 		// protected void detectHandlers() throws BeansException {  is defined on  AbstractDetectingUrlHandlerMapping
-		for (Object o : instancesOf_DefaultAnnotationHandlerMapping) {
+		for (Object o : defaultAnnotationHandlerMappingInstances) {
 			if (debug) {
 				System.out.println("Invoking detectHandlers on instance of DefaultAnnotationHandlerMappingInstance");
 			}
@@ -327,7 +326,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	private void reinvokeInitHandlerMethods() {
 		//		org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping (super AbstractHandlerMethodMapping) - call protected void initHandlerMethods() on it.
 
-		for (Object o : instancesOf_RequestMappingHandlerMapping) {
+		for (Object o : requestMappingHandlerMappingInstances) {
 			if (debug) {
 				System.out.println("Invoking initHandlerMethods on instance of RequestMappingHandlerMapping");
 			}
