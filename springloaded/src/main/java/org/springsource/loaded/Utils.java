@@ -928,7 +928,7 @@ public class Utils implements Opcodes, Constants {
 		private ReturnType(String descriptor, Kind kind) {
 			this.descriptor = descriptor;
 			if (GlobalConfiguration.assertsMode) {
-				if (this.kind == Kind.REFERENCE) {
+				if (kind == Kind.REFERENCE) {
 					if (descriptor.endsWith(";") && !descriptor.startsWith("[")) {
 						throw new IllegalStateException("Should already have been stripped of 'L' and ';': " + descriptor);
 					}
