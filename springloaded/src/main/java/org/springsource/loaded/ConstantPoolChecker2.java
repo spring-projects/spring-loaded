@@ -50,6 +50,9 @@ public class ConstantPoolChecker2 {
 	private final static byte CONSTANT_Methodref = 10;
 	private final static byte CONSTANT_InterfaceMethodref = 11;
 	private final static byte CONSTANT_NameAndType = 12;
+	private final static byte CONSTANT_MethodHandle = 15;
+	private final static byte CONSTANT_MethodType = 16;
+	private final static byte CONSTANT_InvokeDynamic = 18;
 
 	// Test entry point just goes through all the code in the bin folder
 	public static void main(String[] args) throws Exception {
@@ -330,6 +333,29 @@ public class ConstantPoolChecker2 {
 				System.out.println(index + ":NAMEANDTYPE[name_index=" + ((int[]) cpdata[index])[0] + ",descriptor_index="
 						+ ((int[]) cpdata[index])[1] + "]");
 			}
+			break;
+		case CONSTANT_InvokeDynamic:
+			//CONSTANT_InvokeDynamic_info {
+			//	u1 tag;
+			//	u2 bootstrap_method_attr_index;
+			//	u2 name_and_type_index;
+			//}
+			dis.skipBytes(4);
+			break;
+		case CONSTANT_MethodHandle:
+			//CONSTANT_MethodHandle_info {
+			//	u1 tag;
+			//	u1 reference_kind;
+			//	u2 reference_index;
+			//}
+			dis.skipBytes(3);
+			break;
+		case CONSTANT_MethodType:
+			//CONSTANT_MethodType_info {
+			//	u1 tag;
+			//	u2 descriptor_index;
+			//}
+			dis.skipBytes(2);
 			break;
 		default:
 			throw new IllegalStateException("Entry: " + index + " " + Byte.toString(b));
