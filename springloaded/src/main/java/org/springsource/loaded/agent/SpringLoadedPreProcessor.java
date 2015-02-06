@@ -525,7 +525,7 @@ public class SpringLoadedPreProcessor implements Constants {
 		} else {
 			try {
 				CodeSource codeSource = protectionDomain.getCodeSource();
-				if (codeSource.getLocation() == null) {
+				if (codeSource == null || codeSource.getLocation() == null) {
 					if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.WARNING)) {
 						log.warning("null codesource for " + slashedClassName);
 					}
