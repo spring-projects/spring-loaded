@@ -38,12 +38,20 @@ public class JVM {
 	private static Constructor<Method> jlrMethodCtor = (Constructor<Method>) Method.class.getDeclaredConstructors()[0];
 
 	private static Method jlrMethodCopy;
+	private static Method jlrMethodGetRoot;	
+	
 	static {
 		try {
 			jlrMethodCopy = Method.class.getDeclaredMethod("copy");
 			jlrMethodCopy.setAccessible(true);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting 'Method.copy()' method. Incompatible JVM?", e);
+		}
+		try {
+			jlrMethodGetRoot = Method.class.getDeclaredMethod("getRoot");
+			jlrMethodGetRoot.setAccessible(true);
+		} catch (Exception e) {
+			// Possibly on a JDK level that didn't have this?
 		}
 	}
 
@@ -57,13 +65,21 @@ public class JVM {
 		}
 	}
 
+	private static Method jlrConstructorGetRoot;	
 	private static Method jlrConstructorCopy;
 	static {
 		try {
+			
 			jlrConstructorCopy = Constructor.class.getDeclaredMethod("copy");
 			jlrConstructorCopy.setAccessible(true);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting 'Constructor.copy()' method. Incompatible JVM?", e);
+		}
+		try {
+			jlrConstructorGetRoot = Constructor.class.getDeclaredMethod("getRoot");
+			jlrConstructorGetRoot.setAccessible(true);
+		} catch (Exception e) {
+			// Possibly on a JDK level that didn't have this?
 		}
 	}
 
@@ -131,6 +147,12 @@ public class JVM {
 	 */
 	public static Method copyMethod(Method method) {
 		try {
+			if (jlrMethodGetRoot != null) {
+				Method possibleRoot = (Method) jlrMethodGetRoot.invoke(method);
+				if (possibleRoot != null) {
+					method = possibleRoot;
+				}
+			}
 			return (Method) jlrMethodCopy.invoke(method);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Problems copying method. Incompatible JVM?", e);
@@ -149,6 +171,12 @@ public class JVM {
 
 	public static Constructor<?> copyConstructor(Constructor<?> c) {
 		try {
+			if (jlrConstructorGetRoot != null) {
+				Constructor<?> possibleRoot = (Constructor<?>) jlrConstructorGetRoot.invoke(c);
+				if (possibleRoot != null) {
+					c = possibleRoot;
+				}
+			}
 			return (Constructor<?>) jlrConstructorCopy.invoke(c);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Problems copying constructor. Incompatible JVM?", e);
