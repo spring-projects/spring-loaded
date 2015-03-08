@@ -20,10 +20,12 @@ import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 
 import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.springsource.loaded.ReloadableType;
 
 /**
  * This class encapsulates dependencies on Java 8 APIs (e.g. LambdaMetafactory).
@@ -89,9 +91,9 @@ public class Java8 {
 	 * @param indyParams parameters when the invokedynamic call is made
 	 * @return the result of the invokedynamic call
 	 */
-	public static Object emulateInvokeDynamic(Class<?> executorClass, Handle handle, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
+	public static Object emulateInvokeDynamic(ReloadableType rtype, Class<?> executorClass, Handle handle, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
 		try {
-			CallSite callsite = callLambdaMetaFactory(bsmArgs,lookup,indyNameAndDescriptor,executorClass);
+			CallSite callsite = callLambdaMetaFactory(rtype, bsmArgs,lookup,indyNameAndDescriptor,executorClass);
 			return callsite.dynamicInvoker().invokeWithArguments(indyParams);
 		} catch (Throwable t) {
 			throw new RuntimeException(t);
@@ -100,7 +102,7 @@ public class Java8 {
 	// TODO [perf] How about a table of CallSites indexed by invokedynamic number through the class file. Computed on first reference but cleared on reload. Possibly extend this to all invoke types!
 
 	// TODO [lambda] Need to handle altMetaFactory which is used when the lambdas are more 'complex' (e.g. Serializable)
-	public static CallSite callLambdaMetaFactory(Object[] bsmArgs, Object lookup, String indyNameAndDescriptor,Class<?> executorClass) throws Exception {		
+	public static CallSite callLambdaMetaFactory(ReloadableType rtype, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor,Class<?> executorClass) throws Exception {		
 		MethodHandles.Lookup caller = (MethodHandles.Lookup)lookup;	
 
 		ClassLoader callerLoader = caller.lookupClass().getClassLoader();
@@ -145,6 +147,15 @@ public class Java8 {
 				else {
 					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString("(L"+owner+";"+descriptor.substring(1),callerLoader));
 				}
+				break;
+			case Opcodes.H_INVOKEINTERFACE:
+				Handle h = (Handle)bsmArgs[1];
+				String interfaceOwner = h.getOwner();
+				// TODO Should there not be a more direct way to this than classloading?
+				// TODO What about when this is a method added to the interface on a reload? It won't really exist, should we point
+				// to the executor? or something else? (maybe just directly the real method that will satisfy the interface - if it can be worked out)
+				Class<?> interfaceClass = callerLoader.loadClass(interfaceOwner.replace('/','.')); // interface type, eg StreamB$Foo				
+				implMethod = caller.findVirtual(interfaceClass, name, implMethodType);
 				break;
 			default:
 				throw new IllegalStateException("nyi "+bsmArgsHandle.getTag());

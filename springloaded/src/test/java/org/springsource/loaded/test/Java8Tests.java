@@ -22,6 +22,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
+import org.springsource.loaded.test.infra.ClassPrinter;
 import org.springsource.loaded.test.infra.Result;
 
 /**
@@ -292,6 +293,79 @@ public class Java8Tests extends SpringLoadedTests {
 		r = runUnguarded(simpleClass, "run");
 		assertEquals("fooab", r.returnValue);
 	}
+	
+    @Test
+    public void streamWithLambda() throws Exception {
+        String t = "basic.StreamA";
+        TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+        byte[] sc = loadBytesForClass(t);
+        ReloadableType rtype = typeRegistry.addType(t, sc);
+
+        Class<?> simpleClass = rtype.getClazz();
+        Result r = runUnguarded(simpleClass, "run");
+        assertEquals(3, r.returnValue);
+
+        byte[] renamed = retrieveRename(t, t + "2", t + "2$Foo:" + t + "$Foo");
+        rtype.loadNewVersion("002", renamed);
+        r = runUnguarded(simpleClass, "run");
+        assertEquals(4, r.returnValue);
+    }
+	
+    // inner interface (for the invokeinterface BSM)
+    @Test
+    public void streamWithLambdaInvokedVirtually() throws Exception {
+        String t = "basic.StreamB";
+        TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+        byte[] sc = loadBytesForClass(t);
+        ReloadableType rtype = typeRegistry.addType(t, sc);
+
+        Class<?> simpleClass = rtype.getClazz();
+        Result r = runUnguarded(simpleClass, "run");
+        assertEquals(3, r.returnValue);
+
+        byte[] renamed = retrieveRename(t, t + "2", t + "2$Foo:" + t + "$Foo");
+        rtype.loadNewVersion("002", renamed);
+        r = runUnguarded(simpleClass, "run");
+        assertEquals(4, r.returnValue);
+    }
+    
+    // not an inner interface this time (for the invokeinterface BSM)
+    @Test
+    public void streamWithLambdaInvokedVirtually2() throws Exception {
+        String t = "basic.StreamBB";
+        TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+        byte[] sc = loadBytesForClass(t);
+        ReloadableType rtype = typeRegistry.addType(t, sc);
+
+        Class<?> simpleClass = rtype.getClazz();
+        Result r = runUnguarded(simpleClass, "run");
+        assertEquals(3, r.returnValue);
+
+        byte[] renamed = retrieveRename(t, t + "2");
+        rtype.loadNewVersion("002", renamed);
+        r = runUnguarded(simpleClass, "run");
+        assertEquals(4, r.returnValue);
+    }
+	
+    @Test
+    public void streamWithoutLambda() throws Exception {
+        String t = "basic.StreamC";
+        TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+        byte[] sc = loadBytesForClass(t);
+        ReloadableType rtype = typeRegistry.addType(t, sc);
+
+        Class<?> simpleClass = rtype.getClazz();
+        Result r = runUnguarded(simpleClass, "run");
+        assertEquals(3, r.returnValue);
+
+        byte[] renamed = retrieveRename(t, t + "2");
+        rtype.loadNewVersion("002", renamed);
+        r = runUnguarded(simpleClass, "run");
+        assertEquals(4, r.returnValue);
+    }
+	
+	
+	
 
 	@Ignore
 	@Test

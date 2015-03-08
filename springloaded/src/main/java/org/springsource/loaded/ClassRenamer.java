@@ -252,14 +252,17 @@ public class ClassRenamer {
 				String owner = oldHandle.getOwner();
 				String name = oldHandle.getName();
 				String desc = oldHandle.getDesc();
+//				System.out.println("handle: owner: "+owner);
+//				System.out.println("handle: name: "+name);
+//				System.out.println("handle: desc: "+desc);
 				owner = renameRetargetIfNecessary(owner);
+				desc = renameRetargetIfNecessary(desc);
 				Handle newHandle = new Handle(tag,owner,name,desc);
 				return newHandle;
 			}
 			
 			@Override
 			public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
-				// System.out.println("visitInvokeDynamicInsn(name="+name+",desc="+desc+",bsm="+toString(bsm)+",bsmArgs="+toString(bsmArgs)+")");
 				// Example:
 				// visitInvokeDynamicInsn(name=m,desc=()Lbasic/LambdaA2$Foo;,
 				//   bsm=[6]java/lang/invoke/LambdaMetafactory.metafactory(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;,

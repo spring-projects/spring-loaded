@@ -1571,7 +1571,7 @@ public class TypeRegistry {
 		// TODO Currently leaking entries in bsmmap with reloads (new ones get added, old ones not removed)
 		ReloadableType rtype = TypeRegistry.getReloadableType(typeRegistryId, classId);
 		BsmInfo bsmi = bsmmap.get(rtype.getSlashedName())[bsmId]; 
-		return Java8.emulateInvokeDynamic(rtype.getLatestExecutorClass(),bsmi.bsm,bsmi.bsmArgs,caller,nameAndDescriptor, indyParams);
+		return Java8.emulateInvokeDynamic(rtype,rtype.getLatestExecutorClass(),bsmi.bsm,bsmi.bsmArgs,caller,nameAndDescriptor, indyParams);
 	}
 	
 	/**
