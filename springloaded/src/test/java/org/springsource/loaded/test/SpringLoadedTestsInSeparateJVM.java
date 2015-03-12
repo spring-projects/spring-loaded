@@ -15,6 +15,18 @@
  */
 package org.springsource.loaded.test;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.tools.JavaCompiler;
+import javax.tools.ToolProvider;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -25,7 +37,7 @@ import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
 /**
  * These tests use a harness that forks a JVM with the agent attached, closely simulating a real environment. The
  * forked process is running a special class that can be sent commands.
- * 
+ *
  * @author Andy Clement
  */
 public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
@@ -34,7 +46,10 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 
 	@BeforeClass
 	public static void startJVM() throws Exception {
-//		jvm = ReloadingJVM.launch("verbose;explain");
+		// jvm = ReloadingJVM.launch("verbose;explain");
+		// jvm = ReloadingJVM.launch("", true);
+		// jvm = ReloadingJVM.launch("verbose;", true);
+		// jvm = ReloadingJVM.launch("verbose");
 		jvm = ReloadingJVM.launch("");
 	}
 
@@ -42,7 +57,7 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	public static void stopJVM() {
 		jvm.shutdown();
 	}
-	
+
 	@After
 	public void teardown() throws Exception {
 		super.teardown();
@@ -52,26 +67,26 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	@Test
 	public void testEcho() throws Exception {
 		JVMOutput result = jvm.echo("hello");
-		assertStdout("hello", result);
+		assertStdoutContains("hello", result);
 	}
 
 	@Test
 	public void testRunClass() throws Exception {
 		JVMOutput output = jvm.run("jvmtwo.Runner");
-		assertStdout("jvmtwo.Runner.run() running", output);
+		assertStdoutContains("jvmtwo.Runner.run() running", output);
 	}
-	
+
 	@Test
 	public void githubIssue34() throws Exception {
-		jvm.copyToTestdataDirectory("issue34.Interface1"); 
-		jvm.copyToTestdataDirectory("issue34.Interface2"); 
-		jvm.copyToTestdataDirectory("issue34.Implementation1"); 
-		jvm.copyToTestdataDirectory("issue34.Implementation2"); 
-		jvm.copyToTestdataDirectory("issue34.Implementation3"); 
+		jvm.copyToTestdataDirectory("issue34.Interface1");
+		jvm.copyToTestdataDirectory("issue34.Interface2");
+		jvm.copyToTestdataDirectory("issue34.Implementation1");
+		jvm.copyToTestdataDirectory("issue34.Implementation2");
+		jvm.copyToTestdataDirectory("issue34.Implementation3");
 		JVMOutput output = jvm.run("issue34.Implementation3");
-		assertStdout("Hello World!\n", output);		
+		assertStdoutContains("Hello World!\n", output);
 	}
-	
+
 	@Test
 	public void serialization() throws Exception {
 		jvm.copyToTestdataDirectory("remote.Serialize");
@@ -81,14 +96,14 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		// When the Serialize class is run directly, we see: byteinfo:len=98:crc=c1047cf6
 		// When run via the non separate JVM test, we see: byteinfo:len=98:crc=7e07276a
 		// When run here, we see: byteinfo:len=98:crc=c1047cf6
-	
+
 		output = jvm.run("remote.Serialize");
 		assertStdoutContains("check ok\n", output);
 
 		// Load new Person
-		jvm.updateClass("remote.Person", retrieveRename("remote.Person","remote.Person2"));
+		jvm.updateClass("remote.Person", retrieveRename("remote.Person", "remote.Person2"));
 		pause(2);
-		
+
 		output = jvm.run("remote.Serialize");
 		assertStdoutContains("check ok\n", output);
 
@@ -99,51 +114,116 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		output = jvm.run("remote.Serialize");
 		assertStdoutContains("check ok\n", output);
 	}
-	
+
+	private String[] copyToCompileFolder(File compileFolder, String prefix, String... files) throws IOException {
+		List<String> sourceFiles = new ArrayList<String>();
+		for (String name : files) {
+			InputStream is = this.getClass().getResourceAsStream(name);
+			if (null == is) {
+				throw new IllegalStateException("unable to load " + name);
+			}
+			String destName = name.replace(".file", "");
+			destName = destName.replace(prefix, "");
+			Path destPath = new File(compileFolder, destName).toPath();
+			destPath.toFile().mkdirs();
+			Files.copy(is, destPath, StandardCopyOption.REPLACE_EXISTING);
+			sourceFiles.add(destPath.toFile().getPath());
+		}
+		return sourceFiles.toArray(new String[sourceFiles.size()]);
+	}
+
+	public void compile(File compileFolder, String... files) throws IOException {
+		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		compiler.run(null, null, null, files);
+	}
+
+	public void compile(String prefix, String files) throws IOException {
+		File compileDir = jvm.testdataDirectory;
+		String[] copiedFiles = copyToCompileFolder(compileDir, prefix, files);
+		compile(compileDir, copiedFiles);
+	}
+
+	@Test
+	public void testReferenceInstanceMEthodOfObject() throws IOException {
+		compile("/original/", "/original/basic/LambdaJ.java.file");
+		JVMOutput output = jvm.sendAndReceive("new orig basic.LambdaJ");
+		output = jvm.sendAndReceive("run basic.LambdaJ");
+
+		assertStdoutContains("in first foo", output);
+		assertStdoutContains("fooa", output);
+
+		compile("/modified/", "/modified/basic/LambdaJ.java.file");
+		//        jvm.reload("basic.LambdaJ");
+		waitForReloadToOccur();
+
+		output = jvm.sendAndReceive("run basic.LambdaJ");
+		assertStdoutContains("in second foo", output);
+		assertStdoutContains("fooab", output);
+	}
+
+	@Test
+	public void testStaticMethodReference() throws IOException {
+		compile("/original/", "/original/basic/StaticMethodReference.java.file");
+		JVMOutput output = jvm.sendAndReceive("run basic.StaticMethodReference");
+
+		assertStdoutContains("in 1st static Method", output);
+		assertStdoutContains("staticsa", output);
+
+		compile("/modified/", "/modified/basic/StaticMethodReference.java.file");
+		jvm.reload("basic.StaticMethodReference");
+		waitForReloadToOccur();
+
+		output = jvm.sendAndReceive("run basic.StaticMethodReference");
+		assertStdoutContains("in 2nd static Method", output);
+		assertStdoutContains("staticsasb", output);
+	}
+
+
 	// Deserializing something serialized earlier
 	@Test
 	public void serialization2() throws Exception {
 		jvm.copyToTestdataDirectory("remote.Serialize");
 		jvm.copyToTestdataDirectory("remote.Person");
 		JVMOutput output = null;
-		
+
 		output = jvm.run("remote.Serialize");
 		assertStdoutContains("check ok\n", output);
 
 		jvm.newInstance("a", "remote.Serialize");
-		JVMOutput jo = jvm.call("a","checkPredeserializedData");
+		JVMOutput jo = jvm.call("a", "checkPredeserializedData");
 		assertStdoutContains("Pre-serialized form checked ok\n", jo);
 	}
-	
+
 	// Deserialize a groovy closure
 	@Test
 	public void serializationGroovy() throws Exception {
-//		debug();
+		//		debug();
 		jvm.copyToTestdataDirectory("remote.SerializeG");
-		jvm.copyToTestdataDirectory("remote.FakeClosure");	
-		
+		jvm.copyToTestdataDirectory("remote.FakeClosure");
+
 		// Notes on serialization
 		// When SerializeG run standalone, reports byteinfo:len=283:crc=245529d9
 		// When run in agented JVM, reports byteinfo:len=283:crc=245529d9
-		
+
 		jvm.newInstance("a", "remote.SerializeG");
-		JVMOutput jo = jvm.call("a","checkPredeserializedData");
+		JVMOutput jo = jvm.call("a", "checkPredeserializedData");
 		assertStdoutContains("Pre-serialized groovy form checked ok\n", jo);
 	}
-	
+
 	@Test
 	public void githubIssue34_2() throws Exception {
-		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters"); 
-		jvm.copyToTestdataDirectory("issue34.InnerEnum$MyComparator"); 
-		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters$1"); 
+		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters");
+		jvm.copyToTestdataDirectory("issue34.InnerEnum$MyComparator");
+		jvm.copyToTestdataDirectory("issue34.InnerEnum$sorters$1");
 		JVMOutput output = jvm.run("issue34.InnerEnum");
-		assertStdout("Hello World!\n", output);		
+		assertStdout("Hello World!\n", output);
 	}
 
 	@Test
 	public void testCreatingAndInvokingMethodsOnInstance() throws Exception {
 		assertStderrContains("creating new instance 'a' of type 'jvmtwo.Runner'", jvm.newInstance("a", "jvmtwo.Runner"));
-		assertStdout("jvmtwo.Runner.run1() running", jvm.call("a", "run1"));
+		JVMOutput out = jvm.call("a", "run1");
+		assertStdoutContains("jvmtwo.Runner.run1() running", out);
 	}
 
 	/* careful with this test - when the forked JVM takes a while the output can interfere with later tests, needs fixing up
@@ -152,41 +232,42 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	@Ignore
 	@Test
 	public void reloadedPerformance() throws Exception {
-//		debug();
-		jvm.newInstance("a","remote.Perf1");
-		JVMOutput jo = jvm.call("a","time"); // 75ms
-		jo = jvm.call("a","time"); // 75ms
+		//		debug();
+		jvm.newInstance("a", "remote.Perf1");
+		JVMOutput jo = jvm.call("a", "time"); // 75ms
+		jo = jvm.call("a", "time"); // 75ms
 		pause(5);
-		jvm.updateClass("remote.Perf1",retrieveRename("remote.Perf1","remote.Perf2"));
+		jvm.updateClass("remote.Perf1", retrieveRename("remote.Perf1", "remote.Perf2"));
 		pause(2);
 		// In Perf2 the static method is gone, why does it give us a NSME?
-		jo = jvm.call("a","time"); // 150ms
+		jo = jvm.call("a", "time"); // 150ms
 		pause(5);
 	}
-	
+
 	@SuppressWarnings("unused")
 	private final static void debug() {
 		jvm.shutdown();
-		jvm = ReloadingJVM.launch("",true);
+		jvm = ReloadingJVM.launch("", true);
 	}
-	
+
 	@SuppressWarnings("unused")
 	private final static void debug(String options) {
-		jvm = ReloadingJVM.launch(options,true);
+		jvm = ReloadingJVM.launch(options, true);
 	}
-	
+
 	@Test
 	public void testReloadingInOtherVM() throws Exception {
 		jvm.newInstance("b", "remote.One");
-		assertStdout("first", jvm.call("b", "run"));
+		assertStdoutContains("first", jvm.call("b", "run"));
 		pause(1);
-		jvm.updateClass("remote.One",retrieveRename("remote.One","remote.One2"));
+		jvm.updateClass("remote.One", retrieveRename("remote.One", "remote.One2"));
 		pause(2);
 		assertStdoutContains("second", jvm.call("b", "run"));
 	}
+
 	// TODO tidyup test data area after each test?
 	// TODO flush/replace classloader in forked VM to clear it out after each test?
-	
+
 	// GRAILS-10411
 	/**
 	 * GRAILS-10411. The supertype is not reloadable, the subtype is reloadable and makes super calls
@@ -194,34 +275,34 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	 */
 	@Test
 	public void testClassMakingSuperCalls() throws Exception {
-		String supertype="grails.Top";
-		String subtype="foo.Controller";
-		jvm.copyToTestdataDirectory(supertype); 
+		String supertype = "grails.Top";
+		String subtype = "foo.Controller";
+		jvm.copyToTestdataDirectory(supertype);
 		jvm.copyToTestdataDirectory(subtype);
-		JVMOutput jo = jvm.newInstance("bb",subtype);
+		JVMOutput jo = jvm.newInstance("bb", subtype);
 		System.out.println(jo);
 		pause(1);
 		assertStdout("Top.foo() running\nController.foo() running\n", jvm.call("bb", "foo"));
 		pause(1);
-		jvm.updateClass(subtype,retrieveRename(subtype,subtype+"2"));
+		jvm.updateClass(subtype, retrieveRename(subtype, subtype + "2"));
 		waitForReloadToOccur();
 		jo = jvm.call("bb", "foo");
 		assertStdoutContains("Top.foo() running\nController.foo() running again!\n", jo);
 	}
-	
+
 	/**
 	 * GRAILS-10411. The supertype is not reloadable, the subtype is reloadable and makes super calls
 	 * to overridden methods. This time the supertype method is protected.
 	 */
 	@Test
 	public void testClassMakingSuperCalls2() throws Exception {
-		String supertype="grails.TopB";
-		String subtype="foo.ControllerB";
-		jvm.copyToTestdataDirectory(supertype); 
+		String supertype = "grails.TopB";
+		String subtype = "foo.ControllerB";
+		jvm.copyToTestdataDirectory(supertype);
 		jvm.copyToTestdataDirectory(subtype);
-		jvm.newInstance("a",subtype);
+		jvm.newInstance("a", subtype);
 		assertStdout("TopB.foo() running\nControllerB.foo() running\n", jvm.call("a", "foo"));
-		jvm.updateClass(subtype,retrieveRename(subtype,subtype+"2"));
+		jvm.updateClass(subtype, retrieveRename(subtype, subtype + "2"));
 		waitForReloadToOccur();
 		assertStdoutContains("TopB.foo() running\nControllerB.foo() running again!\n", jvm.call("a", "foo"));
 	}
@@ -229,9 +310,10 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	// ---
 
 	private void waitForReloadToOccur() {
-		try { Thread.sleep(2000); } catch (Exception e) {}
+		try {
+			Thread.sleep(2000);
+		} catch (Exception e) {
+		}
 	}
-
-	
 
 }

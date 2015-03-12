@@ -15,11 +15,16 @@
  */
 package org.springsource.loaded.test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 
 import org.springsource.loaded.Utils;
 
@@ -31,76 +36,92 @@ import org.springsource.loaded.Utils;
  * @author Andy Clement
  */
 public class ReloadingJVM {
-
+	private static final boolean DEBUG_CLIENT_SIDE = true;
+	private static final char NUL = '\0';
+	private static int BUFFER_SIZE = 100;
 	public static String agentJarLocation = null;
 	String javaclasspath;
 	File testdataDirectory;
-	Process process;
+	private Process process;
 	private boolean debug = false;
-	DataInputStream reader;
+
 	DataOutputStream writer;
-	DataInputStream readerErrors;
+	private LinkedBlockingDeque<String> stdoutQueue = new LinkedBlockingDeque<String>(BUFFER_SIZE);
+	private LinkedBlockingDeque<String> stderrQueue = new LinkedBlockingDeque<String>(BUFFER_SIZE);
 
 	static String search(File where) {
 		File[] fs = where.listFiles();
-		if (fs!=null) {
-			for (File f: fs) {
+		if (fs != null) {
+			for (File f : fs) {
 				if (f.isDirectory()) {
 					String s = search(f);
-					if (s!=null) {
+					if (s != null) {
 						return s;
 					}
-				}
-				else if (f.getName().startsWith("springloaded") && f.getName().endsWith(".jar") && !f.getName().contains("sources") && !f.getName().contains("javadoc")) {
+				} else if (f.getName().startsWith("springloaded") && f.getName().endsWith(".jar") && !f.getName().contains("sources") && !f.getName().contains("javadoc")) {
 					return f.getAbsolutePath();
 				}
 			}
 		}
 		return null;
 	}
-	
+
 	static {
 		// Find the agent
 		File searchLocation = new File("..");
 		agentJarLocation = search(searchLocation);
 	}
-	
+
 	private ReloadingJVM(String agentOptions, boolean debug) {
 		try {
 			this.debug = debug;
 			javaclasspath = System.getProperty("java.class.path");
-			
+
 			// Create a temporary folder where we can load/replace class files for the file watcher to observe
-			testdataDirectory = File.createTempFile("_sl","");
+			testdataDirectory = File.createTempFile("_sl", "");
 			testdataDirectory.delete();
 			testdataDirectory.mkdir();
 			if (DEBUG_CLIENT_SIDE) {
-				System.out.println("Found agent at "+agentJarLocation);
-				System.out.println("(client) Test data directory is "+testdataDirectory);
+				System.out.println("Found agent at " + agentJarLocation);
+				System.out.println("(client) Test data directory is " + testdataDirectory);
 			}
 			javaclasspath = javaclasspath + File.pathSeparator + new File("../testdata-groovy/groovy-all-1.8.6.jar").toString();
 			javaclasspath = javaclasspath + File.pathSeparator + testdataDirectory.toString();
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) Classpath for JVM that is being launched: " + javaclasspath);
 			}
-			String OPTS = debug?"-Xdebug -Xrunjdwp:transport=dt_socket,address=5100,server=y,suspend=y":"";
+//			String OPTS = debug ? "-Xdebug -Xrunjdwp:transport=dt_socket,address=5100,server=y,suspend=y" : "";
 			String AGENT_OPTION_STRING = "";
-			if (agentOptions!=null && agentOptions.length()>0) {
-				AGENT_OPTION_STRING = "-Dspringloaded="+agentOptions;
+			if (agentOptions != null && agentOptions.length() > 0) {
+				AGENT_OPTION_STRING = "-Dspringloaded=" + agentOptions;
 			}
 			if (DEBUG_CLIENT_SIDE) {
-				System.out.println("java.home="+System.getProperty("java.home"));
+				System.out.println("java.home=" + System.getProperty("java.home"));
 			}
-			process = Runtime.getRuntime().exec(
-					// Run on my Java6
-//					"/System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home"+
-					System.getProperty("java.home")+
-					"/bin/java -noverify -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " " + AGENT_OPTION_STRING +
-					" "+OPTS+" "
-							+ ReloadingJVMCommandProcess.class.getName(), new String[] { OPTS });
+//			process = Runtime.getRuntime().exec(
+//					System.getProperty("java.home") + "/bin/java -noverify -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " " + AGENT_OPTION_STRING + " " + OPTS + " "
+//							+ ReloadingJVMCommandProcess.class.getName(), new String[] { OPTS });
+			final ProcessBuilder builder = new ProcessBuilder();
+			List<String> commands = new ArrayList<String>();
+			commands.add(System.getProperty("java.home") + "/bin/java");
+			commands.add("-noverify");
+			commands.add("-javaagent:" + agentJarLocation);
+			commands.add("-cp");
+			commands.add(javaclasspath);
+			if (AGENT_OPTION_STRING.length() > 0)
+				commands.add(AGENT_OPTION_STRING);
+			if (debug) {
+				commands.add("-Xdebug");
+				commands.add("-Xrunjdwp:transport=dt_socket,address=5100,server=y,suspend=y");
+			}
+			commands.add(ReloadingJVMCommandProcess.class.getName());
+			builder.command(commands);
+
+			process = builder.start();
 			writer = new DataOutputStream(process.getOutputStream());
-			reader = new DataInputStream(process.getInputStream());
-			readerErrors = new DataInputStream(process.getErrorStream());
+			startStdoutReader(process.getInputStream());
+			startStderrReader(process.getErrorStream());
+
 			if (debug) {
 				System.out.println("Debugging launched VM, port 5100");
 			}
@@ -109,26 +130,26 @@ public class ReloadingJVM {
 				System.out.println(text);
 			}
 		} catch (IOException ioe) {
+			ioe.printStackTrace(System.err);
 			throw new RuntimeException("Unable to launch JVM", ioe);
+		} catch (InterruptedException e) {
+			e.printStackTrace(System.err);
 		}
 	}
 
 	public static ReloadingJVM launch(String options) {
-		return new ReloadingJVM(options,false);
+		return new ReloadingJVM(options, false);
 	}
 
-	public static ReloadingJVM launch(String options,boolean debug) {
-		return new ReloadingJVM(options,debug);
+	public static ReloadingJVM launch(String options, boolean debug) {
+		return new ReloadingJVM(options, debug);
 	}
 
-
-	private JVMOutput waitFor(String message) {
+	private JVMOutput waitFor(String message) throws InterruptedException {
 		return captureOutput(message);
 	}
 
-	private final static boolean DEBUG_CLIENT_SIDE = true;
-
-	private JVMOutput sendAndReceive(String message) {
+	public JVMOutput sendAndReceive(String message) {
 		try {
 			if (DEBUG_CLIENT_SIDE) {
 				System.out.println("(client) >> sending command '" + message + "'");
@@ -151,46 +172,56 @@ public class ReloadingJVM {
 		}
 
 		public String toString() {
-			StringBuilder s = new StringBuilder("==STDOUT==\n").append(stdout).append("\n").append("==STDERR==\n").append(stderr)
-					.append("\n==========\n");
+			StringBuilder s = new StringBuilder("==STDOUT==\n").append(stdout).append("\n").append("==STDERR==\n").append(stderr).append("\n==========\n");
 			return s.toString();
 		}
 	}
 
 	private JVMOutput captureOutput(String terminationString) {
+		// stdout
+		JVMOutput jvmOutput = null;
 		try {
-			long time = System.currentTimeMillis();
-			int timeout = 1000+(debug?60000:0); // 1s timeout
-			byte[] buf = new byte[1024];
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			boolean found = false;
-			while ((System.currentTimeMillis() - time) < timeout && !found) {
-//				System.out.println("Waiting on ["+terminationString+"] so far: ["+baos.toString()+"]");
-				while (readerErrors.available() != 0) {
-					int read = readerErrors.read(buf);
-					baos.write(buf, 0, read);
-				}
-				if (baos.toString().indexOf(terminationString) != -1) {
-					found = true;
-				}
-				try { Thread.sleep(100); } catch (Exception e) {}
-			}
-			String stderr = baos.toString();
-			baos = new ByteArrayOutputStream();
-			while (reader.available() != 0) {
-				int read = reader.read(buf);
-				baos.write(buf, 0, read);
-			}
-			String stdout = baos.toString();
-			if (DEBUG_CLIENT_SIDE) {
-				System.out.println("(client) >> received  \n== STDOUT ==\n" + stdout + "\n== STDERR==\n" + stderr);
-			}
-			// append system error
-			return new JVMOutput(stdout, stderr);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			String stderr = receiveFromControlQueue(stderrQueue, terminationString);
+			Thread.yield();
+			Thread.sleep(500); // give some time to thread to fill the queue...
+			String stdout = receiveFromOutputQueue(stdoutQueue);
+			jvmOutput = new JVMOutput(stdout, stderr);
+		} catch (InterruptedException ex) {
+			ex.printStackTrace(System.err);
+			jvmOutput = new JVMOutput("", "Error occured. ReloadingJVM was interrupted");
 		}
+		return jvmOutput;
+	}
+
+	private String receiveFromOutputQueue(LinkedBlockingDeque<String> outputQueue) {
+		StringWriter stringWriter = new StringWriter();
+		List<String> lines = new ArrayList<String>();
+		outputQueue.drainTo(lines);
+		for (String line : lines) {
+			stringWriter.append(line).append("\n");
+			if (DEBUG_CLIENT_SIDE) {
+				System.out.println("(client) >>> received: " + line);
+			}
+		}
+		String capturedLines = stringWriter.toString();
+
+		return capturedLines;
+	}
+
+	private String receiveFromControlQueue(LinkedBlockingDeque<String> controlQueue, String terminationString) throws InterruptedException {
+		String nulLine = new String(new char[] { NUL });
+		String line = nulLine;
+		// stderr mimics control channel
+		StringWriter stringWriter = new StringWriter();
+		do {
+			line = controlQueue.take(); // blocks
+			if (DEBUG_CLIENT_SIDE) {
+				System.out.println("(client) >> received: " + line);
+			}
+			stringWriter.append(line).append("\n");
+		} while (!terminationString.equals(line) && !nulLine.equals(line));
+		String capturedLines = stringWriter.toString();
+		return capturedLines;
 	}
 
 	public void shutdown() {
@@ -198,20 +229,18 @@ public class ReloadingJVM {
 		deleteIt(testdataDirectory);
 		process.destroy();
 	}
-	
+
 	/**
 	 * Recursively delete a file (emptying sub-directories if necessary)
 	 */
 	private void deleteIt(File f) {
 		if (f.isDirectory()) {
 			File[] files = f.listFiles();
-			for (File file: files) {
+			for (File file : files) {
 				deleteIt(file);
 			}
-//			System.out.println("Deleting "+f);
 			f.delete();
 		} else {
-//			System.out.println("Deleting "+f);
 			f.delete();
 		}
 	}
@@ -230,53 +259,50 @@ public class ReloadingJVM {
 
 	public void copyToTestdataDirectory(String classname) {
 		if (DEBUG_CLIENT_SIDE) {
-			System.out.println("(client) copying class to test data directory: "+classname);
+			System.out.println("(client) copying class to test data directory: " + classname);
 		}
-		String classfile = classname.replaceAll("\\.",File.separator)+".class";
-		File f = new File("../testdata/bin",classfile);
+		String classfile = classname.replaceAll("\\.", File.separator) + ".class";
+		File f = new File("../testdata/build/classes/main", classfile);
 		if (!f.exists()) {
-			f = new File("../testdata-groovy/bin",classfile);
+			f = new File("../testdata-groovy/build/classes/main", classfile);
 		}
 		byte[] data = Utils.load(f);
 		// Ensure directories exist
 		int dotPos = classname.lastIndexOf(".");
-		if (dotPos!=-1) {
-			new File(testdataDirectory,classname.substring(0,dotPos).replaceAll("\\.",File.separator)).mkdirs();
+		if (dotPos != -1) {
+			new File(testdataDirectory, classname.substring(0, dotPos).replaceAll("\\.", File.separator)).mkdirs();
 		}
-		Utils.write(new File(testdataDirectory,classfile),data);
+		Utils.write(new File(testdataDirectory, classfile), data);
 	}
 
 	public void copyResourceToTestDataDirectory(String resourcename) {
 		if (DEBUG_CLIENT_SIDE) {
-			System.out.println("(client) copying resource to test data directory: "+resourcename);
+			System.out.println("(client) copying resource to test data directory: " + resourcename);
 		}
-		File f = new File("../testdata-groovy/",resourcename);
+		File f = new File("../testdata-groovy/", resourcename);
 		byte[] data = Utils.load(f);
-//		// Ensure directories exist
-//		int dotPos = classname.lastIndexOf(".");
-//		if (dotPos!=-1) {
-//			new File(testdataDirectory,classname.substring(0,dotPos).replaceAll("\\.",File.separator)).mkdirs();
-//		}
-		Utils.write(new File(testdataDirectory,resourcename),data);
+		//		// Ensure directories exist
+		//		int dotPos = classname.lastIndexOf(".");
+		//		if (dotPos!=-1) {
+		//			new File(testdataDirectory,classname.substring(0,dotPos).replaceAll("\\.",File.separator)).mkdirs();
+		//		}
+		Utils.write(new File(testdataDirectory, resourcename), data);
 	}
-	
-	
-	
+
 	public void clearTestdataDirectory() {
 		File[] fs = testdataDirectory.listFiles();
-		for (File f: fs) {
+		for (File f : fs) {
 			delete(f);
 		}
 	}
-	
+
 	private void delete(File toDelete) {
 		if (toDelete.isDirectory()) {
 			File[] fs = toDelete.listFiles();
-			for (File f: fs) {
+			for (File f : fs) {
 				delete(f);
 			}
-		}
-		else {
+		} else {
 			toDelete.delete();
 		}
 	}
@@ -285,9 +311,9 @@ public class ReloadingJVM {
 		copyToTestdataDirectory(classname);
 		return sendAndReceive("new " + instanceName + " " + classname);
 	}
-	
+
 	public JVMOutput reload(String dottedClassname) {
-		return sendAndReceive("reload "+dottedClassname);
+		return sendAndReceive("reload " + dottedClassname);
 	}
 
 	public JVMOutput call(String instanceName, String methodname) {
@@ -309,8 +335,108 @@ public class ReloadingJVM {
 	}
 
 	public void updateClass(String string, byte[] newdata) {
-		String classfile = string.replaceAll("\\.",File.separator)+".class";
-		Utils.write(new File(testdataDirectory,classfile),newdata);
+		String classfile = string.replaceAll("\\.", File.separator) + ".class";
+		Utils.write(new File(testdataDirectory, classfile), newdata);
 	}
 
+	private static abstract class ReadingThread implements Runnable {
+		private static final char NL = '\n';
+		private static final char CR = '\r';
+
+		private Reader output;
+		private StringBuffer lineBuffer;
+
+		ReadingThread(InputStream output) {
+			this.output = new InputStreamReader(output);
+			this.lineBuffer = new StringBuffer();
+		}
+
+		public void run() {
+			while (true) {
+				try {
+					int readCharacter = output.read();
+					if (-1 == readCharacter) {
+						endOfStream();
+						break;
+					} else {
+						char lastChar = (char) readCharacter;
+						if (CR == lastChar || NL == lastChar) {
+							// skip new line characters
+						} else {
+							lineBuffer.append(lastChar);
+						}
+						if (NL == lastChar) {
+							// sync and reset buffer on new line
+							lineReceived();
+						}
+					}
+				} catch (IOException e) {
+					onException(e);
+				}
+			}
+		}
+
+		private void onException(IOException e) {
+			// we've broken: flush lines, notify interested parties..
+			lineReceived();
+		}
+
+		private void endOfStream() {
+			// nothing to read - notify interested parties..
+			lineReceived();
+		};
+
+		private void lineReceived() {
+			synchronized (lineBuffer) {
+				String line = lineBuffer.toString();
+				lineBuffer.setLength(0);
+				if (line.length() > 0) {
+					onLine(line);
+				}
+			}
+		}
+
+		abstract void onLine(String line);
+	}
+
+	private class StdoutThread extends ReadingThread {
+		StdoutThread(InputStream output) {
+			super(output);
+		}
+
+		void onLine(String line) {
+			try {
+				stdoutQueue.put(line);
+			} catch (InterruptedException e) {
+				System.err.println("Unable to put following stdout line: '" + line + "'");
+			}
+		}
+	}
+
+	private class StderrThread extends ReadingThread {
+		public StderrThread(InputStream output) {
+			super(output);
+		}
+
+		@Override
+		void onLine(String line) {
+			try {
+				stderrQueue.put(line);
+			} catch (InterruptedException e) {
+				System.err.println("Unable to put following stderr line: '" + line + "'");
+			}
+		}
+	}
+
+	private void startStderrReader(InputStream errorStream) {
+		Thread thread = new Thread(new StderrThread(errorStream), "stderr reader");
+		thread.setDaemon(true);
+		thread.start();
+	}
+
+	private void startStdoutReader(InputStream stdoutStream) {
+		Thread thread = new Thread(new StdoutThread(stdoutStream), "stdout reader");
+		thread.setDaemon(true);
+		thread.start();
+	}
 }
