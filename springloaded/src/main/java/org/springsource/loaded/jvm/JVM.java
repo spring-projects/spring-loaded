@@ -55,6 +55,7 @@ public class JVM {
 		}
 	}
 
+	private static Field jlrFieldRootField;
 	private static Method jlrFieldCopy;
 	static {
 		try {
@@ -62,6 +63,12 @@ public class JVM {
 			jlrFieldCopy.setAccessible(true);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting 'Field.copy()' method. Incompatible JVM?", e);
+		}
+		try {
+			jlrFieldRootField = Field.class.getDeclaredField("root");
+			jlrFieldRootField.setAccessible(true);
+		} catch (Exception e) {
+			// Possibly on a JDK level that didn't have this?
 		}
 	}
 
@@ -162,6 +169,13 @@ public class JVM {
 
 	public static Field copyField(Field field) {
 		try {
+			if (jlrFieldRootField != null) {
+				jlrFieldRootField.setAccessible(true);
+				Field possibleRoot = (Field)jlrFieldRootField.get(field);
+				if (possibleRoot != null) {
+					field = possibleRoot;
+				}
+			}
 			return (Field) jlrFieldCopy.invoke(field);
 		} catch (Exception e) {
 			log.log(Level.SEVERE, "Problems copying field. Incompatible JVM?", e);
