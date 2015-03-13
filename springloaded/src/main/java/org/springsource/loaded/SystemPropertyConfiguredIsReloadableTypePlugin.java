@@ -130,9 +130,9 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			}
 		}
 		try {
-			URI uri = codeSource.getLocation().toURI();
-			File file = new File(uri);
-			String path = file.toString();
+                    File file = new File(codeSource.getLocation().getFile());
+                    URI uri = file.toURI();
+                    String path = uri.toString();
 
 			synchronized (includes) {
 				for (String exclude : excludes) {
@@ -178,8 +178,6 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			//					}
 			//				}
 			//			}
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
 		} catch (IllegalArgumentException iae) {
 			// grails-9654
 			// On File.<init>() call:
