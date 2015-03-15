@@ -27,21 +27,27 @@ import java.util.StringTokenizer;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
 
-
 /**
  * When a ReloadingJVM is launched, this is the program it runs. It can be driven by commands and instructed to do things.
- * 
+ *
  * @author Andy Clement
  * @since 0.7.3
  */
 public class ReloadingJVMCommandProcess {
+
 	public static void main(String[] argv) throws IOException {
-		System.err.println("ReloadingJVM:started");System.err.flush();
+		System.err.println("ReloadingJVM:started");
+		System.err.flush();
 		try {
 			DataInputStream br = new DataInputStream((System.in));
 			do {
 				try {
-					String command = br.readUTF();
+					String command = "";
+					try {
+						command = br.readUTF();
+					} catch (IOException ex) {
+						System.exit(-1);
+					}
 					System.err.println("(jvm) processing command '" + command + "'");
 					StringTokenizer st = new StringTokenizer(command);
 					String commandName = st.nextToken();
@@ -52,23 +58,31 @@ public class ReloadingJVMCommandProcess {
 					//					String[] args = (arguments.size() > 0 ? arguments.toArray(new String[arguments.size()]) : null);
 					if (commandName.equals("exit")) {
 						System.err.println("ReloadingJVM:terminating!!");
+						flush();
 						System.exit(0);
 						return;
 					} else if (commandName.equals("echo")) {
 						echoCommand(arguments);
+						flush();
 					} else if (commandName.equals("run")) {
-						runCommand(arguments.get(0),asArray(arguments,1));
+						runCommand(arguments.get(0), asArray(arguments, 1));
+						flush();
 					} else if (commandName.equals("new")) {
 						newCommand(arguments.get(0), arguments.get(1));
+						flush();
 					} else if (commandName.equals("call")) {
 						callCommand(arguments.get(0), arguments.get(1));
+						flush();
 					} else if (commandName.equals("reload")) {
-						reloadCommand(arguments.get(0), arguments.size()==1?null:arguments.get(1));
+						reloadCommand(arguments.get(0), arguments.size() == 1 ? null : arguments.get(1));
+						flush();
 					} else {
 						System.out.println("Don't understand command '" + commandName + "' !!");
+						flush();
 					}
 				} catch (Exception e) {
 					e.printStackTrace(System.out);
+					System.err.println("!!");
 				} finally {
 					try {
 						Thread.sleep(750);
@@ -79,13 +93,20 @@ public class ReloadingJVMCommandProcess {
 			} while (true);
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
+		} finally {
+			System.err.println("!!");
 		}
 	}
 
+	private static void flush() {
+		System.out.println();
+		System.err.println("!!");
+	}
+
 	private static String[] asArray(List<String> arguments, int startpos) {
-		String[] result = new String[arguments.size()-startpos];
-		for (int i = startpos;i<arguments.size();i++) {
-			result[i-startpos] = arguments.get(i-startpos);
+		String[] result = new String[arguments.size() - startpos];
+		for (int i = startpos; i < arguments.size(); i++) {
+			result[i - startpos] = arguments.get(i - startpos);
 		}
 		return result;
 	}
@@ -104,7 +125,8 @@ public class ReloadingJVMCommandProcess {
 	 */
 	private static void runCommand(String classname, String[] arguments) {
 		try {
-//			System.out.println("Running the main method on "+classname+" with arguments ["+toString(arguments)+"]");
+			//            System.err.println("Running the main method on " + classname + " with arguments ["+toString(arguments)+"]");
+			System.err.println("Running the main method on " + classname);
 			Class<?> clazz = Class.forName(classname);
 			Method m = clazz.getDeclaredMethod("run");
 			m.invoke(null);
@@ -112,18 +134,18 @@ public class ReloadingJVMCommandProcess {
 			e.printStackTrace(System.out);
 		}
 	}
-	
-//	private static String toString(String[] array) {
-//		if (array == null) {
-//			return "null";
-//		}
-//		StringBuilder s = new StringBuilder();
-//		for (String string: array) {
-//			s.append(string);
-//			s.append(" ");
-//		}
-//		return s.toString().trim();
-//	}
+
+	//	private static String toString(String[] array) {
+	//		if (array == null) {
+	//			return "null";
+	//		}
+	//		StringBuilder s = new StringBuilder();
+	//		for (String string: array) {
+	//			s.append(string);
+	//			s.append(" ");
+	//		}
+	//		return s.toString().trim();
+	//	}
 
 	private static Map<String, Object> instances = new HashMap<String, Object>();
 
@@ -134,7 +156,6 @@ public class ReloadingJVMCommandProcess {
 			Class<?> clazz = o.getClass();
 			Method m = clazz.getDeclaredMethod(methodName);
 			m.invoke(o);
-			System.err.println("!!");
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
 		}
@@ -145,12 +166,11 @@ public class ReloadingJVMCommandProcess {
 			Class<?> clazz = Class.forName(classname);
 			TypeRegistry tr = TypeRegistry.getTypeRegistryFor(clazz.getClassLoader());
 			ReloadableType rt = tr.getReloadableType(clazz);
-			byte[] newdata = data!=null?fromHexString(data):rt.bytesInitial;
+			byte[] newdata = data != null ? fromHexString(data) : rt.bytesInitial;
 			boolean b = rt.loadNewVersion("2", newdata);
 			if (!b) {
-				throw new IllegalStateException("Failed to reload new verion of "+classname);
+				throw new IllegalStateException("Failed to reload new verion of " + classname);
 			}
-			System.err.println("!!");
 		} catch (Exception e) {
 			e.printStackTrace(System.out);
 		}
@@ -159,8 +179,7 @@ public class ReloadingJVMCommandProcess {
 	private static byte[] fromHexString(String data) {
 		byte[] bs = new byte[data.length() / 2];
 		for (int i = 0; i < bs.length; i++) {
-			bs[i] = (byte) ((Byte.parseByte(data.substring(i * 2, i * 2 + 1)) << 4) | Byte.parseByte(data.substring(i * 2 + 1,
-					i * 2 + 2)));
+			bs[i] = (byte) ((Byte.parseByte(data.substring(i * 2, i * 2 + 1)) << 4) | Byte.parseByte(data.substring(i * 2 + 1, i * 2 + 2)));
 		}
 		return bs;
 	}
@@ -172,7 +191,7 @@ public class ReloadingJVMCommandProcess {
 			instances.put(instanceName, clazz.newInstance());
 			System.err.println("(jvm) instance successfully created!!");
 		} catch (Exception e) {
-			System.out.println("(jvm) failed to create instance " + e.getMessage()+"!!");
+			System.out.println("(jvm) failed to create instance " + e.getMessage() + "!!");
 			e.printStackTrace(System.out);
 		}
 

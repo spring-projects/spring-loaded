@@ -72,10 +72,9 @@ import org.springsource.loaded.test.infra.Result;
 import org.springsource.loaded.test.infra.ResultException;
 import org.springsource.loaded.test.infra.TestClassLoader;
 
-
 /**
  * Abstract root test class containing helper functions.
- * 
+ *
  * @author Andy Clement
  * @since 1.0
  */
@@ -92,12 +91,11 @@ public abstract class SpringLoadedTests implements Constants {
 	protected String AspectjrtJar = "../testdata/aspectjrt.jar";
 	protected String CodeJar = "../testdata/code.jar";
 	// TODO [java8] replace this with project dependency when Java8 is out
-	protected String Java8CodeJar = findJar("../testdata-java8/build/libs","testdata-java8");
+	protected String Java8CodeJar = findJar("../testdata-java8/build/libs", "testdata-java8");
 	protected String GroovyrtJar = "../testdata-groovy/groovy-all-1.8.6.jar";
 	protected Result result;
 	protected TypeRegistry registry;
 
-	
 	@Before
 	public void setup() throws Exception {
 		SpringLoadedPreProcessor.disabled = true;
@@ -117,7 +115,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * Convert an array of string paths to an array of URLs
-	 * 
+	 *
 	 * @param paths the string paths
 	 * @return the converted URLs
 	 */
@@ -177,9 +175,8 @@ public abstract class SpringLoadedTests implements Constants {
 
 	public static boolean capture = true;
 
-	public Result runUnguardedWithCCL(Class<?> clazz, ClassLoader ccl, String methodname, Object... params)
-			throws InstantiationException, IllegalAccessException, SecurityException, NoSuchMethodException,
-			IllegalArgumentException, InvocationTargetException {
+	public Result runUnguardedWithCCL(Class<?> clazz, ClassLoader ccl, String methodname, Object... params) throws InstantiationException, IllegalAccessException, SecurityException,
+			NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
 		ClassLoader oldCCL = Thread.currentThread().getContextClassLoader();
 		try {
 			Thread.currentThread().setContextClassLoader(ccl);
@@ -189,8 +186,8 @@ public abstract class SpringLoadedTests implements Constants {
 		}
 	}
 
-	public Result runUnguarded(Class<?> clazz, String methodname, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public Result runUnguarded(Class<?> clazz, String methodname, Object... params) throws InstantiationException, IllegalAccessException, SecurityException, NoSuchMethodException,
+			IllegalArgumentException, InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -226,8 +223,8 @@ public abstract class SpringLoadedTests implements Constants {
 		return new Result(result, oso.toString().replace("\r", ""), ose.toString().replace("\r", ""));
 	}
 
-	public Result runStaticUnguarded(Class<?> clazz, String methodname, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public Result runStaticUnguarded(Class<?> clazz, String methodname, Object... params) throws InstantiationException, IllegalAccessException, SecurityException, NoSuchMethodException,
+			IllegalArgumentException, InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -262,8 +259,8 @@ public abstract class SpringLoadedTests implements Constants {
 		return new Result(result, oso.toString().replace("\r", ""), ose.toString().replace("\r", ""));
 	}
 
-	public Result runConstructor(Class<?> clazz, int whichConstructor, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public Result runConstructor(Class<?> clazz, int whichConstructor, Object... params) throws InstantiationException, IllegalAccessException, SecurityException, NoSuchMethodException,
+			IllegalArgumentException, InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -294,8 +291,8 @@ public abstract class SpringLoadedTests implements Constants {
 		return new Result(result, oso.toString().replace("\r", ""), ose.toString().replace("\r", ""));
 	}
 
-	public Result runConstructor(Class<?> clazz, String paramDescriptor, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public Result runConstructor(Class<?> clazz, String paramDescriptor, Object... params) throws InstantiationException, IllegalAccessException, SecurityException, NoSuchMethodException,
+			IllegalArgumentException, InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -321,8 +318,7 @@ public abstract class SpringLoadedTests implements Constants {
 			}
 
 			if (c == null) {
-				Assert.fail("Invocation failure: could not find constructor with param descriptor " + paramDescriptor
-						+ " on type '" + clazz.getName());
+				Assert.fail("Invocation failure: could not find constructor with param descriptor " + paramDescriptor + " on type '" + clazz.getName());
 			}
 			c.setAccessible(true);
 			result = c.newInstance(params);
@@ -347,8 +343,8 @@ public abstract class SpringLoadedTests implements Constants {
 		return s.toString().trim();
 	}
 
-	public void runExpectNoSuchMethodException(Class<?> clazz, String methodname, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public void runExpectNoSuchMethodException(Class<?> clazz, String methodname, Object... params) throws InstantiationException, IllegalAccessException, SecurityException,
+			NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
 		try {
 			runUnguarded(clazz, methodname, params);
 			Assert.fail("should not work, NSME should occur for " + methodname);
@@ -390,8 +386,7 @@ public abstract class SpringLoadedTests implements Constants {
 				}
 			}
 			if (m == null) {
-				throw new IllegalStateException("No method called " + methodname + " to call on type "
-						+ (instance == null ? "null" : instance.getClass().getName()));
+				throw new IllegalStateException("No method called " + methodname + " to call on type " + (instance == null ? "null" : instance.getClass().getName()));
 			}
 			try {
 				result = m.invoke(instance, params);
@@ -436,7 +431,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * retargets are "from.this.thing:to.this.thing"
-	 * 
+	 *
 	 * @param newName
 	 * @param name
 	 * @param retargets of the form "this.from:this.to"
@@ -528,7 +523,7 @@ public abstract class SpringLoadedTests implements Constants {
 	protected ClassNode getClassNode(byte[] classdata) {
 		ClassNode cn = new ClassNode();
 		ClassReader cr = new ClassReader(classdata);
-		cr.accept(cn, 0);	
+		cr.accept(cn, 0);
 		return cn;
 	}
 
@@ -536,23 +531,25 @@ public abstract class SpringLoadedTests implements Constants {
 	protected List<MethodNode> getMethods(byte[] classdata) {
 		return getClassNode(classdata).methods;
 	}
-	
+
 	protected int countMethods(byte[] classdata) {
 		ClassNode cn = getClassNode(classdata);
-		return cn.methods==null?0:cn.methods.size();
-	}	
+		return cn.methods == null ? 0 : cn.methods.size();
+	}
 
 	protected List<MethodNode> filter(List<MethodNode> methods, String nameSubstring) {
-		if (methods == null) { return Collections.<MethodNode>emptyList(); }
+		if (methods == null) {
+			return Collections.<MethodNode> emptyList();
+		}
 		List<MethodNode> subset = new ArrayList<MethodNode>();
-		for (MethodNode methodNode: methods) {
+		for (MethodNode methodNode : methods) {
 			if (methodNode.name.contains(nameSubstring)) {
 				subset.add(methodNode);
 			}
 		}
 		return subset;
 	}
-	
+
 	protected String toStringClass(byte[] classdata) {
 		return toStringClass(classdata, false, false);
 	}
@@ -606,14 +603,14 @@ public abstract class SpringLoadedTests implements Constants {
 	public static String findJar(String whereToLook, String jarPrefix) {
 		File dir = new File(whereToLook);
 		File[] fs = dir.listFiles();
-		for (File f: fs) {
+		for (File f : fs) {
 			if (f.getName().startsWith(jarPrefix)) {
 				return f.toString();
 			}
 		}
 		return null;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected String toStringField(byte[] classdata, String fieldname) {
 		StringBuilder sb = new StringBuilder();
@@ -634,8 +631,7 @@ public abstract class SpringLoadedTests implements Constants {
 		//		if (attrs = !null) {
 		//			sb.append("attrs(").append(toStringAttributes(attrs)).append(") ");
 		//		}
-		sb.append("0x").append(Integer.toHexString(fieldNode.access)).append("(")
-				.append(ClassPrinter.toAccessForMember(fieldNode.access)).append(") ");
+		sb.append("0x").append(Integer.toHexString(fieldNode.access)).append("(").append(ClassPrinter.toAccessForMember(fieldNode.access)).append(") ");
 		sb.append(fieldNode.name).append(" ");
 		sb.append(fieldNode.desc).append(" ");
 		if (fieldNode.signature != null) {
@@ -672,7 +668,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * From asm:
-	 * 
+	 *
 	 * The name value pairs of this annotation. Each name value pair is stored as two consecutive elements in the list. The name is
 	 * a {@link String}, and the value may be a {@link Byte}, {@link Boolean}, {@link Character}, {@link Short}, {@link Integer},
 	 * {@link Long}, {@link Float}, {@link Double}, {@link String} or {@link org.objectweb.asm.Type}, or an two elements String
@@ -945,7 +941,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * Create a type registry, configure it with the specified reloadable type/packages and return it.
-	 * 
+	 *
 	 * @return new TypeRegistry
 	 */
 	protected TypeRegistry getTypeRegistry(String includePatterns) {
@@ -956,8 +952,7 @@ public abstract class SpringLoadedTests implements Constants {
 			p.setProperty(TypeRegistry.Key_Inclusions, includePatterns);
 		}
 		if (tr == null) {
-			throw new IllegalStateException(
-					"maybe you need to run with: -Dspringloaded=limit=false -Xmx512M -XX:MaxPermSize=256m -noverify");
+			throw new IllegalStateException("maybe you need to run with: -Dspringloaded=limit=false -Xmx512M -XX:MaxPermSize=256m -noverify");
 		}
 		tr.configure(p);
 		return tr;
@@ -1161,8 +1156,7 @@ public abstract class SpringLoadedTests implements Constants {
 	}
 
 	protected void assertUniqueContains(String expectedToBeContained, String actual) {
-		if (actual.indexOf(expectedToBeContained) == -1
-				|| actual.indexOf(expectedToBeContained) != actual.lastIndexOf(expectedToBeContained)) {
+		if (actual.indexOf(expectedToBeContained) == -1 || actual.indexOf(expectedToBeContained) != actual.lastIndexOf(expectedToBeContained)) {
 			fail("Expected a unique occurrence of:\n" + expectedToBeContained + "\n in actual output:\n" + actual);
 		}
 	}
@@ -1275,33 +1269,33 @@ public abstract class SpringLoadedTests implements Constants {
 
 	protected final static void pause(int seconds) {
 		try {
-			Thread.sleep(seconds*1000);
-		} catch (Exception e) {}
+			Thread.sleep(seconds * 1000);
+		} catch (Exception e) {
+		}
 	}
-	
+
 	protected void assertStdout(String expectedStdout, JVMOutput actualOutput) {
 		if (!expectedStdout.equals(actualOutput.stdout)) {
 			//			assertEquals(expectedStdout, actualOutput.stdout);
 			fail("Expected stdout '" + expectedStdout + "' not found in \n" + actualOutput.toString());
 		}
 	}
-	
+
 	protected void assertStdoutContains(String expectedStdout, JVMOutput actualOutput) {
 		if (!actualOutput.stdout.contains(expectedStdout)) {
-			fail("Expected stdout:\n" + expectedStdout + "\nbut was:\n" + actualOutput.stdout.toString()+"\nComplete output: \n"+actualOutput.toString());
+			fail("Expected stdout:\n" + expectedStdout + "\nbut was:\n" + actualOutput.stdout.toString() + "\nComplete output: \n" + actualOutput.toString());
 		}
 	}
-	
+
 	protected void assertStdoutContains(String expectedStdout, Result r) {
 		// TODO Auto-generated method stub
-		
-	}
 
+	}
 
 	protected void assertStderrContains(String expectedStderrContains, JVMOutput actualOutput) {
 		if (actualOutput.stderr.indexOf(expectedStderrContains) == -1) {
 			fail("Expected stderr to contain '" + expectedStderrContains + "'\n" + actualOutput.toString());
 		}
 	}
-	
+
 }

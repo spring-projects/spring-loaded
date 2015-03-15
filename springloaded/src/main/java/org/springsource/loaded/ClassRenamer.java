@@ -17,6 +17,8 @@ package org.springsource.loaded;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -30,17 +32,18 @@ import org.objectweb.asm.Type;
 /**
  * Modify a class by changing it from one name to another. References to other types can also be changed. Basically used in the test
  * suite.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
 public class ClassRenamer {
+	private static Logger log = Logger.getLogger(ClassRenamer.class.getName());
 
 	/**
 	 * Rename a type - changing it to specified new name (which should be the dotted form of the name). Retargets are an optional
 	 * sequence of retargets to also perform during the rename. Retargets take the form of "a.b:a.c" which will change all
 	 * references to a.b to a.c.
-	 * 
+	 *
 	 * @param dottedNewName dotted name, e.g. com.foo.Bar
 	 * @param classbytes the bytecode for the class to be renamed
 	 * @param retargets retarget rules for references, of the form "a.b:b.a","c.d:d.c"
@@ -62,7 +65,7 @@ public class ClassRenamer {
 		private Map<String, String> retargets = new HashMap<String, String>();
 
 		public RenameAdapter(String newname, String[] retargets) {
-			super(ASM5,new ClassWriter(0));
+			super(ASM5, new ClassWriter(0));
 			cw = (ClassWriter) cv;
 			this.newname = newname.replace('.', '/');
 			if (retargets != null) {
@@ -79,7 +82,11 @@ public class ClassRenamer {
 
 		private String retargetIfNecessary(String string) {
 			String value = retargets.get(string);
-			return value == null ? string : value;
+			if (value != null && GlobalConfiguration.logging && log.isLoggable(Level.FINE)) {
+				log.log(Level.FINE, "Renaming '" + string + "' to '" + value + "'");
+			}
+			String retval = value == null ? string : value;
+			return retval;
 		}
 
 		@Override
@@ -100,7 +107,7 @@ public class ClassRenamer {
 		public void visitInnerClass(String name, String outername, String innerName, int access) {
 			super.visitInnerClass(renameRetargetIfNecessary(name), renameRetargetIfNecessary(outername), renameRetargetIfNecessary(innerName), access);
 		}
-		
+
 		private String renameRetargetIfNecessary(String string) {
 			String value = retargets.get(string);
 			if (value != null) {
@@ -111,7 +118,7 @@ public class ClassRenamer {
 			}
 			return string;
 		}
-		
+
 		@Override
 		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
 			if (descriptor.indexOf(oldname) != -1) {
@@ -150,7 +157,7 @@ public class ClassRenamer {
 			String newname;
 
 			public RenameMethodAdapter(MethodVisitor mv, String oldname, String newname) {
-				super(ASM5,mv);
+				super(ASM5, mv);
 				this.oldname = oldname;
 				this.newname = newname;
 			}
@@ -192,7 +199,7 @@ public class ClassRenamer {
 
 			@Override
 			public void visitLdcInsn(Object obj) {
-//				System.out.println("Possibly remapping "+obj);
+				//				System.out.println("Possibly remapping "+obj);
 				if (obj instanceof Type) {
 					Type t = (Type) obj;
 					String s = t.getInternalName();
@@ -228,39 +235,39 @@ public class ClassRenamer {
 			}
 
 			private String toString(Handle bsm) {
-				return "["+bsm.getTag()+"]"+bsm.getOwner()+"."+bsm.getName()+bsm.getDesc();
+				return "[" + bsm.getTag() + "]" + bsm.getOwner() + "." + bsm.getName() + bsm.getDesc();
 			}
-			
+
 			private String toString(Object[] os) {
 				StringBuilder buf = new StringBuilder();
-				if (os!=null) {
+				if (os != null) {
 					buf.append("[");
-					for (int i=0;i<os.length;i++) {
-						if (i>0) buf.append(",");
+					for (int i = 0; i < os.length; i++) {
+						if (i > 0)
+							buf.append(",");
 						buf.append(os[i]);
 					}
 					buf.append("]");
-				}
-				else {
+				} else {
 					return "null";
 				}
 				return buf.toString();
 			}
-			
+
 			private Handle retargetHandle(Handle oldHandle) {
 				int tag = oldHandle.getTag();
 				String owner = oldHandle.getOwner();
 				String name = oldHandle.getName();
 				String desc = oldHandle.getDesc();
-//				System.out.println("handle: owner: "+owner);
-//				System.out.println("handle: name: "+name);
-//				System.out.println("handle: desc: "+desc);
+				//				System.out.println("handle: owner: "+owner);
+				//				System.out.println("handle: name: "+name);
+				//				System.out.println("handle: desc: "+desc);
 				owner = renameRetargetIfNecessary(owner);
 				desc = renameRetargetIfNecessary(desc);
-				Handle newHandle = new Handle(tag,owner,name,desc);
+				Handle newHandle = new Handle(tag, owner, name, desc);
 				return newHandle;
 			}
-			
+
 			@Override
 			public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
 				// Example:
@@ -269,11 +276,11 @@ public class ClassRenamer {
 				//   bsmArgs=[()I,basic/LambdaA2.lambda$run$1()I (6),()I])
 				desc = renameRetargetIfNecessary(desc);
 				if (bsmArgs[1] instanceof Handle) {
-					bsmArgs[1] = retargetHandle((Handle)bsmArgs[1]);
+					bsmArgs[1] = retargetHandle((Handle) bsmArgs[1]);
 				}
-				mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);	
+				mv.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
 			}
-			
+
 			public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 				if (owner.equals(oldname)) {
 					owner = newname;

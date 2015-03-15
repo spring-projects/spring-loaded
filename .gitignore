@@ -11,3 +11,4 @@ springloaded-*.jar
 *.iws
 /.gradle
 build/
+.settings/

@@ -50,12 +50,11 @@ import org.springsource.loaded.agent.SpringLoadedPreProcessor;
 import org.springsource.loaded.infra.UsedByGeneratedCode;
 import org.springsource.loaded.support.Java8;
 
-
 // TODO debug: stepping into deleted methods - should delete line number table for deleted methods
 /**
  * The type registry tracks all reloadable types loaded by a specific class loader. It is configurable via a springloaded.properties
  * file (which it will discover as resources through the classloader) or directly via a configure(Properties) method call.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -73,32 +72,28 @@ public class TypeRegistry {
 	static {
 		ignorablePackagePrefixes = new String[26][];
 		ignorablePackagePrefixes['a' - 'a'] = new String[] { "antlr/" };
-		ignorablePackagePrefixes['c' - 'a'] = new String[] { "com/springsource/tcserver/",
-				"com/springsource/insight" };
+		ignorablePackagePrefixes['c' - 'a'] = new String[] { "com/springsource/tcserver/", "com/springsource/insight" };
 		ignorablePackagePrefixes['g' - 'a'] = new String[] { "groovy/", "groovyjarjarantlr/", "groovyjarjarasm/", "grails/", };
-		ignorablePackagePrefixes['j' - 'a'] = new String[] { "java/", "javassist/","javax/" };
-		ignorablePackagePrefixes['o' - 'a'] = new String[] { "org/springsource/loaded/", "org/objectweb/asm", "org/codehaus/groovy/", "org/apache/", "org/springframework/",
-				"org/hibernate/", "org/hsqldb/", "org/aspectj/", "org/xml/", "org/h2/"};
+		ignorablePackagePrefixes['j' - 'a'] = new String[] { "java/", "javassist/", "javax/" };
+		ignorablePackagePrefixes['o' - 'a'] = new String[] { "org/springsource/loaded/", "org/objectweb/asm", "org/codehaus/groovy/", "org/apache/", "org/springframework/", "org/hibernate/",
+				"org/hsqldb/", "org/aspectj/", "org/xml/", "org/h2/" };
 	}
 
 	// @formatter:off
 	// These classloaders do not get a type registry (do not load reloadable types!)
 	private final static String[] STANDARD_EXCLUDED_LOADERS = new String[] {
-		// TODO DIFF rules for excluding this loader? is it necessary to usually exclude under tcserver?
-		// sun.misc.Launcher$AppClassLoader
-		"sun.misc.Launcher$ExtClassLoader",
-		"sun.reflect.DelegatingClassLoader",
-		"javax.management.remote.rmi.NoCallStackClassLoader",
-		"org.springsource.loaded.ChildClassLoader",
-//		"groovy.lang.GroovyClassLoader$InnerLoader",
-		// not excluding GCL$InnerLoader because we want the reflection stuff rewritten - think we need to separate out 
-		// reflection rewriting from the rest of callside rewriting.  Although do we still need to rewrite call sites anyway, although the code there may not change (i.e. TypeRewriter not
-		// required), the targets for some calls may come and go (may not have been in the original loaded version)
-		"org.apache.jasper.servlet.JasperLoader",
+			// TODO DIFF rules for excluding this loader? is it necessary to usually exclude under tcserver?
+			// sun.misc.Launcher$AppClassLoader
+			"sun.misc.Launcher$ExtClassLoader", "sun.reflect.DelegatingClassLoader", "javax.management.remote.rmi.NoCallStackClassLoader", "org.springsource.loaded.ChildClassLoader",
+			//		"groovy.lang.GroovyClassLoader$InnerLoader",
+			// not excluding GCL$InnerLoader because we want the reflection stuff rewritten - think we need to separate out
+			// reflection rewriting from the rest of callside rewriting.  Although do we still need to rewrite call sites anyway, although the code there may not change (i.e. TypeRewriter not
+			// required), the targets for some calls may come and go (may not have been in the original loaded version)
+			"org.apache.jasper.servlet.JasperLoader",
 
-		// tc server configuration...
-//	"org.apache.catalina.loader.StandardClassLoader" 
-		};
+	// tc server configuration...
+	//	"org.apache.catalina.loader.StandardClassLoader"
+	};
 	// @formatter:on
 
 	public static final String Key_ExcludedLoaders = "excluded.loaders";
@@ -120,8 +115,7 @@ public class TypeRegistry {
 	 * to a TypeRegistry there is a window after the TypeRegistry has been created before a ReloadableType object is created - and
 	 * in that window TypeRegistries would be GCd if the reference here was weak.
 	 */
-	private static Map<ClassLoader, TypeRegistry> loaderToRegistryMap = Collections
-			.synchronizedMap(new WeakHashMap<ClassLoader, TypeRegistry>());
+	private static Map<ClassLoader, TypeRegistry> loaderToRegistryMap = Collections.synchronizedMap(new WeakHashMap<ClassLoader, TypeRegistry>());
 
 	private static String[] excludedLoaders = STANDARD_EXCLUDED_LOADERS;
 
@@ -132,7 +126,7 @@ public class TypeRegistry {
 	private Map<String, String> rebasePaths = new HashMap<String, String>();
 
 	private List<String> pluginClassNames = new ArrayList<String>();
-	
+
 	List<Plugin> localPlugins = new ArrayList<Plugin>();
 
 	/**
@@ -214,7 +208,7 @@ public class TypeRegistry {
 	/**
 	 * Check if a type registry exists for a specific type registry ID. Enables parts of the system (for example the
 	 * FileSystemWatcher) to check if a type registry is still alive/active.
-	 * 
+	 *
 	 * @param typeRegistryId the ID of a type registry
 	 * @return true if that type registry is still around, false otherwise
 	 */
@@ -229,7 +223,7 @@ public class TypeRegistry {
 
 	/**
 	 * Factory access method for obtaining TypeRegistry instances. Returns a TypeRegistry for the specified classloader.
-	 * 
+	 *
 	 * @param classloader The classloader to create/retrieve the type registry for
 	 * @return the TypeRegistry for the classloader
 	 */
@@ -261,22 +255,22 @@ public class TypeRegistry {
 				return null;
 			}
 		}
-//		if (GlobalConfiguration.limit) {
-//			// only allow for certain loaders!
-//			boolean isOK = false;
-//			if (classloaderName.equals("org.apache.catalina.loader.StandardClassLoader")) {
-//				isOK = true;
-//			} else if (classloaderName.equals("com.springsource.insight.collection.tcserver.ltw.TomcatWeavingInsightClassLoader")) {
-//				isOK = true;
-//			} else if (classloaderName.equals("org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader")) {
-//				isOK = true;
-//			} else if (classloaderName.equals("org.apache.catalina.loader.WebappClassLoader")) {
-//				isOK = true;
-//			}
-//			if (!isOK) {
-//				return null;
-//			}
-//		}
+		//		if (GlobalConfiguration.limit) {
+		//			// only allow for certain loaders!
+		//			boolean isOK = false;
+		//			if (classloaderName.equals("org.apache.catalina.loader.StandardClassLoader")) {
+		//				isOK = true;
+		//			} else if (classloaderName.equals("com.springsource.insight.collection.tcserver.ltw.TomcatWeavingInsightClassLoader")) {
+		//				isOK = true;
+		//			} else if (classloaderName.equals("org.springframework.instrument.classloading.tomcat.TomcatInstrumentableClassLoader")) {
+		//				isOK = true;
+		//			} else if (classloaderName.equals("org.apache.catalina.loader.WebappClassLoader")) {
+		//				isOK = true;
+		//			}
+		//			if (!isOK) {
+		//				return null;
+		//			}
+		//		}
 
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 			log.info("TypeRegistry.getRegistryFor(): creating new TypeRegistry for loader " + classloader);
@@ -291,7 +285,7 @@ public class TypeRegistry {
 
 	/**
 	 * Only checks the reloadable types this registry knows about, it doesn't search beyond that.
-	 * 
+	 *
 	 * @param slashedClassname the slashed classname (e.g. java/lang/String)
 	 * @return the TypeDescriptor or null if that classname is unknown
 	 */
@@ -304,7 +298,7 @@ public class TypeRegistry {
 		if (cached != null) {
 			return cached;
 		}
-		
+
 		// TODO cheaper/faster to go up the typeregistry hierarchy?
 
 		// This will not work for a generated class, what should we do in that case?
@@ -363,8 +357,7 @@ public class TypeRegistry {
 	private void loadPlugins() {
 		// Read the plugin class names from well known resources
 		try {
-			Enumeration<URL> pluginResources = classLoader.get().getResources(
-					"META-INF/services/org.springsource.reloading.agent.Plugins");
+			Enumeration<URL> pluginResources = classLoader.get().getResources("META-INF/services/org.springsource.reloading.agent.Plugins");
 			while (pluginResources.hasMoreElements()) {
 				URL pluginResource = pluginResources.nextElement();
 				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINEST)) {
@@ -409,7 +402,7 @@ public class TypeRegistry {
 	/**
 	 * Configure this TypeRegistry using a specific set of properties - this will override any previous configuration. It is mainly
 	 * provided for testing purposes.
-	 * 
+	 *
 	 * @param properties the properties to use to configure this type registry
 	 */
 	public void configure(Properties properties) {
@@ -500,13 +493,12 @@ public class TypeRegistry {
 		try {
 			Set<String> configurationFiles = new HashSet<String>();
 			ClassLoader classloader = classLoader.get();
-			Enumeration<URL> resources = classloader==null?null:classloader.getResources("springloaded.properties");
+			Enumeration<URL> resources = classloader == null ? null : classloader.getResources("springloaded.properties");
 			if (resources == null) {
 				if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-					log.info("Unable to load springloaded.properties, cannot find it through classloader "+classloader);
+					log.info("Unable to load springloaded.properties, cannot find it through classloader " + classloader);
 				}
-			}
-			else {
+			} else {
 				while (resources.hasMoreElements()) {
 					URL url = resources.nextElement();
 					String configFile = url.toString();
@@ -518,7 +510,7 @@ public class TypeRegistry {
 					}
 					configurationFiles.add(configFile);
 					InputStream is = url.openStream();
-	
+
 					Properties p = new Properties();
 					p.load(is);
 					is.close();
@@ -568,17 +560,17 @@ public class TypeRegistry {
 	 */
 	private List<String> packagesFound = new ArrayList<String>();
 	private List<String> packagesNotFound = new ArrayList<String>();
-	
+
 	/**
 	 * Determine if the named type could be reloadable. This method is invoked if the user has not setup any inclusions. With no
 	 * inclusions specified, something is considered reloadable if it is accessible by the classloader for this registry and is not
 	 * in a jar
-	 * 
+	 *
 	 * @param slashedName the typename of interest (e.g. com/foo/Bar)
 	 * @return true if the type should be considered reloadable
 	 */
 	private boolean couldBeReloadable(String slashedName) {
-		if (slashedName==null) {
+		if (slashedName == null) {
 			return false;
 		}
 		if (slashedName.startsWith("java/")) {
@@ -592,15 +584,15 @@ public class TypeRegistry {
 				for (String ignorablePackagePrefix : candidates) {
 					if (slashedName.startsWith(ignorablePackagePrefix)) {
 						if (GlobalConfiguration.explainMode && log.isLoggable(Level.INFO)) {
-							log.info("WhyNotReloadable? The type "+slashedName+" is using a package name '"+ignorablePackagePrefix+"' which is considered infrastructure and types within it are not made reloadable");
+							log.info("WhyNotReloadable? The type " + slashedName + " is using a package name '" + ignorablePackagePrefix
+									+ "' which is considered infrastructure and types within it are not made reloadable");
 						}
 						return false;
 					}
 				}
 			}
 		}
-		if (slashedName.indexOf("$Proxy") != -1 || slashedName.indexOf("$$EnhancerBy") != -1
-				|| slashedName.indexOf("$$FastClassBy") != -1) {
+		if (slashedName.indexOf("$Proxy") != -1 || slashedName.indexOf("$$EnhancerBy") != -1 || slashedName.indexOf("$$FastClassBy") != -1) {
 			return true;
 		}
 		// TODO review all these... are these four only loaded by jasperloader?
@@ -679,7 +671,7 @@ public class TypeRegistry {
 
 	/**
 	 * Determine if the type specified is a reloadable type. This method works purely by name, it does not load anything.
-	 * 
+	 *
 	 * @param slashedName the type name, eg. a/b/c/D
 	 * @param protectionDomain the protection domain this class is being loaded under
 	 * @param bytes the class bytes for the class being loaded
@@ -695,7 +687,7 @@ public class TypeRegistry {
 		if (GlobalConfiguration.isProfiling) {
 			if (slashedName.startsWith("com/yourkit")) {
 				if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
-					log.finer("[explanation] The type "+slashedName+" is considered part of yourkit and is not being made reloadable");
+					log.finer("[explanation] The type " + slashedName + " is considered part of yourkit and is not being made reloadable");
 				}
 				return false;
 			}
@@ -721,15 +713,15 @@ public class TypeRegistry {
 		//		}
 
 		for (IsReloadableTypePlugin plugin : SpringLoadedPreProcessor.getIsReloadableTypePlugins()) {
-			ReloadDecision decision = plugin.shouldBeMadeReloadable(this,slashedName, protectionDomain, bytes);
-			if (decision == ReloadDecision.YES) { 
+			ReloadDecision decision = plugin.shouldBeMadeReloadable(this, slashedName, protectionDomain, bytes);
+			if (decision == ReloadDecision.YES) {
 				if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
-					log.finer("[explanation] The plugin "+plugin.getClass().getName()+" determined type "+slashedName+" is reloadable");
+					log.finer("[explanation] The plugin " + plugin.getClass().getName() + " determined type " + slashedName + " is reloadable");
 				}
 				return true;
 			} else if (decision == ReloadDecision.NO) {
 				if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
-					log.finer("[explanation] The plugin "+plugin.getClass().getName()+" determined type "+slashedName+" is not reloadable");
+					log.finer("[explanation] The plugin " + plugin.getClass().getName() + " determined type " + slashedName + " is not reloadable");
 				}
 				return false;
 			}
@@ -740,12 +732,13 @@ public class TypeRegistry {
 			if (exclusionPatterns.isEmpty()) {
 				if (couldBeReloadable(slashedName)) {
 					if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
-						log.finer("[explanation] The class "+slashedName+" is currently considered reloadable. It matches no exclusions, is accessible from this classloader and is not in a jar/zip.");
+						log.finer("[explanation] The class " + slashedName
+								+ " is currently considered reloadable. It matches no exclusions, is accessible from this classloader and is not in a jar/zip.");
 					}
 					return true;
 				} else {
 					if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
-						log.finer("[explanation] The class "+slashedName+" is not going to be treated as reloadable.");
+						log.finer("[explanation] The class " + slashedName + " is not going to be treated as reloadable.");
 					}
 					return false;
 				}
@@ -799,7 +792,7 @@ public class TypeRegistry {
 	/**
 	 * Lookup the type ID for a string. First checks those allocated but not yet registered, then those that are already registered.
 	 * If not found then a new one is allocated and recorded.
-	 * 
+	 *
 	 * @param slashname the slashed type name, eg. a/b/c/D
 	 * @param allocateIfNotFound determines whether an id should be allocated for the type if it cannot be found
 	 * @return the unique ID number
@@ -895,7 +888,7 @@ public class TypeRegistry {
 
 	/**
 	 * Add a type to the registry. The name should have already passed the isReloadableTypeName() test.
-	 * 
+	 *
 	 * @param dottedname type name of the form a.b.c.D
 	 * @param initialbytes the first version of the bytes as loaded
 	 * @return the ReloadableType or null if it cannot be made reloadable
@@ -919,8 +912,7 @@ public class TypeRegistry {
 		String slashname = dottedname.replace('.', '/');
 		reloadableTypeDescriptorCache.put(slashname, td);
 		if (GlobalConfiguration.assertsMode) {
-			Utils.assertTrue(td.getName().equals(slashname), "Name from bytecode '" + td.getName()
-					+ "' does not match that passed in '" + slashname + "'");
+			Utils.assertTrue(td.getName().equals(slashname), "Name from bytecode '" + td.getName() + "' does not match that passed in '" + slashname + "'");
 		}
 		int typeId = NameRegistry.getIdOrAllocateFor(slashname);
 		ReloadableType rtype = new ReloadableType(dottedname, initialbytes, typeId, this, td);
@@ -995,7 +987,7 @@ public class TypeRegistry {
 	/**
 	 * Sometimes we discover the reloadabletype during program execution, for example A calls B and we haven't yet seen B. We find B
 	 * has been loaded by a parent classloader, let's remember B here so we can do fast lookups for it.
-	 * 
+	 *
 	 * @param typeId the id for the type
 	 * @param rtype the ReloadableType to associate with the id
 	 */
@@ -1012,7 +1004,7 @@ public class TypeRegistry {
 	/**
 	 * Determine the reloadabletype object representation for a specified class. If the caller already knows the ID for the type,
 	 * that would be a quicker way to locate the reloadable type object.
-	 * 
+	 *
 	 * @param slashedClassName the slashed (e.g. java/lang/String) class name
 	 * @return the ReloadableType
 	 */
@@ -1036,7 +1028,7 @@ public class TypeRegistry {
 	/**
 	 * For a specific classname, this method will search in the current type registry and any parent type registries (similar to a
 	 * regular classloader delegation strategy). Returns null if the type is not found. It does not attempt to load anything in.
-	 * 
+	 *
 	 * @param classname the type being searched for, e.g. com/foo/Bar
 	 * @return the ReloadableType if found, otherwise null
 	 */
@@ -1065,7 +1057,7 @@ public class TypeRegistry {
 	 * Find the ReloadableType object for a given classname. If the allocateIdIfNotYetLoaded option is set then a new id will be
 	 * allocated for this classname if it hasn't previously been seen before. This method does not create new ReloadableType
 	 * objects, they are expected to come into existence when defined by the classloader.
-	 * 
+	 *
 	 * @param slashedClassname the slashed class name (e.g. java/lang/String)
 	 * @param allocateIdIfNotYetLoaded if true an id will be allocated because sometime later the type will be loaded (and made reloadable)
 	 * @return the ReloadableType discovered or allocated, or null if not found and !allocateIdIfNotYetLoaded
@@ -1105,8 +1097,7 @@ public class TypeRegistry {
 			if (permanent) {
 				//				ClassPrinter.print(bytes);
 				if (defineClassMethod == null) {
-					defineClassMethod = ClassLoader.class.getDeclaredMethod("defineClass",
-							new Class[] { String.class, bytes.getClass(), int.class, int.class });
+					defineClassMethod = ClassLoader.class.getDeclaredMethod("defineClass", new Class[] { String.class, bytes.getClass(), int.class, int.class });
 				}
 				defineClassMethod.setAccessible(true);
 				ClassLoader loaderToUse = null;
@@ -1141,24 +1132,23 @@ public class TypeRegistry {
 
 	/**
 	 *Used to determine if the invokedynamic needs to be intercepted.
-	 * 
+	 *
 	 * @return null if nothing has been reloaded
 	 */
 	@UsedByGeneratedCode
 	public static Object idycheck() {
 		if (TypeRegistry.nothingReloaded) {
 			return null;
-		}
-		else {
+		} else {
 			return "reloading-happened";
 		}
 	}
-	
+
 	/**
 	 * Determine if something has changed in a particular type related to a particular descriptor and so the dispatcher interface
 	 * should be used. The type registry ID and class ID are merged in the 'ids' parameter. This method is for INVOKESTATIC rewrites
 	 * and so performs additional checks because it assumes the target is static.
-	 * 
+	 *
 	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
 	 * @param nameAndDescriptor the name and descriptor of the method about to be INVOKESTATIC'd
 	 * @return null if the original code can run otherwise return the dispatcher to use
@@ -1176,22 +1166,21 @@ public class TypeRegistry {
 		if (reloadableType == null) {
 			reloadableType = searchForReloadableType(typeId, typeRegistry);
 		}
-		
+
 		// Check 2: Info computed earlier
-		if (reloadableType!=null && !reloadableType.isAffectedByReload()) {
+		if (reloadableType != null && !reloadableType.isAffectedByReload()) {
 			return null;
 		}
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
-			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
-					.getFromLatestByDescriptor(nameAndDescriptor);
+			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				// method has been deleted or is on a supertype. Look for it:
-				
+
 				// TODO this block is based on something below in invokespecial handling but this has some
 				// fixes in - should they be migrated down below or a common util method constructed?
-				
+
 				Object dispatcherToUse = null;
 				String supertypename = reloadableType.getTypeDescriptor().getSupertypeName();
 				TypeRegistry reg = reloadableType.getTypeRegistry();
@@ -1209,7 +1198,7 @@ public class TypeRegistry {
 					} else if (nextInHierarchy.hasBeenReloaded()) {
 						method = nextInHierarchy.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
 						if (method != null && IncrementalTypeDescriptor.wasDeleted(method)) {
-							method= null;
+							method = null;
 						}
 						// ignore catchers because the dynamic __execute method wont have an implementation of them, we should
 						// just keep looking for the real thing
@@ -1219,7 +1208,7 @@ public class TypeRegistry {
 					} else {
 						// it is reloadable but has not been reloaded
 						method = nextInHierarchy.getMethod(nameAndDescriptor);
-					}					
+					}
 					if (method != null) {
 						found = true;
 						break;
@@ -1238,8 +1227,8 @@ public class TypeRegistry {
 				dispatchThroughDescriptor = true;
 			} else if (IncrementalTypeDescriptor.hasChanged(method)) {
 				if (IncrementalTypeDescriptor.isNowNonStatic(method)) {
-					throw new IncompatibleClassChangeError("SpringLoaded: Target of static call is no longer static '"
-							+ reloadableType.getBaseName() + "." + nameAndDescriptor + "'");
+					throw new IncompatibleClassChangeError("SpringLoaded: Target of static call is no longer static '" + reloadableType.getBaseName() + "." + nameAndDescriptor
+							+ "'");
 				}
 				// TODO need a check in here for a visibility change? Something like this:
 				//				if (IncrementalTypeDescriptor.hasVisibilityChanged(method)) {
@@ -1248,8 +1237,7 @@ public class TypeRegistry {
 			}
 			if (dispatchThroughDescriptor) {
 				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
-					log.info("istcheck(): reloadabletype=" + reloadableType + " versionstamp "
-							+ reloadableType.getLiveVersion().versionstamp);
+					log.info("istcheck(): reloadabletype=" + reloadableType + " versionstamp " + reloadableType.getLiveVersion().versionstamp);
 				}
 				return reloadableType.getLatestDispatcherInstance();
 			}
@@ -1291,7 +1279,7 @@ public class TypeRegistry {
 
 	/**
 	 * See notes.md#001
-	 * 
+	 *
 	 * @param instance the object instance on which the INVOKEINTERFACE is being called
 	 * @param params the parameters to the INVOKEINTERFACE call
 	 * @param instance2 the object instance on which the INVOKEINTERFACE is being called
@@ -1299,19 +1287,22 @@ public class TypeRegistry {
 	 * @return the result of making the INVOKEINTERFACE call
 	 */
 	public static Object iiIntercept(Object instance, Object[] params, Object instance2, String nameAndDescriptor) {
-		Class<?> clazz= instance.getClass();
+		Class<?> clazz = instance.getClass();
 		try {
 			if (clazz.getName().contains("$$Lambda")) {
 				// There will only be one method, the SAM method
+				// Actually there may be more than one method and we will use last one defined
+				// for an example see LambdaJ getFoo
+				// first instance is private static basic.LambdaJ$Foo basic.LambdaJ$$EP6YMM3E$$Lambda$2/1014328909.get$Lambda(basic.LambdaJ)
+				// the second instance is public java.lang.String basic.LambdaJ$$EP6YMM3E$$Lambda$2/1014328909.m(java.lang.String,java.lang.String)
 				Method[] ms = instance.getClass().getDeclaredMethods();
-				Method m = ms[0];
+				Method m = ms[ms.length - 1]; // was 0
 				m.setAccessible(true);
 				Object o = m.invoke(instance, params);
-				return o;	
-			}
-			else {
+				return o;
+			} else {
 				// Do what you were going to do...
-				Method m = instance.getClass().getDeclaredMethod("__execute",Object[].class,Object.class,String.class);
+				Method m = instance.getClass().getDeclaredMethod("__execute", Object[].class, Object.class, String.class);
 				m.setAccessible(true);
 				return m.invoke(instance, params, instance, nameAndDescriptor);
 			}
@@ -1323,12 +1314,12 @@ public class TypeRegistry {
 
 	@UsedByGeneratedCode
 	public static __DynamicallyDispatchable ispcheck(int ids, String nameAndDescriptor) {
-		
+
 		// TOD why no check about whether anything has been reloaded???
 		if (nothingReloaded) {
 			return null;
 		}
-		
+
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.FINER)) {
 			log.entering("TypeRegistry", "spcheck", new Object[] { ids, nameAndDescriptor });
 		}
@@ -1340,9 +1331,9 @@ public class TypeRegistry {
 			reloadableType = searchForReloadableType(typeId, typeRegistry);
 		}
 		// Check 2: Info computed earlier
-//		if (!reloadableType.isAffectedByReload()) {
-//			return false;
-//		}
+		//		if (!reloadableType.isAffectedByReload()) {
+		//			return false;
+		//		}
 		// Search for the dispatcher we can call
 		__DynamicallyDispatchable o = (__DynamicallyDispatchable) invokespecialSearch(reloadableType, nameAndDescriptor);
 		return o;
@@ -1386,7 +1377,7 @@ public class TypeRegistry {
 	 * everything that the descriptor embodies everything about a method interface. Therefore, if something changes about the
 	 * descriptor it is considered an entirely different method (and the old form is a deleted method). For this reason there is no
 	 * need to consider 'changed' methods, because the static-ness nor visibility cannot change.
-	 * 
+	 *
 	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
 	 * @param nameAndDescriptor the name and descriptor of the method about to be INVOKEINTERFACE'd
 	 * @return true if the original method operation must be intercepted
@@ -1404,12 +1395,11 @@ public class TypeRegistry {
 			reloadableType = searchForReloadableType(typeId, typeRegistry);
 		}
 		// Check 2: Info computed earlier
-		if (reloadableType!=null && !reloadableType.isAffectedByReload()) {
+		if (reloadableType != null && !reloadableType.isAffectedByReload()) {
 			return false;
 		}
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
-			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
-					.getFromLatestByDescriptor(nameAndDescriptor);
+			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				// method does not exist
@@ -1438,19 +1428,19 @@ public class TypeRegistry {
 	 * "can i call what I was going to call, or not?"
 	 * The answer to that question primarily depends on whether the method was previously defined in the target hierarchy.  If it was then
 	 * yes, make the call and let catchers sort it out.  If not then we need to jump through firey hoops.
-	 * 
+	 *
 	 * For example, this code:
 	 * public int run1() {
-		XX zz = new ZZ();
-		return zz.foo();
+	    XX zz = new ZZ();
+	    return zz.foo();
 	   }
-	 * 
+	 *
 	 * results in this invokevirtual:
-	 * 
+	 *
 	  INVOKEVIRTUAL invokevirtual/XX.foo()I
-	 * 
+	 *
 	 * Notice the static type of the variable is used in the method descriptor for the invoke.
-	 * 
+	 *
 	 * The rewriter then turns it into this:
 	LDC 65537
 	LDC foo()I
@@ -1469,28 +1459,28 @@ public class TypeRegistry {
 	L5
 	 *
 	 * What that says is: call ivicheck for 65537,foo()I (65537 embodies the type registry id and the class ID, XX in our case, as per the descriptor).
-	 * 
+	 *
 	 * vcheck should return true for methods that do not exist - since we can't run the invokevirtual
-	 * 
+	 *
 	 * If vcheck returns false, do what you were going to do anyway:
 	 *   this will actually cause us to jump into a catcher method.
 	 * If vcheck returns true, call the __execute() method on the type XX - however, due to virtual dispatch and all the types implementing __execute() we
 	 * will end up in the one for the dynamic type (ZZ.__execute())
-	 * 
+	 *
 	 * These two paths proceed as follows.
-	 * 
+	 *
 	 * 1) If we jumped into a catcher method, we actually hit the catcher ZZ.foo()
 	 * The catcher works as follows - grab the latest version of this type (if it has been reloaded) and call foo() on the dispatcher, otherwise call super.foo().
 	 * The catcher exists because the type did not originally implement the method.  It exists to enable the type to implement the method later.  The same sequence
 	 * will continue (through catchers) until a type is hit that provides an implementation which did not used to, or an original implementation is hit, or we run out
 	 * of options and an NSME is created.  The catcher code is below.
-	 * 
+	 *
 	 * 2) In the ZZ.__execute() method we actually ask the type registry to tell us what to call - we call determineDispatcher which uses the runtime type for the call
 	 * and discovers which dispatcher should be used.  it is a bit naughty in that if it finds an reloadabletype that is the right answer but that hasn't been reloaded,
 	 * it forces a reload of the original code to create a dispatcher instance that can be returned.
-	 * 
+	 *
 	 * __execute is for methods that were never there at all
-	 * 
+	 *
 	METHOD: 0x0001(public) foo()I
 	CODE
 	GETSTATIC invokevirtual/ZZ.r$type Lorg/springsource/loaded/ReloadableType;
@@ -1507,14 +1497,14 @@ public class TypeRegistry {
 	ALOAD 0
 	INVOKESPECIAL invokevirtual/YY.foo()I
 	IRETURN
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 */
 
 	/**
 	 * Called for a field operation - trying to determine whether a particular field needs special handling.
-	 * 
+	 *
 	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
 	 * @param name the name of the instance field about to be accessed
 	 * @return true if the field operation must be intercepted
@@ -1563,20 +1553,20 @@ public class TypeRegistry {
 		}
 		return false;
 	}
-	
+
 	@UsedByGeneratedCode
 	public static Object idyrun(Object[] indyParams, int typeRegistryId, int classId, Object caller, String nameAndDescriptor, int bsmId) {
 		// Typical next line: lookup=basic.LambdaA nameAD=m()Lbasic/LambdaA$Foo; bsmId=0
 		// System.err.println("idyrun("+caller+","+nameAndDescriptor+","+bsmId+")");
 		// TODO Currently leaking entries in bsmmap with reloads (new ones get added, old ones not removed)
 		ReloadableType rtype = TypeRegistry.getReloadableType(typeRegistryId, classId);
-		BsmInfo bsmi = bsmmap.get(rtype.getSlashedName())[bsmId]; 
-		return Java8.emulateInvokeDynamic(rtype,rtype.getLatestExecutorClass(),bsmi.bsm,bsmi.bsmArgs,caller,nameAndDescriptor, indyParams);
+		BsmInfo bsmi = bsmmap.get(rtype.getSlashedName())[bsmId];
+		return Java8.emulateInvokeDynamic(rtype, rtype.getLatestExecutorClass(), bsmi.bsm, bsmi.bsmArgs, caller, nameAndDescriptor, indyParams);
 	}
-	
+
 	/**
 	 * Used in code the generated code replaces invokevirtual calls. Determine if the code can run as it was originally compiled.
-	 * 
+	 *
 	 * This method will return FALSE if nothing has changed to interfere with the invocation and it should proceed. This method will
 	 * return TRUE if something has changed and the caller needs to do something different.
 	 *
@@ -1601,7 +1591,6 @@ public class TypeRegistry {
 		int typeId = ids & 0xffff;
 		TypeRegistry typeRegistry = registryInstances[registryId].get();
 		ReloadableType reloadableType = typeRegistry.getReloadableType(typeId);
-		
 
 		// Ok, think about what null means here.  It means this registry has not loaded this type as a reloadable type.  That doesn't
 		// mean it isn't reloadable as a parent loaded may have found it.  We have 3 options:
@@ -1619,13 +1608,12 @@ public class TypeRegistry {
 		}
 
 		// Check 2: Info computed earlier
-		if (reloadableType!=null && !reloadableType.isAffectedByReload()) {
+		if (reloadableType != null && !reloadableType.isAffectedByReload()) {
 			return false;
 		}
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
-			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
-					.getFromLatestByDescriptor(nameAndDescriptor);
+			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				if (!reloadableType.getTypeDescriptor().isFinalInHierarchy(nameAndDescriptor)) {
@@ -1668,10 +1656,10 @@ public class TypeRegistry {
 
 	/**
 	 * This method discovers the reloadable type instance for the registry and type id specified.
-	 * 
+	 *
 	 * @param typeRegistryId the type registry id
 	 * @param typeId the type id
-	 * @return the ReloadableType (if there is no ReloadableType an exception will be thrown) 
+	 * @return the ReloadableType (if there is no ReloadableType an exception will be thrown)
 	 */
 	@UsedByGeneratedCode
 	public static ReloadableType getReloadableType(int typeRegistryId, int typeId) {
@@ -1680,12 +1668,11 @@ public class TypeRegistry {
 		}
 		TypeRegistry typeRegistry = registryInstances[typeRegistryId].get();
 		if (typeRegistry == null) {
-			throw new IllegalStateException("Request to access registry id " + typeRegistryId
-					+ " but no registry with that id has been created");
+			throw new IllegalStateException("Request to access registry id " + typeRegistryId + " but no registry with that id has been created");
 		}
 		ReloadableType reloadableType = typeRegistry.getReloadableType(typeId);
 		if (reloadableType == null) {
-			throw new IllegalStateException("The type registry "+typeRegistry+" does not know about type id " + typeId);
+			throw new IllegalStateException("The type registry " + typeRegistry + " does not know about type id " + typeId);
 		}
 		reloadableType.setResolved();
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
@@ -1762,8 +1749,7 @@ public class TypeRegistry {
 		// 'local' plugins
 		for (Plugin plugin : localPlugins) {
 			if (plugin instanceof ReloadEventProcessorPlugin) {
-				if (((ReloadEventProcessorPlugin) plugin).shouldRerunStaticInitializer(reloadableType.getName(),
-						reloadableType.getClazz(), versionsuffix)) {
+				if (((ReloadEventProcessorPlugin) plugin).shouldRerunStaticInitializer(reloadableType.getName(), reloadableType.getClazz(), versionsuffix)) {
 					return true;
 				}
 			}
@@ -1771,8 +1757,7 @@ public class TypeRegistry {
 		// 'global' plugins
 		for (Plugin plugin : SpringLoadedPreProcessor.getGlobalPlugins()) {
 			if (plugin instanceof ReloadEventProcessorPlugin) {
-				if (((ReloadEventProcessorPlugin) plugin).shouldRerunStaticInitializer(reloadableType.getName(),
-						reloadableType.getClazz(), versionsuffix)) {
+				if (((ReloadEventProcessorPlugin) plugin).shouldRerunStaticInitializer(reloadableType.getName(), reloadableType.getClazz(), versionsuffix)) {
 					return true;
 				}
 			}
@@ -1784,15 +1769,13 @@ public class TypeRegistry {
 		// 'local' plugins
 		for (Plugin plugin : localPlugins) {
 			if (plugin instanceof ReloadEventProcessorPlugin) {
-				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(), reloadableType.getClazz(),
-						versionsuffix);
+				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(), reloadableType.getClazz(), versionsuffix);
 			}
 		}
 		// 'global' plugins
 		for (Plugin plugin : SpringLoadedPreProcessor.getGlobalPlugins()) {
 			if (plugin instanceof ReloadEventProcessorPlugin) {
-				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(), reloadableType.getClazz(),
-						versionsuffix);
+				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(), reloadableType.getClazz(), versionsuffix);
 			}
 		}
 	}
@@ -1802,16 +1785,14 @@ public class TypeRegistry {
 		// 'local' plugins
 		for (Plugin plugin : localPlugins) {
 			if (plugin instanceof UnableToReloadEventProcessorPlugin) {
-				((UnableToReloadEventProcessorPlugin) plugin).unableToReloadEvent(reloadableType.getName(),
-						reloadableType.getClazz(), td, versionsuffix);
+				((UnableToReloadEventProcessorPlugin) plugin).unableToReloadEvent(reloadableType.getName(), reloadableType.getClazz(), td, versionsuffix);
 				calledSomething = true;
 			}
 		}
 		// 'global' plugins
 		for (Plugin plugin : SpringLoadedPreProcessor.getGlobalPlugins()) {
 			if (plugin instanceof UnableToReloadEventProcessorPlugin) {
-				((UnableToReloadEventProcessorPlugin) plugin).unableToReloadEvent(reloadableType.getName(),
-						reloadableType.getClazz(), td, versionsuffix);
+				((UnableToReloadEventProcessorPlugin) plugin).unableToReloadEvent(reloadableType.getName(), reloadableType.getClazz(), td, versionsuffix);
 				calledSomething = true;
 			}
 		}
@@ -1820,7 +1801,7 @@ public class TypeRegistry {
 
 	/**
 	 * Process some type pattern objects from the supplied value. For example the value might be 'com.foo.Bar,!com.foo.Goo'
-	 * 
+	 *
 	 * @param value string defining a comma separated list of type patterns
 	 * @return list of TypePatterns
 	 */
@@ -1904,7 +1885,7 @@ public class TypeRegistry {
 	/**
 	 * To avoid leaking permgen we want to periodically discard the child classloader and recreate a new one. We will need to then
 	 * redefine types again over time as they are used (the most recent variants of them).
-	 * 
+	 *
 	 * @param currentlyDefining the reloadable type currently being defined reloaded
 	 */
 	public void checkChildClassLoader(ReloadableType currentlyDefining) {
@@ -1915,8 +1896,7 @@ public class TypeRegistry {
 		if (definedCount > maxClassDefinitions && ((time - lastTidyup) > 5000)) {
 			lastTidyup = time;
 			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-				log.info("Recreating the typeregistry managed classloader, limit(#" + GlobalConfiguration.maxClassDefinitions
-						+ ") reached");
+				log.info("Recreating the typeregistry managed classloader, limit(#" + GlobalConfiguration.maxClassDefinitions + ") reached");
 			}
 			ccl = new ChildClassLoader(classLoader.get());
 			this.childClassLoader = new WeakReference<ChildClassLoader>(ccl);
@@ -1975,7 +1955,7 @@ public class TypeRegistry {
 	public TypeRegistry getParentRegistry() {
 		ClassLoader cl = classLoader.get();
 		if (cl == null) { // GRAILS-10134
-			return null; 
+			return null;
 		} else {
 			return TypeRegistry.getTypeRegistryFor(cl.getParent());
 		}
@@ -1989,12 +1969,11 @@ public class TypeRegistry {
 		return jdkProxiesForInterface.get(slashedInterfaceTypeName);
 	}
 
-
 	/**
 	 * When an invokedynamic instruction is reached, we allocate an id that
 	 * recognizes that bsm and the parameters to that bsm. The index can be
 	 * used when rewriting that invokedynamic
-	 * 
+	 *
 	 * @param slashedClassName the slashed class name containing the bootstrap method
 	 * @param bsm the bootstrap methods
 	 * @param bsmArgs the bootstrap method arguments (asm types)
@@ -2002,44 +1981,44 @@ public class TypeRegistry {
 	 */
 	public synchronized int recordBootstrapMethod(String slashedClassName, Handle bsm, Object[] bsmArgs) {
 		if (bsmmap == null) {
-			bsmmap = new HashMap<String,BsmInfo[]>();
+			bsmmap = new HashMap<String, BsmInfo[]>();
 		}
 		BsmInfo[] bsminfo = bsmmap.get(slashedClassName);
-		if (bsminfo== null) {
+		if (bsminfo == null) {
 			bsminfo = new BsmInfo[1];
 			// TODO do we need BsmInfo or can we just use Handle directly?
 			bsminfo[0] = new BsmInfo(bsm, bsmArgs);
-			bsmmap.put(slashedClassName,bsminfo);
+			bsmmap.put(slashedClassName, bsminfo);
 			return 0;
-		}
-		else {
+		} else {
 			int len = bsminfo.length;
-			BsmInfo[] newarray = new BsmInfo[len+1];
+			BsmInfo[] newarray = new BsmInfo[len + 1];
 			System.arraycopy(bsminfo, 0, newarray, 0, len);
 			bsminfo = newarray;
-			bsmmap.put(slashedClassName,bsminfo);
-			bsminfo[len] = new BsmInfo(bsm,bsmArgs);
+			bsmmap.put(slashedClassName, bsminfo);
+			bsminfo[len] = new BsmInfo(bsm, bsmArgs);
 			return len;
 		}
 		// TODO [memory] search the existing bsmInfos for a matching one! Reuse!
 	}
 
-	private static Map<String,BsmInfo[]> bsmmap;
-	
+	private static Map<String, BsmInfo[]> bsmmap;
+
 	static class BsmInfo {
 		Handle bsm;
 		Object[] bsmArgs;
+
 		public BsmInfo(Handle bsm, Object[] bsmArgs) {
 			this.bsm = bsm;
 			this.bsmArgs = bsmArgs;
 		}
 	}
-	
+
 	/**
 	 * Called from the static initializer of a reloadabletype, allowing it to connect
 	 * itself to the parent type, such that when reloading occurs we can mark all
 	 * relevant types in the hierarchy as being impacted by the reload.
-	 * 
+	 *
 	 * @param child the ReloadableType actively being initialized
 	 * @param parent the superclass of the reloadable type (may or may not be reloadable!)
 	 */
@@ -2056,8 +2035,5 @@ public class TypeRegistry {
 			parentReloadableType.recordSubtype(child);
 		}
 	}
-	
+
 }
-
-
-
