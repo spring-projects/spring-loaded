@@ -26,6 +26,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
@@ -1302,11 +1303,19 @@ public class TypeRegistry {
 		Class<?> clazz= instance.getClass();
 		try {
 			if (clazz.getName().contains("$$Lambda")) {
-				// There will only be one method, the SAM method
+				// There may be multiple methods here, we want the public one (I think!)
 				Method[] ms = instance.getClass().getDeclaredMethods();
-				Method m = ms[0];
-				m.setAccessible(true);
-				Object o = m.invoke(instance, params);
+				// public java.lang.String basic.LambdaJ$$E002$$Lambda$2/1484594489.m(java.lang.String,java.lang.String)
+				// private static basic.LambdaJ$Foo basic.LambdaJ$$E002$$Lambda$2/1484594489.get$Lambda(basic.LambdaJ)
+				Method toUse = null;
+				for (Method m: ms) {
+					if (Modifier.isPublic(m.getModifiers())) {
+						toUse = m;
+						break;
+					}
+				}
+				toUse.setAccessible(true);
+				Object o = toUse.invoke(instance, params);
 				return o;	
 			}
 			else {

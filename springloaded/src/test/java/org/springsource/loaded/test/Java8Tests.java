@@ -22,7 +22,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
-import org.springsource.loaded.test.infra.ClassPrinter;
 import org.springsource.loaded.test.infra.Result;
 
 /**
@@ -363,9 +362,6 @@ public class Java8Tests extends SpringLoadedTests {
         r = runUnguarded(simpleClass, "run");
         assertEquals(4, r.returnValue);
     }
-	
-	
-	
 
 	@Ignore
 	@Test
