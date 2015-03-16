@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import org.junit.ComparisonFailure;
@@ -23,41 +24,43 @@ import org.springsource.loaded.test.infra.ResultException;
 
 
 /**
- * This class is intended to be subclassed to create 'generated' tests. It needs to be run with the {@link ExploreAllChoicesRunner}
- * test runner, using the {@link RunWith} annotation.
+ * This class is intended to be subclassed to create 'generated' tests. It needs to be run with the
+ * {@link ExploreAllChoicesRunner} test runner, using the {@link RunWith} annotation.
  * <p>
  * To create a generative test two things come together:
  * 
  * <ul>
- * <li>A mechanism to create different test configurations based on 'random' choices. These random choices are made by the test's
- * 'setup' method calling the provided 'choice' methods.
+ * <li>A mechanism to create different test configurations based on 'random' choices. These random choices are made by
+ * the test's 'setup' method calling the provided 'choice' methods.
  * 
- * <li>A mechanism to run the same test twice in two different execution contexts. It is the responsibility of the test subclass to
- * setup the appropriate execution context. See {@link GenerativeSpringLoadedTest} for an example.
+ * <li>A mechanism to run the same test twice in two different execution contexts. It is the responsibility of the test
+ * subclass to setup the appropriate execution context. See {@link GenerativeSpringLoadedTest} for an example.
  * </ul>
  * 
  * The test runner is responsible for injecting implementations of the IChoiceGenerator interface.
  * <p>
- * On a first run, the test runner will provide a 'recording' choice generator. The test is run multiple times until all possible
- * choices have been explored. For each test run the choices are recorded together with the observed test result for those choices.
- * This is used to populate the test tree.
+ * On a first run, the test runner will provide a 'recording' choice generator. The test is run multiple times until all
+ * possible choices have been explored. For each test run the choices are recorded together with the observed test
+ * result for those choices. This is used to populate the test tree.
  * <p>
- * Then the tests are run again replaying the recorded choices. The result is compared with the result from the first run. The test
- * fails if the results are not equal (using whatever implementation of equals is provided by the result objects.
+ * Then the tests are run again replaying the recorded choices. The result is compared with the result from the first
+ * run. The test fails if the results are not equal (using whatever implementation of equals is provided by the result
+ * objects.
  * 
  * @author kdvolder
  */
 public abstract class GenerativeTest {
 
 	/**
-	 * Injected by the test runner. Use the ChoiceGenerator to implement some logic to choose test parameters. Either in your setup
-	 * method or your actual test method.
+	 * Injected by the test runner. Use the ChoiceGenerator to implement some logic to choose test parameters. Either in
+	 * your setup method or your actual test method.
 	 */
 	public IChoiceGenerator choiceGenerator = null;
 
 	/**
-	 * This field is set by the test runner to indicate whether the test is currently in 'generative' mode, or 'replay/verify' mode.
-	 * This flag is mostly intended for the setup method so it can setup an appropriate execution context.
+	 * This field is set by the test runner to indicate whether the test is currently in 'generative' mode, or
+	 * 'replay/verify' mode. This flag is mostly intended for the setup method so it can setup an appropriate execution
+	 * context.
 	 */
 	public boolean generative;
 
@@ -75,12 +78,12 @@ public abstract class GenerativeTest {
 	 * <p>
 	 * The test method will be run twice by the runner, once in a 'generative' mode and once in 'verifying' mode.
 	 * <p>
-	 * In generative mode, it is ok to throw RejectedChoice exception, this will cause the test to be ignored. The test method
-	 * itself shouldn't need to know what mode it is running in. The test runner should inject the necessary context dependencies
-	 * for the code to be identical in both cases.
+	 * In generative mode, it is ok to throw RejectedChoice exception, this will cause the test to be ignored. The test
+	 * method itself shouldn't need to know what mode it is running in. The test runner should inject the necessary
+	 * context dependencies for the code to be identical in both cases.
 	 * <p>
-	 * The only obligation the test method has is to ensure that, given a deterministic set of choices is made by the injected
-	 * ChoiceGenerator, the test method's behavior should also be deterministic.
+	 * The only obligation the test method has is to ensure that, given a deterministic set of choices is made by the
+	 * injected ChoiceGenerator, the test method's behavior should also be deterministic.
 	 * 
 	 * @throws ResultExeption if the test produces an expected exception as result.
 	 * @throws RejectedChoice (in generative mode only) if the generated test should be ignored.
@@ -131,12 +134,12 @@ public abstract class GenerativeTest {
 	}
 
 	/**
-	 * Override this and make it return something other than null to create a nicer name in the JUnit runner view. Beware that this
-	 * name must be unique or the Eclipse JUnit runner view will get confused displaying the results (though tests should still run
-	 * ok).
+	 * Override this and make it return something other than null to create a nicer name in the JUnit runner view.
+	 * Beware that this name must be unique or the Eclipse JUnit runner view will get confused displaying the results
+	 * (though tests should still run ok).
 	 * <p>
-	 * Typically, you should override this to return a string that describes the values for the configuration parameter values of
-	 * the test instance.
+	 * Typically, you should override this to return a string that describes the values for the configuration parameter
+	 * values of the test instance.
 	 * <p>
 	 * If not overridden, the choices 'bitString' will be displayed. This is unique, but not very informative.
 	 * 
@@ -165,25 +168,27 @@ public abstract class GenerativeTest {
 		}
 		if (expected instanceof Result) {
 			assertEqualResults((Result) expected, (Result) actual);
-		} else if (expected instanceof ResultException) {
+		}
+		else if (expected instanceof ResultException) {
 			assertEqualExceptions((ResultException) expected, (ResultException) actual);
-		} else {
+		}
+		else {
 			//I don't what it is?? There are only two implementations of the interface
 			throw new ComparisonFailure(null, expected.toString(), actual.toString());
 		}
 	}
 
 	/**
-	 * This method gets called to compare two ResultExceptions, but only when the standard equals method returned false. Subclasses
-	 * may override this to relax the equality check.
+	 * This method gets called to compare two ResultExceptions, but only when the standard equals method returned false.
+	 * Subclasses may override this to relax the equality check.
 	 */
 	protected void assertEqualExceptions(ResultException expected, ResultException actual) {
 		throw new ComparisonFailure(null, expected.toString(), actual.toString());
 	}
 
 	/**
-	 * This method gets called to compare two Results, but only when the standard equals method returned false. Subclasses may
-	 * override this to relax the equality check.
+	 * This method gets called to compare two Results, but only when the standard equals method returned false.
+	 * Subclasses may override this to relax the equality check.
 	 */
 	protected void assertEqualResults(Result expected, Result actual) {
 		throw new ComparisonFailure(null, expected.toString(), actual.toString());

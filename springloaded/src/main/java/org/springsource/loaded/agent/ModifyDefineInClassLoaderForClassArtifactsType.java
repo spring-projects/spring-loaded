@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import org.objectweb.asm.ClassVisitor;
@@ -33,7 +34,7 @@ import org.springsource.loaded.TypeRegistry;
 public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor implements Constants {
 
 	public ModifyDefineInClassLoaderForClassArtifactsType() {
-		super(ASM5,new ClassWriter(0)); // TODO review 0 here
+		super(ASM5, new ClassWriter(0)); // TODO review 0 here
 	}
 
 	public byte[] getBytes() {
@@ -44,7 +45,8 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor
 		if (name.equals("define")) {
 			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 			return new DefineClassModifierVisitor(mv);
-		} else {
+		}
+		else {
 			return super.visitMethod(access, name, desc, signature, exceptions);
 		}
 	}
@@ -52,7 +54,7 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor
 	class DefineClassModifierVisitor extends MethodVisitor implements Constants {
 
 		public DefineClassModifierVisitor(MethodVisitor mv) {
-			super(ASM5,mv);
+			super(ASM5, mv);
 		}
 
 		@Override
@@ -60,7 +62,8 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor
 			mv.visitVarInsn(ALOAD, 0); // ClassLoaderForClassArtifacts this
 			mv.visitVarInsn(ALOAD, 1); // String name
 			mv.visitVarInsn(ALOAD, 2); // byte[] bytes
-			mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/agent/ModifyDefineInClassLoaderForClassArtifactsType",
+			mv.visitMethodInsn(INVOKESTATIC,
+					"org/springsource/loaded/agent/ModifyDefineInClassLoaderForClassArtifactsType",
 					"modify", "(Ljava/lang/ClassLoader;Ljava/lang/String;[B)[B", false);
 			mv.visitVarInsn(ASTORE, 2);
 		}
@@ -81,13 +84,15 @@ public class ModifyDefineInClassLoaderForClassArtifactsType extends ClassVisitor
 			// java_lang_class$getDeclaredFields (i.e. a system class that cant change, so rewriting is unnecessary...)
 			if (typeRegistry != null) {
 				bytes = typeRegistry.methodCallRewrite(bytes);
-			} else {
+			}
+			else {
 				if (GlobalConfiguration.verboseMode) {
 					System.out.println("No type registry found for parent classloader: " + parent);
 				}
 				bytes = MethodInvokerRewriter.rewrite(null, bytes, true);
 			}
-		} else {
+		}
+		else {
 			bytes = MethodInvokerRewriter.rewrite(null, bytes, true);
 		}
 		return bytes;

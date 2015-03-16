@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.Constructor;
@@ -39,12 +40,15 @@ public class Exceptions {
 		String valueString;
 		if (value == null) {
 			valueString = "null value";
-		} else if (valueType.isPrimitive()) {
+		}
+		else if (valueType.isPrimitive()) {
 			valueString = "(" + valueType.getName() + ")" + value;
-		} else {
+		}
+		else {
 			valueString = value == null ? "null value" : value.getClass().getName();
 		}
-		return new IllegalAccessException("Can not set final " + fieldType + " field " + fieldQName + " to " + valueString);
+		return new IllegalAccessException("Can not set final " + fieldType + " field " + fieldQName + " to "
+				+ valueString);
 	}
 
 	static IllegalArgumentException illegalSetFieldTypeException(Field field, Class<?> valueType, Object value) {
@@ -59,12 +63,15 @@ public class Exceptions {
 		String valueStr;
 		if (valueType == null) {
 			valueStr = "null value";
-		} else if (valueType.isPrimitive()) {
+		}
+		else if (valueType.isPrimitive()) {
 			valueStr = "(" + valueType.getName() + ")" + value;
-		} else {
+		}
+		else {
 			valueStr = valueType.getName();
 		}
-		return new IllegalArgumentException("Can not set " + modStr + fieldType + " field " + fieldQName + " to " + valueStr);
+		return new IllegalArgumentException("Can not set " + modStr + fieldType + " field " + fieldQName + " to "
+				+ valueStr);
 	}
 
 	public static NoSuchFieldError noSuchFieldError(Field field) {

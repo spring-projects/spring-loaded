@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.fail;
@@ -87,22 +88,31 @@ public abstract class SpringLoadedTests implements Constants {
 	protected ClassLoader binLoader;
 
 	protected String TestDataPath = TestUtils.getPathToClasses("../testdata");
+
 	protected String TestDataAspectJPath = TestUtils.getPathToClasses("../testdata-aspectj");
+
 	protected String GroovyTestDataPath = TestUtils.getPathToClasses("../testdata-groovy");
+
 	protected String AspectjrtJar = "../testdata/aspectjrt.jar";
+
 	protected String CodeJar = "../testdata/code.jar";
+
 	// TODO [java8] replace this with project dependency when Java8 is out
-	protected String Java8CodeJar = findJar("../testdata-java8/build/libs","testdata-java8");
+	protected String Java8CodeJar = findJar("../testdata-java8/build/libs", "testdata-java8");
+
 	protected String GroovyrtJar = "../testdata-groovy/groovy-all-1.8.6.jar";
+
 	protected Result result;
+
 	protected TypeRegistry registry;
 
-	
+
 	@Before
 	public void setup() throws Exception {
 		SpringLoadedPreProcessor.disabled = true;
 		NameRegistry.reset();
-		binLoader = new TestClassLoader(toURLs(TestDataPath, TestDataAspectJPath, AspectjrtJar, CodeJar, Java8CodeJar), this.getClass().getClassLoader());
+		binLoader = new TestClassLoader(toURLs(TestDataPath, TestDataAspectJPath, AspectjrtJar, CodeJar, Java8CodeJar),
+				this.getClass().getClassLoader());
 	}
 
 	@After
@@ -127,7 +137,8 @@ public abstract class SpringLoadedTests implements Constants {
 		for (String path : paths) {
 			try {
 				urls[i++] = new File(path).toURI().toURL();
-			} catch (MalformedURLException e) {
+			}
+			catch (MalformedURLException e) {
 				Assert.fail(e.toString());
 			}
 		}
@@ -148,7 +159,8 @@ public abstract class SpringLoadedTests implements Constants {
 			}
 			// Method m = clazz.getDeclaredMethod(methodname);
 			return m.invoke(o, params);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
 			return null;
@@ -168,7 +180,8 @@ public abstract class SpringLoadedTests implements Constants {
 			}
 			// Method m = clazz.getDeclaredMethod(methodname);
 			return m.invoke(o, params);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			Assert.fail(e.toString());
 			return null;
@@ -184,13 +197,15 @@ public abstract class SpringLoadedTests implements Constants {
 		try {
 			Thread.currentThread().setContextClassLoader(ccl);
 			return runUnguarded(clazz, methodname, params);
-		} finally {
+		}
+		finally {
 			Thread.currentThread().setContextClassLoader(oldCCL);
 		}
 	}
 
 	public Result runUnguarded(Class<?> clazz, String methodname, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException,
+			InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -213,11 +228,13 @@ public abstract class SpringLoadedTests implements Constants {
 				}
 			}
 			if (m == null) {
-				Assert.fail("Invocation failure: could not find method '" + methodname + "' on type '" + clazz.getName());
+				Assert.fail("Invocation failure: could not find method '" + methodname + "' on type '"
+						+ clazz.getName());
 			}
 			m.setAccessible(true);
 			result = m.invoke(o, params);
-		} finally {
+		}
+		finally {
 			if (capture) {
 				System.setOut(oldo);
 				System.setErr(olde);
@@ -226,8 +243,10 @@ public abstract class SpringLoadedTests implements Constants {
 		return new Result(result, oso.toString().replace("\r", ""), ose.toString().replace("\r", ""));
 	}
 
-	public Result runStaticUnguarded(Class<?> clazz, String methodname, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public Result runStaticUnguarded(Class<?> clazz, String methodname, Object... params)
+			throws InstantiationException,
+			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException,
+			InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -249,11 +268,13 @@ public abstract class SpringLoadedTests implements Constants {
 				}
 			}
 			if (m == null) {
-				Assert.fail("Invocation failure: could not find method '" + methodname + "' on type '" + clazz.getName());
+				Assert.fail("Invocation failure: could not find method '" + methodname + "' on type '"
+						+ clazz.getName());
 			}
 			m.setAccessible(true);
 			result = m.invoke(null, params);
-		} finally {
+		}
+		finally {
 			if (capture) {
 				System.setOut(oldo);
 				System.setErr(olde);
@@ -263,7 +284,8 @@ public abstract class SpringLoadedTests implements Constants {
 	}
 
 	public Result runConstructor(Class<?> clazz, int whichConstructor, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException,
+			InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -281,11 +303,13 @@ public abstract class SpringLoadedTests implements Constants {
 			c = cs[whichConstructor];
 			System.out.println(c);
 			if (c == null) {
-				Assert.fail("Invocation failure: could not find constructor " + whichConstructor + " on type '" + clazz.getName());
+				Assert.fail("Invocation failure: could not find constructor " + whichConstructor + " on type '"
+						+ clazz.getName());
 			}
 			c.setAccessible(true);
 			result = c.newInstance(params);
-		} finally {
+		}
+		finally {
 			if (capture) {
 				System.setOut(oldo);
 				System.setErr(olde);
@@ -294,8 +318,10 @@ public abstract class SpringLoadedTests implements Constants {
 		return new Result(result, oso.toString().replace("\r", ""), ose.toString().replace("\r", ""));
 	}
 
-	public Result runConstructor(Class<?> clazz, String paramDescriptor, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public Result runConstructor(Class<?> clazz, String paramDescriptor, Object... params)
+			throws InstantiationException,
+			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException,
+			InvocationTargetException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -326,7 +352,8 @@ public abstract class SpringLoadedTests implements Constants {
 			}
 			c.setAccessible(true);
 			result = c.newInstance(params);
-		} finally {
+		}
+		finally {
 			if (capture) {
 				System.setOut(oldo);
 				System.setErr(olde);
@@ -347,12 +374,15 @@ public abstract class SpringLoadedTests implements Constants {
 		return s.toString().trim();
 	}
 
-	public void runExpectNoSuchMethodException(Class<?> clazz, String methodname, Object... params) throws InstantiationException,
-			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
+	public void runExpectNoSuchMethodException(Class<?> clazz, String methodname, Object... params)
+			throws InstantiationException,
+			IllegalAccessException, SecurityException, NoSuchMethodException, IllegalArgumentException,
+			InvocationTargetException {
 		try {
 			runUnguarded(clazz, methodname, params);
 			Assert.fail("should not work, NSME should occur for " + methodname);
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			String cause = ite.getCause().toString();
 			if (!cause.startsWith("java.lang.NoSuchMethodError")) {
 				ite.printStackTrace();
@@ -364,10 +394,12 @@ public abstract class SpringLoadedTests implements Constants {
 	public static boolean printOutput = false;
 
 	/**
-	 * Proposed alternate version of runOnInstance that produces a wrapper Exception object similar to the Result object, but where
-	 * the "result" is an exception. This is done so as not to lose the grabbed output when exception is raised by the test case.
+	 * Proposed alternate version of runOnInstance that produces a wrapper Exception object similar to the Result
+	 * object, but where the "result" is an exception. This is done so as not to lose the grabbed output when exception
+	 * is raised by the test case.
 	 */
-	public static Result runOnInstance(Class<?> clazz, Object instance, String methodname, Object... params) throws ResultException {
+	public static Result runOnInstance(Class<?> clazz, Object instance, String methodname, Object... params)
+			throws ResultException {
 
 		PrintStream oldo = System.out;
 		PrintStream olde = System.err;
@@ -395,11 +427,13 @@ public abstract class SpringLoadedTests implements Constants {
 			}
 			try {
 				result = m.invoke(instance, params);
-			} catch (Throwable e) {
+			}
+			catch (Throwable e) {
 				exception = e;
 			}
 
-		} finally {
+		}
+		finally {
 			System.setOut(oldo);
 			System.setErr(olde);
 		}
@@ -410,7 +444,8 @@ public abstract class SpringLoadedTests implements Constants {
 		}
 		if (exception != null) {
 			throw new ResultException(exception, oso.toString().replace("\r", ""), ose.toString().replace("\r", ""));
-		} else {
+		}
+		else {
 			return new Result(result, oso.toString().replace("\r", ""), ose.toString().replace("\r", ""));
 		}
 	}
@@ -419,7 +454,8 @@ public abstract class SpringLoadedTests implements Constants {
 	public Class<?> loadit(String name, byte[] bytes) {
 		try {
 			return ((TestClassLoader) binLoader).defineTheClass(name, bytes);
-		} catch (RuntimeException t) {
+		}
+		catch (RuntimeException t) {
 			ClassPrinter.print(bytes);
 			t.printStackTrace();
 			throw t;
@@ -528,7 +564,7 @@ public abstract class SpringLoadedTests implements Constants {
 	protected ClassNode getClassNode(byte[] classdata) {
 		ClassNode cn = new ClassNode();
 		ClassReader cr = new ClassReader(classdata);
-		cr.accept(cn, 0);	
+		cr.accept(cn, 0);
 		return cn;
 	}
 
@@ -536,23 +572,25 @@ public abstract class SpringLoadedTests implements Constants {
 	protected List<MethodNode> getMethods(byte[] classdata) {
 		return getClassNode(classdata).methods;
 	}
-	
+
 	protected int countMethods(byte[] classdata) {
 		ClassNode cn = getClassNode(classdata);
-		return cn.methods==null?0:cn.methods.size();
-	}	
+		return cn.methods == null ? 0 : cn.methods.size();
+	}
 
 	protected List<MethodNode> filter(List<MethodNode> methods, String nameSubstring) {
-		if (methods == null) { return Collections.<MethodNode>emptyList(); }
+		if (methods == null) {
+			return Collections.<MethodNode> emptyList();
+		}
 		List<MethodNode> subset = new ArrayList<MethodNode>();
-		for (MethodNode methodNode: methods) {
+		for (MethodNode methodNode : methods) {
 			if (methodNode.name.contains(nameSubstring)) {
 				subset.add(methodNode);
 			}
 		}
 		return subset;
 	}
-	
+
 	protected String toStringClass(byte[] classdata) {
 		return toStringClass(classdata, false, false);
 	}
@@ -606,14 +644,14 @@ public abstract class SpringLoadedTests implements Constants {
 	public static String findJar(String whereToLook, String jarPrefix) {
 		File dir = new File(whereToLook);
 		File[] fs = dir.listFiles();
-		for (File f: fs) {
+		for (File f : fs) {
 			if (f.getName().startsWith(jarPrefix)) {
 				return f.toString();
 			}
 		}
 		return null;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	protected String toStringField(byte[] classdata, String fieldname) {
 		StringBuilder sb = new StringBuilder();
@@ -673,11 +711,12 @@ public abstract class SpringLoadedTests implements Constants {
 	/**
 	 * From asm:
 	 * 
-	 * The name value pairs of this annotation. Each name value pair is stored as two consecutive elements in the list. The name is
-	 * a {@link String}, and the value may be a {@link Byte}, {@link Boolean}, {@link Character}, {@link Short}, {@link Integer},
-	 * {@link Long}, {@link Float}, {@link Double}, {@link String} or {@link org.objectweb.asm.Type}, or an two elements String
-	 * array (for enumeration values), a {@link AnnotationNode}, or a {@link List} of values of one of the preceding types. The list
-	 * may be <tt>null</tt> if there is no name value pair.
+	 * The name value pairs of this annotation. Each name value pair is stored as two consecutive elements in the list.
+	 * The name is a {@link String}, and the value may be a {@link Byte}, {@link Boolean}, {@link Character},
+	 * {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String} or
+	 * {@link org.objectweb.asm.Type}, or an two elements String array (for enumeration values), a
+	 * {@link AnnotationNode}, or a {@link List} of values of one of the preceding types. The list may be <tt>null</tt>
+	 * if there is no name value pair.
 	 */
 
 	private String toStringAnnotationValue(String name, Object value) {
@@ -685,30 +724,42 @@ public abstract class SpringLoadedTests implements Constants {
 		sb.append(name).append("=");
 		if (value instanceof Byte) {
 			sb.append(((Byte) value).byteValue());
-		} else if (value instanceof Boolean) {
+		}
+		else if (value instanceof Boolean) {
 			sb.append(((Boolean) value).booleanValue());
-		} else if (value instanceof Character) {
+		}
+		else if (value instanceof Character) {
 			sb.append(((Character) value).charValue());
-		} else if (value instanceof Short) {
+		}
+		else if (value instanceof Short) {
 			sb.append(((Short) value).shortValue());
-		} else if (value instanceof Integer) {
+		}
+		else if (value instanceof Integer) {
 			sb.append(((Integer) value).intValue());
-		} else if (value instanceof Long) {
+		}
+		else if (value instanceof Long) {
 			sb.append(((Long) value).longValue());
-		} else if (value instanceof Float) {
+		}
+		else if (value instanceof Float) {
 			sb.append(((Float) value).floatValue());
-		} else if (value instanceof Double) {
+		}
+		else if (value instanceof Double) {
 			sb.append(((Double) value).doubleValue());
-		} else if (value instanceof String) {
+		}
+		else if (value instanceof String) {
 			sb.append(((String) value));
-		} else if (value instanceof Type) {
+		}
+		else if (value instanceof Type) {
 			sb.append(((Type) value).getClassName());
-		} else if (value instanceof String[]) {
+		}
+		else if (value instanceof String[]) {
 			String[] ss = (String[]) value;
 			sb.append(ss[0]).append(ss[1]);
-		} else if (value instanceof AnnotationNode) {
+		}
+		else if (value instanceof AnnotationNode) {
 			sb.append(toStringAnnotation((AnnotationNode) value));
-		} else if (value instanceof List) {
+		}
+		else if (value instanceof List) {
 			throw new IllegalStateException("nyi");
 		}
 		return sb.toString().trim();
@@ -739,16 +790,16 @@ public abstract class SpringLoadedTests implements Constants {
 	}
 
 	/**
-	 * Look for a <name>.print file and check the printout of the bytes matches it, unless regenerate is true in which case the
-	 * print out is recorded in that file.
+	 * Look for a <name>.print file and check the printout of the bytes matches it, unless regenerate is true in which
+	 * case the print out is recorded in that file.
 	 */
 	protected void checkIt(String name, byte[] bytes) {
 		checkIt(name, bytes, shouldRegenerate());
 	}
 
 	/**
-	 * Look for a <name>.print file and check the printout of the bytes matches it, unless regenerate is true in which case the
-	 * print out is recorded in that file.
+	 * Look for a <name>.print file and check the printout of the bytes matches it, unless regenerate is true in which
+	 * case the print out is recorded in that file.
 	 */
 	protected void checkIt(String name, byte[] bytes, boolean regenerate) {
 		String filename = "src/test/java/" + name.replace('.', '/') + ".print";
@@ -762,7 +813,8 @@ public abstract class SpringLoadedTests implements Constants {
 				dos.write(printItAndReturnIt(bytes));
 				dos.flush();
 				fos.close();
-			} else {
+			}
+			else {
 				// compare the files
 				List<String> expectedLines = new ArrayList<String>();
 				File f = new File(filename);
@@ -793,7 +845,8 @@ public abstract class SpringLoadedTests implements Constants {
 					}
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -824,7 +877,8 @@ public abstract class SpringLoadedTests implements Constants {
 			}
 			bis.close();
 			bos.close();
-		} catch (IOException ioe) {
+		}
+		catch (IOException ioe) {
 			throw new RuntimeException("Copy file failed", ioe);
 		}
 	}
@@ -1100,23 +1154,32 @@ public abstract class SpringLoadedTests implements Constants {
 		if (typeName.endsWith("[]")) {
 			Class<?> element = classForName(typeName.substring(0, typeName.length() - 2));
 			return Array.newInstance(element, 0).getClass();
-		} else if (typeName.equals("int")) {
+		}
+		else if (typeName.equals("int")) {
 			return int.class;
-		} else if (typeName.equals("void")) {
+		}
+		else if (typeName.equals("void")) {
 			return void.class;
-		} else if (typeName.equals("boolean")) {
+		}
+		else if (typeName.equals("boolean")) {
 			return boolean.class;
-		} else if (typeName.equals("byte")) {
+		}
+		else if (typeName.equals("byte")) {
 			return byte.class;
-		} else if (typeName.equals("char")) {
+		}
+		else if (typeName.equals("char")) {
 			return char.class;
-		} else if (typeName.equals("short")) {
+		}
+		else if (typeName.equals("short")) {
 			return short.class;
-		} else if (typeName.equals("double")) {
+		}
+		else if (typeName.equals("double")) {
 			return double.class;
-		} else if (typeName.equals("float")) {
+		}
+		else if (typeName.equals("float")) {
 			return float.class;
-		} else if (typeName.equals("long")) {
+		}
+		else if (typeName.equals("long")) {
 			return long.class;
 		}
 		return Class.forName(typeName, false, binLoader);
@@ -1179,7 +1242,8 @@ public abstract class SpringLoadedTests implements Constants {
 			Field f = clazz.getDeclaredField(Constants.fInstanceFieldsName);
 			f.setAccessible(true);
 			return (ISMgr) f.get(o);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
@@ -1191,13 +1255,15 @@ public abstract class SpringLoadedTests implements Constants {
 			f.setAccessible(true);
 			SSMgr m = (SSMgr) f.get(null);
 			return m.toString();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
 
 	PrintStream oldo, olde;
+
 	ByteArrayOutputStream oso, ose;
 
 	/**
@@ -1231,7 +1297,8 @@ public abstract class SpringLoadedTests implements Constants {
 		System.setErr(olde);
 		oldo = null;
 		olde = null;
-		return new String("SYSOUT\n" + oso.toString().replace("\r", "") + "\nSYSERR\n" + ose.toString().replace("\r", "") + "\n");
+		return new String("SYSOUT\n" + oso.toString().replace("\r", "") + "\nSYSERR\n"
+				+ ose.toString().replace("\r", "") + "\n");
 	}
 
 	protected String captureOffReturnStdout() {
@@ -1275,26 +1342,29 @@ public abstract class SpringLoadedTests implements Constants {
 
 	protected final static void pause(int seconds) {
 		try {
-			Thread.sleep(seconds*1000);
-		} catch (Exception e) {}
+			Thread.sleep(seconds * 1000);
+		}
+		catch (Exception e) {
+		}
 	}
-	
+
 	protected void assertStdout(String expectedStdout, JVMOutput actualOutput) {
 		if (!expectedStdout.equals(actualOutput.stdout)) {
 			//			assertEquals(expectedStdout, actualOutput.stdout);
 			fail("Expected stdout '" + expectedStdout + "' not found in \n" + actualOutput.toString());
 		}
 	}
-	
+
 	protected void assertStdoutContains(String expectedStdout, JVMOutput actualOutput) {
 		if (!actualOutput.stdout.contains(expectedStdout)) {
-			fail("Expected stdout:\n" + expectedStdout + "\nbut was:\n" + actualOutput.stdout.toString()+"\nComplete output: \n"+actualOutput.toString());
+			fail("Expected stdout:\n" + expectedStdout + "\nbut was:\n" + actualOutput.stdout.toString()
+					+ "\nComplete output: \n" + actualOutput.toString());
 		}
 	}
-	
+
 	protected void assertStdoutContains(String expectedStdout, Result r) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
@@ -1303,5 +1373,5 @@ public abstract class SpringLoadedTests implements Constants {
 			fail("Expected stderr to contain '" + expectedStderrContains + "'\n" + actualOutput.toString());
 		}
 	}
-	
+
 }

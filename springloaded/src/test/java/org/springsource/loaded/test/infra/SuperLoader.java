@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 import java.io.File;
@@ -41,12 +42,14 @@ import org.springsource.loaded.test.TestUtils;
 public class SuperLoader extends ClassLoader {
 
 	// @formatter:off
-	static String[] folders = new String[] { 
+	static String[] folders = new String[] {
 		TestUtils.getPathToClasses("../testdata-superloader")
-		};
-	static String[] jars = new String[] { 
+	};
+
+	static String[] jars = new String[] {
 		"../testdata-groovy/groovy-all-1.8.6.jar"
-		};
+	};
+
 	// @formatter:on
 
 	public SuperLoader() {
@@ -90,13 +93,14 @@ public class SuperLoader extends ClassLoader {
 						data = rtype.bytesLoaded;
 					}
 					if (SubLoader.DEBUG_LOADING) {
-						System.out.println("  SuperLoader: found in folder: '"+folders[i]+"'");
+						System.out.println("  SuperLoader: found in folder: '" + folders[i] + "'");
 					}
 					c = defineClass(name, data, 0, data.length);
 					break;
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		if (c == null) {
@@ -110,7 +114,7 @@ public class SuperLoader extends ClassLoader {
 					if (zipentry != null) {
 						byte[] data = Utils.loadBytesFromStream(zipfile.getInputStream(zipentry));
 						TypeRegistry tr = TypeRegistry.getTypeRegistryFor(this);
-//						data = new SpringLoadedPreProcessor().preProcess(this, slashedClassName, null, data);
+						//						data = new SpringLoadedPreProcessor().preProcess(this, slashedClassName, null, data);
 						if (tr != null) {
 
 							// Give the plugins a chance to rewrite stuff too
@@ -127,14 +131,15 @@ public class SuperLoader extends ClassLoader {
 							data = tr.methodCallRewrite(data);
 						}
 						if (SubLoader.DEBUG_LOADING) {
-							System.out.println("  SuperLoader: found in zip: '"+jars[i]+"'");
+							System.out.println("  SuperLoader: found in zip: '" + jars[i] + "'");
 						}
 						c = defineClass(name, data, 0, data.length);
 						break;
 					}
 					zipfile.close();
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -166,7 +171,8 @@ public class SuperLoader extends ClassLoader {
 				zipfile.close();
 			}
 			return null;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -207,7 +213,8 @@ public class SuperLoader extends ClassLoader {
 				}
 
 			};
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}

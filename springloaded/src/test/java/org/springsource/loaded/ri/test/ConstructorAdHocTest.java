@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.ReflectiveInterceptor.jlClassGetConstructor;
@@ -35,8 +36,11 @@ import org.springsource.loaded.test.infra.ResultException;
 public class ConstructorAdHocTest extends AbstractReflectionTests {
 
 	private static final String INVOKER_CLASS_NAME = "reflection.ConstructorInvoker";
+
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	private ReloadableType targetClass; //One class chosen to focus test on
 
 	//	/**
@@ -119,7 +123,8 @@ public class ConstructorAdHocTest extends AbstractReflectionTests {
 		try {
 			r = runOnInstance(callerClazz, callerInstance, "callNewInstance", c, (Object) new Object[] { 'a', 'b' });
 			Assert.fail("Expected an error");
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			Throwable e = re.getCause();
 			//			e.printStackTrace();
 			Assert.assertEquals(InvocationTargetException.class, e.getClass());

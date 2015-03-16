@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -37,12 +38,16 @@ public class ClassGetFieldTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	//	private Set<String> signatures;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String targetMethodName;
+
 	private String targetFieldName;
 
 	@Override
@@ -58,13 +63,15 @@ public class ClassGetFieldTest extends GenerativeSpringLoadedTest {
 		if (choice()) {
 			/* Test with a non reloadable class */
 			targetClass = targetClass("java.awt.Frame");
-		} else if (choice()) {
+		}
+		else if (choice()) {
 			targetClass("InterfaceTarget", choice("", "002"));
 			targetClass = targetClass("ClassTarget", choice("", "002"));
 			if (choice()) {
 				targetClass = targetClass("SubClassTarget", choice("", "002"));
 			}
-		} else {
+		}
+		else {
 			targetClass = targetClass("InterfaceTarget", choice("", "002"));
 			if (choice()) {
 				targetClass = targetClass("S1InterfaceTarget", choice("", "002"));
@@ -82,12 +89,15 @@ public class ClassGetFieldTest extends GenerativeSpringLoadedTest {
 				Constants.fInstanceFieldsName, //This should be filtered out.
 				Constants.fStaticFieldsName, //This should be filtered out.
 				"DEFAULT_CURSOR", "WIDTH", "myStaticField", "subField", "subStaticField", "myField", "myDeletedField",
-				"myChangedField", "madeStaticField", "myNewField", "madePublicField", "i2Field", "iField", "iDeletedField",
-				"iChangedField", "i1Field", "i2Added", "i1AddedField", "iAddedField", "nameCounter", "serialVersionUID",
-				"myPrivateField", "subPrivateField", "myDeletedPrivateField", "myDeletedStaticField", "myChangedPrivateField",
+				"myChangedField", "madeStaticField", "myNewField", "madePublicField", "i2Field", "iField",
+				"iDeletedField",
+				"iChangedField", "i1Field", "i2Added", "i1AddedField", "iAddedField", "nameCounter",
+				"serialVersionUID",
+				"myPrivateField", "subPrivateField", "myDeletedPrivateField", "myDeletedStaticField",
+				"myChangedPrivateField",
 				"myChangedStaticField", "myNewPrivateField", "myNewStaticField", "nrlPriv", "nrlPub", "nrlStatic"
 
-		);
+				);
 		toStringValue.append(targetFieldName);
 
 		callerClazz = loadClassVersion("reflection.ClassInvoker", "");

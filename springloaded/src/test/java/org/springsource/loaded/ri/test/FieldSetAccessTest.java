@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -35,11 +36,14 @@ public class FieldSetAccessTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String fieldName; //Field we should get
+
 	boolean setAccess; //Should we call "setAccess" on the field
 
 	String calledMethod;
@@ -57,7 +61,8 @@ public class FieldSetAccessTest extends GenerativeSpringLoadedTest {
 			//Try a non reloadable class
 			targetClass = targetClass("java.awt.Frame");
 			fieldName = choice("title", "base");
-		} else {
+		}
+		else {
 			targetClass = targetClass("FieldSetAccessTarget", choice("", "002"));
 			fieldName = choice("privateField", "protectedField", "defaultField", "publicField", "finalPublicField",
 					"finalPrivateField", "deletedPublicField");
@@ -71,7 +76,8 @@ public class FieldSetAccessTest extends GenerativeSpringLoadedTest {
 			//For accessing a class from within itself, different access check behaviour expected!
 			callerClazz = targetClass;
 			toStringValue.append(" from " + callerClazz.getSimpleName());
-		} else {
+		}
+		else {
 			callerClazz = loadClassVersion("reflection.FieldInvoker", "");
 		}
 		callerInstance = newInstance(callerClazz);

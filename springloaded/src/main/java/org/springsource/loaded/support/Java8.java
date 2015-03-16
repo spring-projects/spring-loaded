@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.support;
 
 import java.lang.invoke.CallSite;
@@ -33,88 +34,81 @@ import org.springsource.loaded.ReloadableType;
  * @author Andy Clement
  * @since 1.2
  */
-public class Java8 { 
-	
-	/** 
+public class Java8 {
+
+	/**
 	 * Notes:
 	 * 
 	 * Useful to have an example of how this code behaves. Here is a bit of code:
 	 * 
-	 * class basic.LambdaA {
-	 *   interface Foo { int m(); }
-	 *   static int run() {
-	 *     Foo f = null;
-	 *     f = () -> 77;
-	 *     return f.m();
-	 *   }
-	 * }
+	 * class basic.LambdaA { interface Foo { int m(); } static int run() { Foo f = null; f = () -> 77; return f.m(); } }
 	 * 
 	 * Here is a bootstrap method entry in the constant pool:
 	 * 
-	 *    0: #31 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:
-	 *             (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;
-	 *              Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;
-     *		      Method arguments:
-     *		        #32 ()I
-     *  	        #33 invokestatic basic/LambdaA.lambda$run$0:()I
-     *	            #32 ()I
+	 * 0: #31 invokestatic java/lang/invoke/LambdaMetafactory.metafactory:
+	 * (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/
+	 * lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;
+	 * Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite; Method arguments: #32
+	 * ()I #33 invokestatic basic/LambdaA.lambda$run$0:()I #32 ()I
 	 * 
-	 * At the invokedynamic site:
-	 *     bsmId = 0
-	 *     nameAndDescriptor = m()Lbasic/LambdaA$Foo;
-	 *     
-	 * When invoking the metafactory bootstrap method the first two parameters are stacked by the VM automatically, namely the MethodHandles$Lookup
-	 * instance (caller) and the first String (invokedName). What the VM actually sees is this:
+	 * At the invokedynamic site: bsmId = 0 nameAndDescriptor = m()Lbasic/LambdaA$Foo;
 	 * 
-	 * metaFactory parameters:
-	 * 0:MethodHandles$Lookup caller = basic.LambdaA
-	 * 1:String invokedName = "m"
-	 * 2:MethodType invokedType = "()Foo"
-	 * 3:MethodType samMethodType = "()int"
-	 * 4:MethodHandle implMethod = (actually a DirectMethodHandle where memberName is "basic.LambdaA.lambda$run$0()int/invokeStatic")
-	 * 5:MethodType instantiatedMethodType = "()int"
+	 * When invoking the metafactory bootstrap method the first two parameters are stacked by the VM automatically,
+	 * namely the MethodHandles$Lookup instance (caller) and the first String (invokedName). What the VM actually sees
+	 * is this:
 	 * 
-	 * With all that information then the calls in this case are relatively straightforward:
-	 * CallSite callsite = LambdaMetafactory.metafactory(caller, invokedName, invokedType, samMethodType, implMethod, instantiatedMethodType);
-	 * callsite.dynamicInvoker().invokeWithArguments((Object[])null);
-	 */	
-	
+	 * metaFactory parameters: 0:MethodHandles$Lookup caller = basic.LambdaA 1:String invokedName = "m" 2:MethodType
+	 * invokedType = "()Foo" 3:MethodType samMethodType = "()int" 4:MethodHandle implMethod = (actually a
+	 * DirectMethodHandle where memberName is "basic.LambdaA.lambda$run$0()int/invokeStatic") 5:MethodType
+	 * instantiatedMethodType = "()int"
+	 * 
+	 * With all that information then the calls in this case are relatively straightforward: CallSite callsite =
+	 * LambdaMetafactory.metafactory(caller, invokedName, invokedType, samMethodType, implMethod,
+	 * instantiatedMethodType); callsite.dynamicInvoker().invokeWithArguments((Object[])null);
+	 */
+
 	/**
-	 * Programmatic emulation of INVOKEDYNAMIC so initialize the callsite via use of the bootstrap method then
-	 * invoke the result.
+	 * Programmatic emulation of INVOKEDYNAMIC so initialize the callsite via use of the bootstrap method then invoke
+	 * the result.
 	 * 
 	 * @param executorClass the executor that will contain the lambda function, null if not yet reloaded
 	 * @param handle bootstrap method handle
 	 * @param bsmArgs bootstrap method arguments
-	 * @param lookup The MethodHandles.Lookup object that can be used to find types 
+	 * @param lookup The MethodHandles.Lookup object that can be used to find types
 	 * @param indyNameAndDescriptor Method name and descriptor at invokedynamic site
 	 * @param indyParams parameters when the invokedynamic call is made
 	 * @return the result of the invokedynamic call
 	 */
-	public static Object emulateInvokeDynamic(ReloadableType rtype, Class<?> executorClass, Handle handle, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
+	public static Object emulateInvokeDynamic(ReloadableType rtype, Class<?> executorClass, Handle handle,
+			Object[] bsmArgs, Object lookup, String indyNameAndDescriptor, Object[] indyParams) {
 		try {
-			CallSite callsite = callLambdaMetaFactory(rtype, bsmArgs,lookup,indyNameAndDescriptor,executorClass);
+			CallSite callsite = callLambdaMetaFactory(rtype, bsmArgs, lookup, indyNameAndDescriptor, executorClass);
 			return callsite.dynamicInvoker().invokeWithArguments(indyParams);
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			throw new RuntimeException(t);
 		}
 	}
+
 	// TODO [perf] How about a table of CallSites indexed by invokedynamic number through the class file. Computed on first reference but cleared on reload. Possibly extend this to all invoke types!
 
 	// TODO [lambda] Need to handle altMetaFactory which is used when the lambdas are more 'complex' (e.g. Serializable)
-	public static CallSite callLambdaMetaFactory(ReloadableType rtype, Object[] bsmArgs, Object lookup, String indyNameAndDescriptor,Class<?> executorClass) throws Exception {		
-		MethodHandles.Lookup caller = (MethodHandles.Lookup)lookup;	
+	public static CallSite callLambdaMetaFactory(ReloadableType rtype, Object[] bsmArgs, Object lookup,
+			String indyNameAndDescriptor, Class<?> executorClass) throws Exception {
+		MethodHandles.Lookup caller = (MethodHandles.Lookup) lookup;
 
 		ClassLoader callerLoader = caller.lookupClass().getClassLoader();
 
 		int descriptorStart = indyNameAndDescriptor.indexOf('(');
-		String invokedName = indyNameAndDescriptor.substring(0,descriptorStart);
-		MethodType invokedType = MethodType.fromMethodDescriptorString(indyNameAndDescriptor.substring(descriptorStart), callerLoader);
-		
-		// Use bsmArgs to build the parameters 
-		MethodType samMethodType = MethodType.fromMethodDescriptorString((String)(((Type)bsmArgs[0]).getDescriptor()), callerLoader);
+		String invokedName = indyNameAndDescriptor.substring(0, descriptorStart);
+		MethodType invokedType = MethodType.fromMethodDescriptorString(
+				indyNameAndDescriptor.substring(descriptorStart), callerLoader);
 
-		Handle bsmArgsHandle = (Handle)bsmArgs[1];
+		// Use bsmArgs to build the parameters 
+		MethodType samMethodType = MethodType.fromMethodDescriptorString(
+				(String) (((Type) bsmArgs[0]).getDescriptor()), callerLoader);
+
+		Handle bsmArgsHandle = (Handle) bsmArgs[1];
 		String owner = bsmArgsHandle.getOwner();
 		String name = bsmArgsHandle.getName();
 		String descriptor = bsmArgsHandle.getDesc();
@@ -134,7 +128,8 @@ public class Java8 {
 					implMethod = caller.findSpecial(caller.lookupClass(), name, implMethodType, caller.lookupClass());
 				}
 				else {
-					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString("(L"+owner+";"+descriptor.substring(1),callerLoader));
+					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString(
+							"(L" + owner + ";" + descriptor.substring(1), callerLoader));
 				}
 				break;
 			case Opcodes.H_INVOKEVIRTUAL:
@@ -145,29 +140,33 @@ public class Java8 {
 					implMethod = caller.findVirtual(caller.lookupClass(), name, implMethodType);
 				}
 				else {
-					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString("(L"+owner+";"+descriptor.substring(1),callerLoader));
+					implMethod = caller.findStatic(caller.lookupClass(), name, MethodType.fromMethodDescriptorString(
+							"(L" + owner + ";" + descriptor.substring(1), callerLoader));
 				}
 				break;
 			case Opcodes.H_INVOKEINTERFACE:
-				Handle h = (Handle)bsmArgs[1];
+				Handle h = (Handle) bsmArgs[1];
 				String interfaceOwner = h.getOwner();
 				// TODO Should there not be a more direct way to this than classloading?
 				// TODO What about when this is a method added to the interface on a reload? It won't really exist, should we point
 				// to the executor? or something else? (maybe just directly the real method that will satisfy the interface - if it can be worked out)
-				Class<?> interfaceClass = callerLoader.loadClass(interfaceOwner.replace('/','.')); // interface type, eg StreamB$Foo				
+				Class<?> interfaceClass = callerLoader.loadClass(interfaceOwner.replace('/', '.')); // interface type, eg StreamB$Foo				
 				implMethod = caller.findVirtual(interfaceClass, name, implMethodType);
 				break;
 			default:
-				throw new IllegalStateException("nyi "+bsmArgsHandle.getTag());
+				throw new IllegalStateException("nyi " + bsmArgsHandle.getTag());
 		}
 
-		MethodType instantiatedMethodType = MethodType.fromMethodDescriptorString((String)(((Type)bsmArgs[2]).getDescriptor()), callerLoader);
-		
-		return LambdaMetafactory.metafactory(caller, invokedName, invokedType, samMethodType, implMethod, instantiatedMethodType);
+		MethodType instantiatedMethodType = MethodType.fromMethodDescriptorString(
+				(String) (((Type) bsmArgs[2]).getDescriptor()), callerLoader);
+
+		return LambdaMetafactory.metafactory(caller, invokedName, invokedType, samMethodType, implMethod,
+				instantiatedMethodType);
 	}
 
 	/**
-	 * The metafactory we are enhancing is responsible for generating the anonymous classes that will call the lambda methods in our type
+	 * The metafactory we are enhancing is responsible for generating the anonymous classes that will call the lambda
+	 * methods in our type
 	 * 
 	 * @param bytes the class bytes for the InnerClassLambdaMetaFactory that is going to be modified
 	 * @return the class bytes for the modified InnerClassLambdaMetaFactory

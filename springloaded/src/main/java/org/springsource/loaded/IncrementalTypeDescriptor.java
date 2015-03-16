@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.util.ArrayList;
@@ -22,7 +23,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class computes and then encapsulates what has changed between the original form of a type and a newly loaded version.
+ * This class computes and then encapsulates what has changed between the original form of a type and a newly loaded
+ * version.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -30,6 +32,7 @@ import java.util.Map;
 public class IncrementalTypeDescriptor implements Constants {
 
 	private TypeDescriptor initialTypeDescriptor;
+
 	private TypeDescriptor latestTypeDescriptor;
 
 	private int bits;
@@ -37,8 +40,11 @@ public class IncrementalTypeDescriptor implements Constants {
 	private final static int BIT_COMPUTED_DIFF = 0x0001;
 
 	private Map<String, MethodMember> latestMethods; // Map from nameAndDescriptor to the MethodMember
+
 	private List<MethodMember> newOrChangedMethods;
+
 	private List<MethodMember> newOrChangedConstructors; // TODO required?
+
 	private List<MethodMember> deletedMethods;
 
 	public IncrementalTypeDescriptor(TypeDescriptor initialTypeDescriptor) {
@@ -71,6 +77,7 @@ public class IncrementalTypeDescriptor implements Constants {
 	 * <li>method was represented as a catcher in the original, but is now 'real'
 	 * </ul>
 	 * It does not include catchers.
+	 * 
 	 * @return list of new or changed methods in this type
 	 */
 	public List<MethodMember> getNewOrChangedMethods() {
@@ -84,6 +91,7 @@ public class IncrementalTypeDescriptor implements Constants {
 	 * <li>constructors that did not exist in the original class as loaded, but do now
 	 * <li>constructors that did exist in the original class but have changed in some way (visibility)
 	 * </ul>
+	 * 
 	 * @return list of new or changed constructors in this type
 	 */
 	public List<MethodMember> getNewOrChangedConstructors() {
@@ -113,7 +121,8 @@ public class IncrementalTypeDescriptor implements Constants {
 			if (original == null) {
 				latest.bits |= MethodMember.IS_NEW;
 				newOrChangedMethods.add(latest);
-			} else {
+			}
+			else {
 				if (!original.equals(latest)) { // check more than just name/descriptor
 					newOrChangedMethods.add(latest);
 				}
@@ -127,7 +136,7 @@ public class IncrementalTypeDescriptor implements Constants {
 					latest.bits |= MethodMember.IS_NEW;
 					newOrChangedMethods.add(latest);
 				}
-				
+
 				// If it now is a catcher where it didn't used to be, it has been deleted
 				if (MethodMember.isCatcher(latest) && !MethodMember.isCatcher(original)) {
 					latest.bits |= MethodMember.WAS_DELETED;
@@ -142,7 +151,8 @@ public class IncrementalTypeDescriptor implements Constants {
 						if (wasStatic) {
 							// has been made non-static
 							latest.bits |= MethodMember.MADE_NON_STATIC;
-						} else {
+						}
+						else {
 							// has been made static
 							latest.bits |= MethodMember.MADE_STATIC;
 						}
@@ -283,7 +293,8 @@ public class IncrementalTypeDescriptor implements Constants {
 
 	public String toString(boolean compute) {
 		StringBuilder s = new StringBuilder();
-		s.append("Original:\n").append(this.initialTypeDescriptor).append("\nCurrent:\n").append(this.latestTypeDescriptor);
+		s.append("Original:\n").append(this.initialTypeDescriptor).append("\nCurrent:\n").append(
+				this.latestTypeDescriptor);
 		s.append('\n');
 		if (compute) {
 			compute();

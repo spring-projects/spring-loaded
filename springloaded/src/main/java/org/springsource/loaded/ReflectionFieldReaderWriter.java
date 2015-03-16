@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Field;
@@ -34,7 +35,8 @@ public class ReflectionFieldReaderWriter extends FieldReaderWriter {
 	}
 
 	@Override
-	public Object getStaticFieldValue(Class<?> type, SSMgr fieldAccessor) throws IllegalAccessException, IllegalArgumentException {
+	public Object getStaticFieldValue(Class<?> type, SSMgr fieldAccessor) throws IllegalAccessException,
+			IllegalArgumentException {
 		field.setAccessible(true);
 		return field.get(null);
 	}
@@ -52,7 +54,8 @@ public class ReflectionFieldReaderWriter extends FieldReaderWriter {
 	}
 
 	@Override
-	public Object getValue(Object instance, ISMgr fieldAccessor) throws IllegalAccessException, IllegalArgumentException {
+	public Object getValue(Object instance, ISMgr fieldAccessor) throws IllegalAccessException,
+			IllegalArgumentException {
 		field.setAccessible(true);
 		return field.get(instance);
 	}

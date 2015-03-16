@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.util.HashMap;
@@ -23,48 +24,73 @@ import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
 /**
- * Encapsulates what has changed between two versions of a type - it is used to determine if a reload is possible and also passed on
- * events related to reloading so that the plugins can tailor their actions based on what prevented reloading. The various
- * <tt>hasXXX</tt> and <tt>getXXX</tt> methods should be used to query it.
+ * Encapsulates what has changed between two versions of a type - it is used to determine if a reload is possible and
+ * also passed on events related to reloading so that the plugins can tailor their actions based on what prevented
+ * reloading. The various <tt>hasXXX</tt> and <tt>getXXX</tt> methods should be used to query it.
  * 
  * @author Andy Clement
  * @since 0.5.0
  */
 public class TypeDelta {
+
 	private long changed;
 
 	private final static long CHANGED_VERSION = 0x00000001;
+
 	private final static long CHANGED_ACCESS = 0x00000002;
+
 	private final static long CHANGED_SUPERNAME = 0x00000004;
+
 	private final static long CHANGED_INTERFACES = 0x00000008;
+
 	private final static long CHANGED_NAME = 0x00000010;
+
 	private final static long CHANGED_SIGNATURE = 0x00000020;
-	private final static long CHANGED_TYPE_MASK = CHANGED_VERSION | CHANGED_ACCESS | CHANGED_SUPERNAME | CHANGED_INTERFACES
+
+	private final static long CHANGED_TYPE_MASK = CHANGED_VERSION | CHANGED_ACCESS | CHANGED_SUPERNAME
+			| CHANGED_INTERFACES
 			| CHANGED_NAME | CHANGED_SIGNATURE;
 
 	private final static long CHANGED_NEWFIELDS = 0x00000040;
+
 	private final static long CHANGED_LOSTFIELDS = 0x00000080;
+
 	private final static long CHANGED_CHANGEDFIELDS = 0x00000100;
+
 	private final static long CHANGED_FIELD_MASK = CHANGED_NEWFIELDS | CHANGED_LOSTFIELDS | CHANGED_CHANGEDFIELDS;
 
 	private final static long CHANGED_NEWMETHODS = 0x00000200;
+
 	private final static long CHANGED_LOSTMETHODS = 0x00000400;
+
 	private final static long CHANGED_CHANGEDMETHODS = 0x0000800;
+
 	private final static long CHANGED_METHOD_MASK = CHANGED_NEWMETHODS | CHANGED_LOSTMETHODS | CHANGED_CHANGEDMETHODS;
 
 	private final static long CHANGES = CHANGED_TYPE_MASK | CHANGED_FIELD_MASK | CHANGED_METHOD_MASK;
 
 	public int oAccess, nAccess;
+
 	public int oVersion, nVersion;
+
 	public String oName, nName;
+
 	public String oSignature, nSignature;
+
 	public String oSuperName, nSuperName;
+
 	public List<String> oInterfaces, nInterfaces;
+
 	Map<String, FieldNode> brandNewFields;
+
 	Map<String, FieldNode> lostFields;
+
 	Map<String, FieldDelta> changedFields;
+
 	Map<String, MethodNode> brandNewMethods;
+
 	Map<String, MethodNode> lostMethods;
+
 	Map<String, MethodDelta> changedMethods;
 
 	public String toString() {

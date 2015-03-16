@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -64,7 +65,7 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		assertEquals(45, runOnInstance(addClazz, addInstance, "getValue").returnValue);
 		assertEquals(45, add.getField(addInstance, "i", false));
 	}
-	
+
 	// Variant of the first test but uses a new instance after reloading
 	@Test
 	public void newFieldAddedInstance() throws Exception {
@@ -86,8 +87,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Do an early set (via FieldReaderWriter) after a reload, so that no prior setup will have been done on the values map for that
-	 * type. This checks the logic in FieldReaderWriter.setValue()
+	 * Do an early set (via FieldReaderWriter) after a reload, so that no prior setup will have been done on the values
+	 * map for that type. This checks the logic in FieldReaderWriter.setValue()
 	 */
 	@Test
 	public void earlySet() throws Exception {
@@ -136,8 +137,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * In this test there are some fields in a reloadable type shadowing some in a non-reloadable supertype. When the reloadable
-	 * ones are removed the supertype ones become visible, check they are correctly accessible.
+	 * In this test there are some fields in a reloadable type shadowing some in a non-reloadable supertype. When the
+	 * reloadable ones are removed the supertype ones become visible, check they are correctly accessible.
 	 */
 	@Test
 	public void setWithFieldsRevealedOnReloadHierarchyNonStatic() throws Exception {
@@ -172,8 +173,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * In this test there are some fields in a reloadable type shadowing some in a non-reloadable supertype. When the reloadable
-	 * ones are removed the supertype ones become visible, check they are correctly accessible.
+	 * In this test there are some fields in a reloadable type shadowing some in a non-reloadable supertype. When the
+	 * reloadable ones are removed the supertype ones become visible, check they are correctly accessible.
 	 */
 	@Test
 	public void setWithFieldsRevealedOnReloadHierarchyStatic() throws Exception {
@@ -390,7 +391,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		TypeRegistry tr = getTypeRegistry("accessors..*");
 
 		ReloadableType top = tr.addType("accessors.DefaultFields", loadBytesForClass("accessors.DefaultFields"));
-		ReloadableType bottom = tr.addType("accessors.DefaultFieldsSub", loadBytesForClass("accessors.DefaultFieldsSub"));
+		ReloadableType bottom = tr.addType("accessors.DefaultFieldsSub",
+				loadBytesForClass("accessors.DefaultFieldsSub"));
 
 		ClassPrinter.print(top.bytesLoaded);
 		Object topInstance = top.getClazz().newInstance();
@@ -495,8 +497,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * An instance field is accessed from a subtype, then the supertype is reloaded where the field has been made static. Should be
-	 * an error when the subtype attempts to access it again.
+	 * An instance field is accessed from a subtype, then the supertype is reloaded where the field has been made
+	 * static. Should be an error when the subtype attempts to access it again.
 	 */
 	@Test
 	public void changingFieldFromNonstaticToStaticWithSubtypes() throws Exception {
@@ -518,7 +520,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		try {
 			runOnInstance(clazz, instance, "setJ", 4);
 			fail("should not have worked, field has changed from non-static to static");
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			assertTrue(re.getCause() instanceof InvocationTargetException);
 			assertTrue(re.getCause().getCause() instanceof IncompatibleClassChangeError);
 			assertEquals("Expected non-static field fields.Za.j", re.getCause().getCause().getMessage());
@@ -528,7 +531,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		try {
 			runOnInstance(clazz, instance, "getJ");
 			fail("should not have worked, field has changed from non-static to static");
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			assertTrue(re.getCause() instanceof InvocationTargetException);
 			assertTrue(re.getCause().getCause() instanceof IncompatibleClassChangeError);
 			assertEquals("Expected non-static field fields.Za.j", re.getCause().getCause().getMessage());
@@ -537,8 +541,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * A static field is accessed from a subtype, then the supertype is reloaded where the field has been made non-static. Should be
-	 * an error when the subtype attempts to access it again.
+	 * A static field is accessed from a subtype, then the supertype is reloaded where the field has been made
+	 * non-static. Should be an error when the subtype attempts to access it again.
 	 */
 	@Test
 	public void changingFieldFromStaticToNonstaticWithSubtypes() throws Exception {
@@ -561,7 +565,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		try {
 			runOnInstance(clazz, instance, "setJ", 4);
 			fail("Should not have worked, field has changed from static to non-static");
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			assertTrue(re.getCause() instanceof InvocationTargetException);
 			assertTrue(re.getCause().getCause() instanceof IncompatibleClassChangeError);
 			// When compiled with AspectJ vs Eclipse JDT the GETSTATIC actually varies.
@@ -575,7 +580,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		try {
 			runOnInstance(clazz, instance, "getJ");
 			fail("Should not have worked, field has changed from static to non-static");
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			assertTrue(re.getCause() instanceof InvocationTargetException);
 			assertTrue(re.getCause().getCause() instanceof IncompatibleClassChangeError);
 			// When compiled with AspectJ vs Eclipse JDT the GETSTATIC actually varies.
@@ -587,8 +593,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Load a hierarchy of types. There is a field 'i' in both P and Q. R returns 'i'. Initially it returns Q.i but once Q has been
-	 * reloaded it should be returning P.i
+	 * Load a hierarchy of types. There is a field 'i' in both P and Q. R returns 'i'. Initially it returns Q.i but once
+	 * Q has been reloaded it should be returning P.i
 	 */
 	@Test
 	public void removingFieldsShadowingSuperFields() throws Exception {
@@ -635,9 +641,9 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Here the field in Qc is shadowing (same name) a field in the interface. Once the new version of Qc is loaded that doesn't
-	 * define the field, this exposes the field in the interface but it is static and as we are running a GETFIELD operation in Rc,
-	 * it is illegal (IncompatibleClassChangeError)
+	 * Here the field in Qc is shadowing (same name) a field in the interface. Once the new version of Qc is loaded that
+	 * doesn't define the field, this exposes the field in the interface but it is static and as we are running a
+	 * GETFIELD operation in Rc, it is illegal (IncompatibleClassChangeError)
 	 */
 	@Test
 	public void removingFieldsShadowingInterfaceFields1() throws Exception {
@@ -658,7 +664,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		try {
 			runOnInstance(rClazz, rInstance, "getNumber");
 			fail();
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			Throwable e = (re).getCause();
 			assertTrue(e.getCause() instanceof IncompatibleClassChangeError);
 			assertEquals("Expected non-static field fields.Rc.number", e.getCause().getMessage());
@@ -666,9 +673,10 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Both 'normal' reloadable field access and reflective field access will use the same set methods on ReloadableType. In the
-	 * reflection case the right FieldAccessor must be discovered, in the normal case it is passed in. This test checks that using
-	 * either route behaves - exercising the method directly and not through reflection.
+	 * Both 'normal' reloadable field access and reflective field access will use the same set methods on
+	 * ReloadableType. In the reflection case the right FieldAccessor must be discovered, in the normal case it is
+	 * passed in. This test checks that using either route behaves - exercising the method directly and not through
+	 * reflection.
 	 */
 	@Test
 	public void accessingFieldsThroughReloadableType() throws Exception {
@@ -703,8 +711,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Fields are changed from int>String and String>int. When this happens we should remove the int value we have and treat the
-	 * field as unset.
+	 * Fields are changed from int>String and String>int. When this happens we should remove the int value we have and
+	 * treat the field as unset.
 	 */
 	@Test
 	public void changingFieldType() throws Exception {
@@ -732,10 +740,10 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Two types in a hierarchy, the field is initially accessed in the supertype but an interface that the subtype implements then
-	 * introduces that field on a reload. Although it is introduced in the interface, the bytecode reference to the field is
-	 * directly to that in the supertype - so the interface one will not be found (the subtype would be pointing at the interface
-	 * one if B was recompiled with this setup).
+	 * Two types in a hierarchy, the field is initially accessed in the supertype but an interface that the subtype
+	 * implements then introduces that field on a reload. Although it is introduced in the interface, the bytecode
+	 * reference to the field is directly to that in the supertype - so the interface one will not be found (the subtype
+	 * would be pointing at the interface one if B was recompiled with this setup).
 	 */
 	@Test
 	public void introducingStaticFieldInInterface() throws Exception {
@@ -765,7 +773,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * In this test several fields are setup and queried, then on reload their type is changed - ensure the results are as expected.
+	 * In this test several fields are setup and queried, then on reload their type is changed - ensure the results are
+	 * as expected.
 	 */
 	@Test
 	public void testingCompatibilityOnFieldTypeChanges() throws Exception {
@@ -822,7 +831,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 			}
 			s.append('}');
 			return s.toString();
-		} else {
+		}
+		else {
 			return o.toString();
 		}
 	}
@@ -888,8 +898,8 @@ public class FieldReloadingTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Switch some fields from their primitive forms to their boxed forms, check data is preserved, then switch them back and check
-	 * data is preserved.
+	 * Switch some fields from their primitive forms to their boxed forms, check data is preserved, then switch them
+	 * back and check data is preserved.
 	 */
 	@Test
 	public void switchToFromBoxing() throws Exception {
@@ -973,15 +983,15 @@ public class FieldReloadingTests extends SpringLoadedTests {
 		rtype.loadNewVersion("2", retrieveRename(y, y + "2"));
 
 		assertEquals("goodbye", runOnInstance(clazz, instance, "printMessage").returnValue);
-		
-		Object instance2 = runStaticUnguarded(clazz,"getInstance").returnValue;
-		
-		Object ret = runOnInstance(clazz,instance2,"getFieldReflectively").returnValue;
-		assertEquals(34,ret);
 
-		ret = runOnInstance(clazz,instance2,"setFieldReflectively",99).returnValue;
-		 
-		ret = runOnInstance(clazz,instance2,"getFieldReflectively").returnValue;
-		assertEquals(99,ret);
+		Object instance2 = runStaticUnguarded(clazz, "getInstance").returnValue;
+
+		Object ret = runOnInstance(clazz, instance2, "getFieldReflectively").returnValue;
+		assertEquals(34, ret);
+
+		ret = runOnInstance(clazz, instance2, "setFieldReflectively", 99).returnValue;
+
+		ret = runOnInstance(clazz, instance2, "getFieldReflectively").returnValue;
+		assertEquals(99, ret);
 	}
 }

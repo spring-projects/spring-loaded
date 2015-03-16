@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 /**
- * ReloadEventProcessor Plugins are called when a type is reloading. For information on registering them, see {@link Plugin}
+ * ReloadEventProcessor Plugins are called when a type is reloading. For information on registering them, see
+ * {@link Plugin}
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -24,8 +26,8 @@ package org.springsource.loaded;
 public interface ReloadEventProcessorPlugin extends Plugin {
 
 	/**
-	 * Called when a type has been reloaded, allows the plugin to decide if the static initializer should be re-run for the reloaded
-	 * type. If the reloaded type has a different static initializer, the new one is the one that will run.
+	 * Called when a type has been reloaded, allows the plugin to decide if the static initializer should be re-run for
+	 * the reloaded type. If the reloaded type has a different static initializer, the new one is the one that will run.
 	 * 
 	 * @param typename the (dotted) type name, for example java.lang.String
 	 * @param clazz the Class object that has been reloaded
@@ -37,10 +39,10 @@ public interface ReloadEventProcessorPlugin extends Plugin {
 	// TODO expose detailed delta for changes in the type? (i.e. what new fields/methods/etc)
 	// TODO expose instances when they are being tracked?
 	/**
-	 * Called when a type has been reloaded. Note, the class is only truly defined to the VM once, and so the Class object (clazz
-	 * parameter) is always the same for the same type (ignoring multiple classloader situations). It is passed here so that plugins
-	 * processing events can clear any cached state related to it. The encodedTimestamp is an encoding of the ID that the agent has
-	 * assigned to this reloaded version of this type.
+	 * Called when a type has been reloaded. Note, the class is only truly defined to the VM once, and so the Class
+	 * object (clazz parameter) is always the same for the same type (ignoring multiple classloader situations). It is
+	 * passed here so that plugins processing events can clear any cached state related to it. The encodedTimestamp is
+	 * an encoding of the ID that the agent has assigned to this reloaded version of this type.
 	 * 
 	 * @param typename the (dotted) type name, for example java.lang.String
 	 * @param clazz the Class object that has been reloaded

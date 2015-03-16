@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import org.junit.Before;
@@ -30,8 +31,9 @@ public class GroovyBenchmarkTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * I'm interested in checking the performance difference between having compilable call sites on and off. So let's load a
-	 * program that simply makes a method call 1000s of times. No reloading, this is just to check the runtime cost of rewriting.
+	 * I'm interested in checking the performance difference between having compilable call sites on and off. So let's
+	 * load a program that simply makes a method call 1000s of times. No reloading, this is just to check the runtime
+	 * cost of rewriting.
 	 */
 	@Test
 	public void benchmarkingGroovyMethodInvocations() throws Exception {
@@ -42,7 +44,7 @@ public class GroovyBenchmarkTests extends SpringLoadedTests {
 		TypeRegistry r = getTypeRegistry(t + "," + target);
 
 		ReloadableType rtype = r.addType(t, loadBytesForClass(t));
-//		ReloadableType rtypeTarget = 
+		//		ReloadableType rtypeTarget = 
 		r.addType(target, loadBytesForClass(target));
 
 		//		result = runUnguarded(rtype.getClazz(), "run");

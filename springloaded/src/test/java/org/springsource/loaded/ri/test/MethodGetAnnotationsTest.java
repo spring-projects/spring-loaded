@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -33,8 +34,8 @@ import org.springsource.loaded.testgen.RejectedChoice;
 
 
 /**
- * Tests - Method.getAnnotations - Method.getDeclaredAnnotations As well as these same methods called via {@link AnnotatedElement}
- * and {@link AccessibleObject}.
+ * Tests - Method.getAnnotations - Method.getDeclaredAnnotations As well as these same methods called via
+ * {@link AnnotatedElement} and {@link AccessibleObject}.
  * 
  * @author kdvolder
  */
@@ -43,10 +44,12 @@ public class MethodGetAnnotationsTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private Method method; //A method declared on the target class
 
 	private String testedMethodCaller;
@@ -67,7 +70,8 @@ public class MethodGetAnnotationsTest extends GenerativeSpringLoadedTest {
 
 		if (choice()) {
 			targetClass = targetClass("ClassTarget", choice("", "002", "003"));
-		} else {
+		}
+		else {
 			targetClass = targetClass("InterfaceTarget", choice("", "002", "003"));
 		}
 
@@ -83,7 +87,8 @@ public class MethodGetAnnotationsTest extends GenerativeSpringLoadedTest {
 			Result r = runOnInstance(callerClazz, callerInstance, testedMethodCaller, method);
 			Assert.assertTrue(r.returnValue instanceof List<?>);
 			return r;
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			throw new Error(e);
 		}
 	}

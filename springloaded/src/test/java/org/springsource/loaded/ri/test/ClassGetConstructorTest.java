@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -43,8 +44,8 @@ public class ClassGetConstructorTest extends GenerativeSpringLoadedTest {
 	private static final String TARGET_PACKAGE = "reflection.constructors";
 
 	/**
-	 * Cached list of available constructor signatures. This doesn't need to be rediscovered for each test run since it is not
-	 * expected to change.
+	 * Cached list of available constructor signatures. This doesn't need to be rediscovered for each test run since it
+	 * is not expected to change.
 	 */
 	private static String[] methodSignatureCache = null;
 
@@ -55,13 +56,16 @@ public class ClassGetConstructorTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String targetMethodName;
 
 	private Class<?>[] params;
+
 	private String methodDescriptor;
 
 	@Override
@@ -77,7 +81,8 @@ public class ClassGetConstructorTest extends GenerativeSpringLoadedTest {
 		if (choice()) {
 			//Try a non reloadable class
 			targetClass = targetClass("java.lang.Object");
-		} else {
+		}
+		else {
 			//Will focus on the 'ClassTarget' only 'ClassTarget' needs to be loaded
 			targetClass = targetClass("ClassWithConstructors", choice("", "002"));
 		}

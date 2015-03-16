@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -159,12 +160,13 @@ public class CodeGenerationTests extends SpringLoadedTests {
 		ReloadableType rRunner = typeRegistry.addType(runner, loadBytesForClass(runner));
 
 		String[] retargets = new String[] { theInterface + "002:" + theInterface, theImpl + "002:" + theImpl,
-				runner + "002:" + runner };
+			runner + "002:" + runner };
 
 		Result result = runUnguarded(rRunner.getClazz(), "run");
 		assertNull(result.returnValue);
 
-		rInterface.loadNewVersion("002", ClassRenamer.rename(theInterface, loadBytesForClass(theInterface + "002"), retargets));
+		rInterface.loadNewVersion("002",
+				ClassRenamer.rename(theInterface, loadBytesForClass(theInterface + "002"), retargets));
 		rImpl.loadNewVersion("002", ClassRenamer.rename(theImpl, loadBytesForClass(theImpl + "002"), retargets));
 		rRunner.loadNewVersion("002", ClassRenamer.rename(runner, loadBytesForClass(runner + "002"), retargets));
 
@@ -199,9 +201,11 @@ public class CodeGenerationTests extends SpringLoadedTests {
 		//		loadNewVersion(rInterface, 4);
 		//		loadNewVersion(rImpl, 4);
 
-		byte[] impl4 = ClassRenamer.rename("interfaces.TheImplementation", loadBytesForClass("interfaces.TheImplementation004"),
+		byte[] impl4 = ClassRenamer.rename("interfaces.TheImplementation",
+				loadBytesForClass("interfaces.TheImplementation004"),
 				"interfaces.TheInterface004:interfaces.TheInterface");
-		byte[] interface4 = ClassRenamer.rename("interfaces.TheInterface", loadBytesForClass("interfaces.TheInterface004"),
+		byte[] interface4 = ClassRenamer.rename("interfaces.TheInterface",
+				loadBytesForClass("interfaces.TheInterface004"),
 				"interfaces.TheInterface004:interfaces.TheInterface");
 		rImpl.loadNewVersion("004", impl4);
 		rInterface.loadNewVersion("004", interface4);

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 /**
@@ -23,8 +24,8 @@ package org.springsource.loaded.test.infra;
 public interface IResult {
 
 	/**
-	 * @return a 'one line summary' of the result: either the Object's toString value for an object result, or the classname and
-	 *         message of the deepest cause for an Exception result.
+	 * @return a 'one line summary' of the result: either the Object's toString value for an object result, or the
+	 *         classname and message of the deepest cause for an Exception result.
 	 */
 	String getSummary();
 

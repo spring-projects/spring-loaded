@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.lang.reflect.Field;
@@ -26,8 +27,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
 
 /**
- * This bytecode rewriter intercepts calls to generate made in the CGLIB framework and allows us to record what generator is called
- * to create the proxy for some type. The same generator can then be driven again if the type is reloaded.
+ * This bytecode rewriter intercepts calls to generate made in the CGLIB framework and allows us to record what
+ * generator is called to create the proxy for some type. The same generator can then be driven again if the type is
+ * reloaded.
  * 
  * @author Andy Clement
  * @since 0.8.3
@@ -35,9 +37,11 @@ import org.springsource.loaded.Constants;
 public class CglibPluginCapturing extends ClassVisitor implements Constants {
 
 	public static Map<Class<?>, Object[]> clazzToGeneratorStrategyAndClassGeneratorMap = new HashMap<Class<?>, Object[]>();
+
 	public static Map<Class<?>, Object[]> clazzToGeneratorStrategyAndFastClassGeneratorMap = new HashMap<Class<?>, Object[]>();
+
 	public String prefix;
-	
+
 	public static byte[] catchGenerate(byte[] bytesIn) {
 		ClassReader cr = new ClassReader(bytesIn);
 		CglibPluginCapturing ca = new CglibPluginCapturing();
@@ -47,17 +51,17 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 	}
 
 	private CglibPluginCapturing() {
-		super(ASM5,new ClassWriter(0)); // TODO review 0 here
+		super(ASM5, new ClassWriter(0)); // TODO review 0 here
 	}
-	
+
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 		// The name could be a repackaged form of cglib:
 		// net/sf/cglib/core/AbstractClassGenerator
 		// org/springframework/cglib/core/AbstractClassGenerator
 		int index = name.indexOf("/cglib");
-		prefix = name.substring(0,index);
-		super.visit(version,access,name,signature,superName,interfaces);
+		prefix = name.substring(0, index);
+		super.visit(version, access, name, signature, superName, interfaces);
 	}
 
 	public byte[] getBytes() {
@@ -68,7 +72,8 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 		if (name.equals("create")) {
 			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 			return new CreateMethodInterceptor(mv);
-		} else {
+		}
+		else {
 			return super.visitMethod(access, name, desc, signature, exceptions);
 		}
 	}
@@ -76,7 +81,7 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 	class CreateMethodInterceptor extends MethodVisitor implements Constants {
 
 		public CreateMethodInterceptor(MethodVisitor mv) {
-			super(ASM5,mv);
+			super(ASM5, mv);
 		}
 
 		@Override
@@ -84,11 +89,13 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 		}
 
 		/**
-		 * Recognize a call to 'generate' being made. When we see it add some extra code after it that calls the record method in
-		 * this type so that we can remember the generator used (and drive it again later when the related type is reloaded).
+		 * Recognize a call to 'generate' being made. When we see it add some extra code after it that calls the record
+		 * method in this type so that we can remember the generator used (and drive it again later when the related
+		 * type is reloaded).
 		 */
 		@Override
-		public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
+		public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
+				final boolean itf) {
 			super.visitMethodInsn(opcode, owner, name, desc, itf);
 			if (name.equals("generate")) {
 				// Code that calls generate:
@@ -97,8 +104,8 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 				//	ALOAD 0
 				//	INVOKEINTERFACE net/sf/cglib/core/GeneratorStrategy.generate(Lnet/sf/cglib/core/ClassGenerator;)[B
 				mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
-				mv.visitFieldInsn(GETFIELD, prefix+"/cglib/core/AbstractClassGenerator", "strategy",
-						"L"+prefix+"/cglib/core/GeneratorStrategy;");
+				mv.visitFieldInsn(GETFIELD, prefix + "/cglib/core/AbstractClassGenerator", "strategy",
+						"L" + prefix + "/cglib/core/GeneratorStrategy;");
 				mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
 				mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/agent/CglibPluginCapturing", "record",
 						"(Ljava/lang/Object;Ljava/lang/Object;)V", false);//Lnet/sf/cglib/core/GeneratorStrategy;Lnet/sf/cglib/core/AbstractClassGenerator);");			
@@ -108,9 +115,10 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 	}
 
 	/**
-	 * The classloader for class artifacts is used to load the generated classes for call sites. We need to rewrite these classes
-	 * because they may be either calling something that disappears on a later reload (so need to fail appropriately) or calling
-	 * something that isnt there on the first load - in this latter case they are changed to route the dynamic executor method.
+	 * The classloader for class artifacts is used to load the generated classes for call sites. We need to rewrite
+	 * these classes because they may be either calling something that disappears on a later reload (so need to fail
+	 * appropriately) or calling something that isnt there on the first load - in this latter case they are changed to
+	 * route the dynamic executor method.
 	 * 
 	 * @param a the GeneratorStrategy being used
 	 * @param b the AbstractClassGenerator
@@ -128,17 +136,20 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 				Class<?> clazz = (Class<?>) f.get(b);
 				// System.out.println("Recording pair " + clazz.getName() + " > " + b);
 				clazzToGeneratorStrategyAndClassGeneratorMap.put(clazz, new Object[] { a, b });
-			} catch (Throwable re) {
+			}
+			catch (Throwable re) {
 				re.printStackTrace();
 			}
-		} else if (generatorName.endsWith(".cglib.reflect.FastClass$Generator")) {
+		}
+		else if (generatorName.endsWith(".cglib.reflect.FastClass$Generator")) {
 			try {
 				Field f = b.getClass().getDeclaredField("type");
 				f.setAccessible(true);
 				Class<?> clazz = (Class<?>) f.get(b);
 				// System.out.println("Recording pair (fastclass) " + clazz.getName() + " > " + b);
 				clazzToGeneratorStrategyAndFastClassGeneratorMap.put(clazz, new Object[] { a, b });
-			} catch (Throwable re) {
+			}
+			catch (Throwable re) {
 				re.printStackTrace();
 			}
 		}

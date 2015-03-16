@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.io.File;
@@ -26,9 +27,9 @@ import java.util.logging.Logger;
 import org.springsource.loaded.agent.SpringPlugin;
 
 /**
- * Encapsulates configurable elements - these are set (to values other than the defaults) in TypeRegistry when the system property
- * springloaded configuration is processed. Some of the options are only used by testcases to make the testcases easier to write and
- * more straightforward.
+ * Encapsulates configurable elements - these are set (to values other than the defaults) in TypeRegistry when the
+ * system property springloaded configuration is processed. Some of the options are only used by testcases to make the
+ * testcases easier to write and more straightforward.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -45,7 +46,8 @@ public class GlobalConfiguration {
 	public static boolean catchersOn = true;
 
 	/**
-	 * If active, SpringLoaded will be trying to watch for types changing on the file system once they have been made reloadable.
+	 * If active, SpringLoaded will be trying to watch for types changing on the file system once they have been made
+	 * reloadable.
 	 */
 	public static boolean fileSystemMonitoring = false;
 
@@ -58,15 +60,14 @@ public class GlobalConfiguration {
 	 * verbose mode can trigger extra messages. Enable with 'verbose=true'
 	 */
 	public static boolean verboseMode = false;
-	
+
 	/**
 	 * asserts mode will trigger extra checking (performance impact but confirms correctness)
 	 */
 	public static boolean assertsMode = false;
-	
+
 	/**
-	 * Can be turned on to enable users to determine the decision process around why
-	 * something is not reloadable.
+	 * Can be turned on to enable users to determine the decision process around why something is not reloadable.
 	 */
 	public static boolean explainMode = false;
 
@@ -86,8 +87,9 @@ public class GlobalConfiguration {
 	 * Determine whether on disk caching will be used.
 	 */
 	public static boolean isCaching = false;
-	
+
 	public static boolean investigateSystemClassReflection = false;
+
 	public static boolean rewriteAllSystemClasses = false;
 
 	/**
@@ -110,29 +112,30 @@ public class GlobalConfiguration {
 	public static boolean directlyDefineTypes = true;
 
 	public final static boolean interceptReflection = true;
-	
+
 	// max number of values before we prevent them being reloaded (the clinit rewrite blows the codesize limit)
 	public static int enumLimit = 1000;
 
 	public static boolean reloadMessages = false;// can be forced on for testing
 
 	/**
-	 * When a reload is attempted, if this is true it will be checked to confirm it is allowed and does not violate the supported
-	 * reloadable changes that can be made to a type.
+	 * When a reload is attempted, if this is true it will be checked to confirm it is allowed and does not violate the
+	 * supported reloadable changes that can be made to a type.
 	 */
 	public static boolean verifyReloads = true;
 
 	/**
-	 * When classes are dumped by Utils.dump() this specifies where. A null value will cause us to dump into the default temp
-	 * folder.
+	 * When classes are dumped by Utils.dump() this specifies where. A null value will cause us to dump into the default
+	 * temp folder.
 	 */
 	public static String dumpFolder = null;
 
 	/**
-	 * Global configuration properties set based on the value of system property 'springloaded'. If null then not yet initialized
-	 * (and a call to initializeFromSystemProperty()) is needed. If settings are truely once per VM, they are set directly in
-	 * GlobalConfiguration whereas if they may be overridden on a per classloader level, they are set in this properties object and
-	 * may be overridden by the springloaded.properties files accessible through each classloader.
+	 * Global configuration properties set based on the value of system property 'springloaded'. If null then not yet
+	 * initialized (and a call to initializeFromSystemProperty()) is needed. If settings are truely once per VM, they
+	 * are set directly in GlobalConfiguration whereas if they may be overridden on a per classloader level, they are
+	 * set in this properties object and may be overridden by the springloaded.properties files accessible through each
+	 * classloader.
 	 */
 	public static Properties globalConfigurationProperties;
 
@@ -150,7 +153,7 @@ public class GlobalConfiguration {
 
 	public final static boolean debugplugins;
 
-	
+
 	private static void printUsage() {
 		System.out.println("SpringLoaded");
 		System.out.println("============");
@@ -166,7 +169,7 @@ public class GlobalConfiguration {
 		System.out.println("Options:");
 		System.exit(0);
 	}
-	
+
 	/**
 	 * Look for a springloaded system property and initialize the 'default system wide' configuration based upon it.
 	 * Support configuration options:
@@ -209,21 +212,27 @@ public class GlobalConfiguration {
 							//							if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
 							//								log.info("configuration: interceptReflection = " + interceptReflection);
 							//							}
-						} else if (key.equals("cleanCache")) {
+						}
+						else if (key.equals("cleanCache")) {
 							cleanCache = kv.substring(equals + 1).equalsIgnoreCase("true");
-						} else if (key.equals("caching")) {
+						}
+						else if (key.equals("caching")) {
 							specifiedCaching = true;
 							isCaching = kv.substring(equals + 1).equalsIgnoreCase("true");
-						} else if (key.equals("debugplugins")) {
+						}
+						else if (key.equals("debugplugins")) {
 							debugPlugins = true;
 						}
-						else if(key.equals("enumlimit")) {
-							enumLimit = toInt(kv.substring(equals+1),enumLimit);
-						} else if (key.equals("profile")) {
+						else if (key.equals("enumlimit")) {
+							enumLimit = toInt(kv.substring(equals + 1), enumLimit);
+						}
+						else if (key.equals("profile")) {
 							profile = kv.substring(equals + 1);
-						} else if (key.equals("cacheDir")) {
+						}
+						else if (key.equals("cacheDir")) {
 							cacheDir = kv.substring(equals + 1);
-						} else if (key.equals("callsideRewritingOn")) { // global setting
+						}
+						else if (key.equals("callsideRewritingOn")) { // global setting
 							callsideRewritingOn = kv.substring(equals + 1).equalsIgnoreCase("true");
 							if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
 								log.info("configuration: callsideRewritingOn = " + callsideRewritingOn);
@@ -233,31 +242,38 @@ public class GlobalConfiguration {
 							//							if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
 							//								log.info("configuration: logNonInterceptedReflectiveCalls = " + logNonInterceptedReflectiveCalls);
 							//							}
-						} else if (key.equals("verifyReloads")) { // global setting
+						}
+						else if (key.equals("verifyReloads")) { // global setting
 							verifyReloads = kv.substring(equals + 1).equalsIgnoreCase("true");
 							if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
 								log.info("configuration: verifyReloads = " + verifyReloads);
 							}
-						} else if (key.equals("dumpFolder")) { // global setting
+						}
+						else if (key.equals("dumpFolder")) { // global setting
 							dumpFolder = kv.substring(equals + 1);
 							if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
 								log.info("configuration: dumpFolder = " + dumpFolder);
 							}
-						} else if (key.equals("maxClassDefinitions")) {
+						}
+						else if (key.equals("maxClassDefinitions")) {
 							try {
 								maxClassDefinitions = Integer.parseInt(kv.substring(equals + 1));
 								if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
 									log.info("configuration: maxClassDefinitions = " + maxClassDefinitions);
 								}
-							} catch (NumberFormatException nfe) {
-								System.err.println("ERROR: unable to parse " + kv.substring(equals + 1) + " as a integer");
 							}
-						} else if (key.equals("logging")) {
+							catch (NumberFormatException nfe) {
+								System.err.println("ERROR: unable to parse " + kv.substring(equals + 1)
+										+ " as a integer");
+							}
+						}
+						else if (key.equals("logging")) {
 							GlobalConfiguration.isRuntimeLogging = kv.substring(equals + 1).equalsIgnoreCase("true");
 							GlobalConfiguration.logging = kv.substring(equals + 1).equalsIgnoreCase("true");
 							System.out.println("Spring-Loaded logging = (" + GlobalConfiguration.isRuntimeLogging + ","
 									+ GlobalConfiguration.logging + ")");
-						} else if (key.equals("verbose")) {
+						}
+						else if (key.equals("verbose")) {
 							verboseMode = kv.substring(equals + 1).equalsIgnoreCase("true");
 							reloadMessages = verboseMode;
 						}
@@ -267,11 +283,14 @@ public class GlobalConfiguration {
 						else if (key.equals("rebasePaths")) {
 							// value is a series of "a=b,c=d,e=f" indicating from and to
 							globalConfigurationProperties.put("rebasePaths", kv.substring(equals + 1));
-						} else if (key.equals("inclusions")) {
+						}
+						else if (key.equals("inclusions")) {
 							globalConfigurationProperties.put("inclusions", kv.substring(equals + 1));
-						} else if (key.equals("exclusions")) {
+						}
+						else if (key.equals("exclusions")) {
 							globalConfigurationProperties.put("exclusions", kv.substring(equals + 1));
-						} else if (key.equals("plugins")) {
+						}
+						else if (key.equals("plugins")) {
 							// plugins=com.myplugin.Plugin,com.somethingelse.SomeOtherPlugin
 							String pluginList = kv.substring(equals + 1);
 							StringTokenizer pluginListTokenizer = new StringTokenizer(pluginList, ",");
@@ -280,12 +299,13 @@ public class GlobalConfiguration {
 								pluginClassnameList.add(pluginListTokenizer.nextToken());
 							}
 						}
-					} else {
+					}
+					else {
 						if (kv.equals("?")) {
 							printUsage();
 						}
 						else if (kv.equals("verbose")) {
-							Log.log("[verbose mode on] Full configuration is:"+value);
+							Log.log("[verbose mode on] Full configuration is:" + value);
 							verboseMode = true;
 							reloadMessages = true;
 						}
@@ -319,7 +339,8 @@ public class GlobalConfiguration {
 								cacheDir = new StringBuilder(userhome).append(File.separator).append(".grails").toString();
 								new File(cacheDir).mkdir();
 							}
-						} catch (Throwable t) {
+						}
+						catch (Throwable t) {
 							System.err.println("looks like user.home is not set, or cannot write to it: cannot create cache.");
 							t.printStackTrace(System.err);
 						}
@@ -336,7 +357,8 @@ public class GlobalConfiguration {
 					// turn off the 3.0 reloading, for now (just because it hasn't been tested)
 					SpringPlugin.support305 = false;
 				}
-			} else {
+			}
+			else {
 				if (isCaching) {
 					if (cacheDir == null) {
 						try {
@@ -344,7 +366,8 @@ public class GlobalConfiguration {
 							if (userhome != null) {
 								cacheDir = userhome;
 							}
-						} catch (Throwable t) {
+						}
+						catch (Throwable t) {
 							System.err.println("looks like user.home is not set: cannot create cache.");
 							t.printStackTrace(System.err);
 						}
@@ -361,41 +384,45 @@ public class GlobalConfiguration {
 							System.err.println("Caching deactivated: failed to create cache directory: " + cacheDir);
 							isCaching = false;
 						}
-					} else {
+					}
+					else {
 						if (!cacheDirFile.isDirectory()) {
 							System.err.println("Caching deactivated: unable to use specified cache area, it is not a directory: "
 									+ cacheDirFile);
 							isCaching = false;
 						}
 					}
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					System.err.println("Unexpected problem creating specified cachedir: " + cacheDir);
 					e.printStackTrace();
 				}
 			}
-			
+
 			// Alternative route for specifying values
 			value = System.getProperty("springloaded.enumlimit");
 			if (value != null) {
-				enumLimit = toInt(value,enumLimit);
+				enumLimit = toInt(value, enumLimit);
 			}
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			System.err.println("Unexpected problem reading global configuration setting:" + t.toString());
 			t.printStackTrace();
 		}
 		debugplugins = debugPlugins;
 	}
-	
+
 	private static int toInt(String value, int defaultValue) {
 		try {
 			return Integer.parseInt(value);
-		} catch (NumberFormatException nfe) {
+		}
+		catch (NumberFormatException nfe) {
 			return defaultValue;
 		}
 	}
-	
+
 	public final static boolean isJava18orHigher;
-	
+
 	static {
 		String version = System.getProperty("java.version");
 		if (version.startsWith("1.8")) {

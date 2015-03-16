@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -40,13 +41,13 @@ import org.springsource.loaded.test.infra.ResultException;
 
 
 /**
- * Tests for rewriting classes to include registry checks. When a class is loaded it must be 'fully instrumented' since it cannot be
- * changed later on. To consider just method live updating for the moment, this means: <br>
+ * Tests for rewriting classes to include registry checks. When a class is loaded it must be 'fully instrumented' since
+ * it cannot be changed later on. To consider just method live updating for the moment, this means: <br>
  * - methods all instrumented at load to do a registry check and possibly obtain the latest version of the dispatcher<br>
  * - method invocations all modified to involve the registry
  * 
- * The latter is necessary for the case where the method never existed on the original type. The former is sufficient if you simply
- * allow method bodies to be updated over time.
+ * The latter is necessary for the case where the method never existed on the original type. The former is sufficient if
+ * you simply allow method bodies to be updated over time.
  * 
  * @author Andy Clement
  */
@@ -118,7 +119,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	 */
 
 	/**
-	 * The static initializer has had two things inserted: (1) the setting of the reloadable type (2) the static state manager
+	 * The static initializer has had two things inserted: (1) the setting of the reloadable type (2) the static state
+	 * manager
 	 */
 	@Test
 	public void staticInitializers() throws Exception {
@@ -131,35 +133,38 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		// Check the format of the modified static initializer
 		// @formatter:off
 		assertEquals(
-			// initialization of reloadabletype
-			"    LDC 0\n"+
-			"    LDC 0\n"+
-			"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"+
-			"    PUTSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			// initialized of static static manager
-			"    GETSTATIC test/Initializers.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			"    IFNONNULL L0\n"+
-			"    NEW org/springsource/loaded/SSMgr\n"+
-			"    DUP\n"+
-			"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n"+
-			"    PUTSTATIC test/Initializers.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			" L0\n"+
-			// redirecting to another clinit - in cases where clinit changes before type is initialized
-			"    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n"+
-			"    IFEQ L1\n"+
-			"    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n"+
-			"    CHECKCAST test/Initializers__I\n"+
-			"    INVOKEINTERFACE test/Initializers__I.___clinit___()V\n"+
-			"    RETURN\n"+
-			" L1\n"+
-			// original code from the clinit
-			"    GETSTATIC java/lang/System.out Ljava/io/PrintStream;\n"+
-		    "    LDC abc\n"+
-		    "    INVOKEVIRTUAL java/io/PrintStream.println(Ljava/lang/String;)V\n"+
-		    " L2\n"+
-			"    RETURN\n",toStringMethod(rtype.bytesLoaded,"<clinit>",false));
+				// initialization of reloadabletype
+				"    LDC 0\n"
+						+
+						"    LDC 0\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    PUTSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						// initialized of static static manager
+						"    GETSTATIC test/Initializers.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						"    IFNONNULL L0\n" +
+						"    NEW org/springsource/loaded/SSMgr\n" +
+						"    DUP\n" +
+						"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n" +
+						"    PUTSTATIC test/Initializers.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						" L0\n" +
+						// redirecting to another clinit - in cases where clinit changes before type is initialized
+						"    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n" +
+						"    IFEQ L1\n" +
+						"    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n" +
+						"    CHECKCAST test/Initializers__I\n" +
+						"    INVOKEINTERFACE test/Initializers__I.___clinit___()V\n" +
+						"    RETURN\n" +
+						" L1\n" +
+						// original code from the clinit
+						"    GETSTATIC java/lang/System.out Ljava/io/PrintStream;\n" +
+						"    LDC abc\n" +
+						"    INVOKEVIRTUAL java/io/PrintStream.println(Ljava/lang/String;)V\n" +
+						" L2\n" +
+						"    RETURN\n", toStringMethod(rtype.bytesLoaded, "<clinit>", false));
 		// @formatter:on
 
 		// Check that the top most reloadable type has the static state manager
@@ -171,85 +176,124 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		// Check the format of the modified static initializer
 		// @formatter:off
 		assertEquals(
-			// initialization of reloadabletype
-			"    LDC 0\n"+
-			"    LDC 1\n"+
-			"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"+
-			"    PUTSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			// initialized of static static manager
-			"    GETSTATIC test/SubInitializers.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			"    IFNONNULL L0\n"+
-			"    NEW org/springsource/loaded/SSMgr\n"+
-			"    DUP\n"+
-			"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n"+
-			"    PUTSTATIC test/SubInitializers.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			" L0\n"+
-			"    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n"+
-			"    IFEQ L1\n"+
-			"    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n"+
-			"    CHECKCAST test/SubInitializers__I\n"+
-			"    INVOKEINTERFACE test/SubInitializers__I.___clinit___()V\n"+
-			"    RETURN\n"+
-			" L1\n"+
-			// original code from the clinit
-			"    GETSTATIC java/lang/System.out Ljava/io/PrintStream;\n"+
-		    "    LDC def\n"+
-		    "    INVOKEVIRTUAL java/io/PrintStream.println(Ljava/lang/String;)V\n"+
-		    " L2\n"+
-			"    RETURN\n",toStringMethod(subtype.bytesLoaded,"<clinit>",false));
+				// initialization of reloadabletype
+				"    LDC 0\n"
+						+
+						"    LDC 1\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    PUTSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						// initialized of static static manager
+						"    GETSTATIC test/SubInitializers.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						"    IFNONNULL L0\n" +
+						"    NEW org/springsource/loaded/SSMgr\n" +
+						"    DUP\n" +
+						"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n" +
+						"    PUTSTATIC test/SubInitializers.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						" L0\n" +
+						"    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n" +
+						"    IFEQ L1\n" +
+						"    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n" +
+						"    CHECKCAST test/SubInitializers__I\n" +
+						"    INVOKEINTERFACE test/SubInitializers__I.___clinit___()V\n" +
+						"    RETURN\n" +
+						" L1\n" +
+						// original code from the clinit
+						"    GETSTATIC java/lang/System.out Ljava/io/PrintStream;\n" +
+						"    LDC def\n" +
+						"    INVOKEVIRTUAL java/io/PrintStream.println(Ljava/lang/String;)V\n" +
+						" L2\n" +
+						"    RETURN\n", toStringMethod(subtype.bytesLoaded, "<clinit>", false));
 		// @formatter:on
 
 		// Now look at the set/get field accessing forwarders
 		// @formatter:off
 		assertEquals(
-				"    ALOAD 0\n"+
-				"    GETFIELD test/Initializers.r$fields Lorg/springsource/loaded/ISMgr;\n"+
-				"    IFNONNULL L0\n"+
-				"    ALOAD 0\n"+
-				"    NEW org/springsource/loaded/ISMgr\n"+
-				"    DUP\n"+
-			    "    ALOAD 0\n"+
-			    "    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			    "    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>(Ljava/lang/Object;Lorg/springsource/loaded/ReloadableType;)V\n"+
-//				"    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>()V\n"+
-				"    PUTFIELD test/Initializers.r$fields Lorg/springsource/loaded/ISMgr;\n"+
-				" L0\n"+
-				"    ALOAD 0\n"+
-				"    GETFIELD test/Initializers.r$fields Lorg/springsource/loaded/ISMgr;\n"+
-				"    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-				"    ALOAD 2\n"+
-				"    ALOAD 1\n"+
-				"    ALOAD 3\n"+
-				"    INVOKEVIRTUAL org/springsource/loaded/ISMgr.setValue(Lorg/springsource/loaded/ReloadableType;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V\n"+
-				"    RETURN\n", 
+				"    ALOAD 0\n"
+						+
+						"    GETFIELD test/Initializers.r$fields Lorg/springsource/loaded/ISMgr;\n"
+						+
+						"    IFNONNULL L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    NEW org/springsource/loaded/ISMgr\n"
+						+
+						"    DUP\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>(Ljava/lang/Object;Lorg/springsource/loaded/ReloadableType;)V\n"
+						+
+						//				"    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>()V\n"+
+						"    PUTFIELD test/Initializers.r$fields Lorg/springsource/loaded/ISMgr;\n"
+						+
+						" L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    GETFIELD test/Initializers.r$fields Lorg/springsource/loaded/ISMgr;\n"
+						+
+						"    GETSTATIC test/Initializers.r$type Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    ALOAD 2\n"
+						+
+						"    ALOAD 1\n"
+						+
+						"    ALOAD 3\n"
+						+
+						"    INVOKEVIRTUAL org/springsource/loaded/ISMgr.setValue(Lorg/springsource/loaded/ReloadableType;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V\n"
+						+
+						"    RETURN\n",
 				toStringMethod(rtype.bytesLoaded, "r$set", false));
 		// @formatter:on
 
 		// The subtype and supertype one do vary, due to using different reloadabletype objects
 		// @formatter:off
 		assertEquals(
-				"    ALOAD 0\n"+
-				"    GETFIELD test/SubInitializers.r$fields Lorg/springsource/loaded/ISMgr;\n"+
-				"    IFNONNULL L0\n"+
-				"    ALOAD 0\n"+
-				"    NEW org/springsource/loaded/ISMgr\n"+
-				"    DUP\n"+
-			    "    ALOAD 0\n"+
-			    "    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			    "    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>(Ljava/lang/Object;Lorg/springsource/loaded/ReloadableType;)V\n"+
-//				"    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>()V\n"+
-				"    PUTFIELD test/SubInitializers.r$fields Lorg/springsource/loaded/ISMgr;\n"+
-				" L0\n"+
-				"    ALOAD 0\n"+
-				"    GETFIELD test/SubInitializers.r$fields Lorg/springsource/loaded/ISMgr;\n"+
-				"    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-				"    ALOAD 2\n"+
-				"    ALOAD 1\n"+
-				"    ALOAD 3\n"+
-				"    INVOKEVIRTUAL org/springsource/loaded/ISMgr.setValue(Lorg/springsource/loaded/ReloadableType;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V\n"+
-				"    RETURN\n",
+				"    ALOAD 0\n"
+						+
+						"    GETFIELD test/SubInitializers.r$fields Lorg/springsource/loaded/ISMgr;\n"
+						+
+						"    IFNONNULL L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    NEW org/springsource/loaded/ISMgr\n"
+						+
+						"    DUP\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>(Ljava/lang/Object;Lorg/springsource/loaded/ReloadableType;)V\n"
+						+
+						//				"    INVOKESPECIAL org/springsource/loaded/ISMgr.<init>()V\n"+
+						"    PUTFIELD test/SubInitializers.r$fields Lorg/springsource/loaded/ISMgr;\n"
+						+
+						" L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    GETFIELD test/SubInitializers.r$fields Lorg/springsource/loaded/ISMgr;\n"
+						+
+						"    GETSTATIC test/SubInitializers.r$type Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    ALOAD 2\n"
+						+
+						"    ALOAD 1\n"
+						+
+						"    ALOAD 3\n"
+						+
+						"    INVOKEVIRTUAL org/springsource/loaded/ISMgr.setValue(Lorg/springsource/loaded/ReloadableType;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V\n"
+						+
+						"    RETURN\n",
 				toStringMethod(subtype.bytesLoaded, "r$set", false));
 		// @formatter:on
 	}
@@ -262,7 +306,7 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		ReloadableType itype = r.addType(t, loadBytesForClass(t));
 		ReloadableType subitype = r.addType(t2, loadBytesForClass(t2));
 
-//		ClassPrinter.print(subitype.bytesLoaded);
+		//		ClassPrinter.print(subitype.bytesLoaded);
 
 		// An interface will get the reloadable type field
 		assertEquals("0x19(public static final) r$type Lorg/springsource/loaded/ReloadableType;",
@@ -275,28 +319,33 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		// The static initializer will be augmented to initialize both of these
 		// @formatter:off
 		assertEquals(
-			"    LDC 0\n"+
-			"    LDC "+itype.getId()+"\n"+
-			"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"+
-			"    PUTSTATIC test/Interface.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    GETSTATIC test/Interface.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			"    IFNONNULL L0\n"+
-			"    NEW org/springsource/loaded/SSMgr\n"+
-			"    DUP\n"+
-			"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n"+
-			"    PUTSTATIC test/Interface.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			" L0\n"+
-			"    GETSTATIC test/Interface.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n"+
-			"    IFEQ L1\n"+
-			"    GETSTATIC test/Interface.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n"+
-			"    CHECKCAST test/Interface__I\n"+
-			"    INVOKEINTERFACE test/Interface__I.___clinit___()V\n"+
-			"    RETURN\n"+
-			" L1\n"+
-			"    RETURN\n", 
-			toStringMethod(itype.bytesLoaded, "<clinit>", false));
+				"    LDC 0\n"
+						+
+						"    LDC "
+						+ itype.getId()
+						+ "\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    PUTSTATIC test/Interface.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    GETSTATIC test/Interface.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						"    IFNONNULL L0\n" +
+						"    NEW org/springsource/loaded/SSMgr\n" +
+						"    DUP\n" +
+						"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n" +
+						"    PUTSTATIC test/Interface.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						" L0\n" +
+						"    GETSTATIC test/Interface.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n" +
+						"    IFEQ L1\n" +
+						"    GETSTATIC test/Interface.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n" +
+						"    CHECKCAST test/Interface__I\n" +
+						"    INVOKEINTERFACE test/Interface__I.___clinit___()V\n" +
+						"    RETURN\n" +
+						" L1\n" +
+						"    RETURN\n",
+				toStringMethod(itype.bytesLoaded, "<clinit>", false));
 		// @formatter:on
 
 		// Sub interface should look identical
@@ -311,28 +360,31 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		// The static initializer will be augmented to initialize both of these
 		// @formatter:off
 		assertEquals(
-			"    LDC 0\n"+
-			"    LDC 1\n"+
-			"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"+
-			"    PUTSTATIC test/SubInterface.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    GETSTATIC test/SubInterface.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			"    IFNONNULL L0\n"+
-			"    NEW org/springsource/loaded/SSMgr\n"+
-			"    DUP\n"+
-			"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n"+
-			"    PUTSTATIC test/SubInterface.r$sfields Lorg/springsource/loaded/SSMgr;\n"+
-			" L0\n"+
-			"    GETSTATIC test/SubInterface.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n"+
-			"    IFEQ L1\n"+
-			"    GETSTATIC test/SubInterface.r$type Lorg/springsource/loaded/ReloadableType;\n"+
-			"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n"+
-			"    CHECKCAST test/SubInterface__I\n"+
-			"    INVOKEINTERFACE test/SubInterface__I.___clinit___()V\n"+
-			"    RETURN\n"+
-			" L1\n"+
-			"    RETURN\n", 
-			toStringMethod(subitype.bytesLoaded, "<clinit>", false));
+				"    LDC 0\n"
+						+
+						"    LDC 1\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.getReloadableType(II)Lorg/springsource/loaded/ReloadableType;\n"
+						+
+						"    PUTSTATIC test/SubInterface.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    GETSTATIC test/SubInterface.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						"    IFNONNULL L0\n" +
+						"    NEW org/springsource/loaded/SSMgr\n" +
+						"    DUP\n" +
+						"    INVOKESPECIAL org/springsource/loaded/SSMgr.<init>()V\n" +
+						"    PUTSTATIC test/SubInterface.r$sfields Lorg/springsource/loaded/SSMgr;\n" +
+						" L0\n" +
+						"    GETSTATIC test/SubInterface.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.clinitchanged()I\n" +
+						"    IFEQ L1\n" +
+						"    GETSTATIC test/SubInterface.r$type Lorg/springsource/loaded/ReloadableType;\n" +
+						"    INVOKEVIRTUAL org/springsource/loaded/ReloadableType.fetchLatest()Ljava/lang/Object;\n" +
+						"    CHECKCAST test/SubInterface__I\n" +
+						"    INVOKEINTERFACE test/SubInterface__I.___clinit___()V\n" +
+						"    RETURN\n" +
+						" L1\n" +
+						"    RETURN\n",
+				toStringMethod(subitype.bytesLoaded, "<clinit>", false));
 		// @formatter:on
 
 		// Although the interface has fields, they are constants and so there is no code to implement them
@@ -399,15 +451,15 @@ public class TypeRewriterTests extends SpringLoadedTests {
 
 		// Load a real new version
 		rtype.loadNewVersion("002", retrieveRename(t, t + "2"));
-//		ClassPrinter.print(rtype.getLatestExecutorBytes());
+		//		ClassPrinter.print(rtype.getLatestExecutorBytes());
 		result = runConstructor(rtype.getClazz(), "java.lang.String", "Wabble");
 		assertEquals("WabbleWabble", result.stdout);
 		assertEquals(rtype.getClazz().getName(), result.returnValue.getClass().getName());
 	}
 
 	/**
-	 * Annotation reloading, currently not allowed but hopefully doesn't impact regular code development, they just have no
-	 * reloadable type representation.
+	 * Annotation reloading, currently not allowed but hopefully doesn't impact regular code development, they just have
+	 * no reloadable type representation.
 	 */
 	@Test
 	public void annotation() throws Exception {
@@ -450,7 +502,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		try {
 			result = runOnInstance(type.getClazz(), o, "geti");
 			fail();
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			Throwable cause = re.getCause();
 			assertTrue(cause instanceof InvocationTargetException);
 			cause = ((InvocationTargetException) cause).getCause();
@@ -461,7 +514,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		try {
 			result = runOnInstance(type.getClazz(), o, "getj");
 			fail();
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			Throwable cause = re.getCause();
 			assertTrue(cause instanceof InvocationTargetException);
 			cause = ((InvocationTargetException) cause).getCause();
@@ -490,7 +544,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		try {
 			result = runOnInstance(type.getClazz(), o, "seti", 456);
 			fail();
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			Throwable cause = re.getCause();
 			assertTrue(cause instanceof InvocationTargetException);
 			cause = ((InvocationTargetException) cause).getCause();
@@ -501,7 +556,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		try {
 			result = runOnInstance(type.getClazz(), o, "setj", 789);
 			fail();
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			Throwable cause = re.getCause();
 			assertTrue(cause instanceof InvocationTargetException);
 			cause = ((InvocationTargetException) cause).getCause();
@@ -635,8 +691,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Final fields. Final fields are typically inlined at their usage sites, which means in a reloadable scenario they can
-	 * introduce unexpected (but correct) behaviour.
+	 * Final fields. Final fields are typically inlined at their usage sites, which means in a reloadable scenario they
+	 * can introduce unexpected (but correct) behaviour.
 	 */
 	@Test
 	public void constructorsAndFinalFields() throws Exception {
@@ -665,10 +721,10 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Super/subtypes and in the reload the new constructor in the subtype calls a constructor in the supertype that did not
-	 * initially exist. I think the rewrite of the invokespecial should be able to determine it isn't there at the start and use the
-	 * all powerful _execute method added to the instance at startup (rather than the ___init___) which will then call through the
-	 * dispatcher.
+	 * Super/subtypes and in the reload the new constructor in the subtype calls a constructor in the supertype that did
+	 * not initially exist. I think the rewrite of the invokespecial should be able to determine it isn't there at the
+	 * start and use the all powerful _execute method added to the instance at startup (rather than the ___init___)
+	 * which will then call through the dispatcher.
 	 */
 	@Test
 	public void newConstructors2() throws Exception {
@@ -804,7 +860,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		// turn off to simplify debugging verify problems:
 		// GlobalConfiguration.rewriteMethodExecutions = true;
 		TypeRegistry r = getTypeRegistry("data.HelloWorldStaticFields");
-		ReloadableType rtype = r.addType("data.HelloWorldStaticFields", loadBytesForClass("data.HelloWorldStaticFields"));
+		ReloadableType rtype = r.addType("data.HelloWorldStaticFields",
+				loadBytesForClass("data.HelloWorldStaticFields"));
 		assertEquals("Hello Andy", runUnguarded(rtype.getClazz(), "greet").stdout);
 
 		// Just reload that same version (creates new CurrentLiveVersion)
@@ -875,7 +932,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_int() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getValue");
 		assertTrue(r.returnValue instanceof Integer);
@@ -895,7 +953,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_boolean() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getValueBoolean");
 		assertTrue(r.returnValue instanceof Boolean);
@@ -915,7 +974,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_short() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getValueShort");
 		assertTrue(r.returnValue instanceof Short);
@@ -935,7 +995,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_long() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getValueLong");
 		assertTrue(r.returnValue instanceof Long);
@@ -955,7 +1016,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_double() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getValueDouble");
 		assertTrue(r.returnValue instanceof Double);
@@ -975,7 +1037,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_char() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getValueChar");
 		assertTrue(r.returnValue instanceof Character);
@@ -995,7 +1058,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_byte() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getValueByte");
 		assertTrue(r.returnValue instanceof Byte);
@@ -1015,7 +1079,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_intArray() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getArrayInt");
 		assertTrue(r.returnValue instanceof int[]);
@@ -1035,7 +1100,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	@Test
 	public void rewriteWithPrimitiveReturnValues_stringArray() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorldPrimitive");
-		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive", loadBytesForClass("data.HelloWorldPrimitive"));
+		ReloadableType rtype = typeRegistry.addType("data.HelloWorldPrimitive",
+				loadBytesForClass("data.HelloWorldPrimitive"));
 
 		Result r = runUnguarded(rtype.getClazz(), "getArrayString");
 		assertTrue(r.returnValue instanceof String[]);
@@ -1144,9 +1210,9 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Testing what happens if we 'reload' a type where a method that was previously final has been made non-final and has been
-	 * overridden in a subtype. This works even though the 'final' isn't removed on type rewriting because the new method doesn't
-	 * ever really exist in the subtype!
+	 * Testing what happens if we 'reload' a type where a method that was previously final has been made non-final and
+	 * has been overridden in a subtype. This works even though the 'final' isn't removed on type rewriting because the
+	 * new method doesn't ever really exist in the subtype!
 	 */
 	@Test
 	public void overridingFinalMethods() throws Exception {
@@ -1188,7 +1254,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(rt.getClazz(), "forDeletion");
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertEquals("java.lang.NoSuchMethodError", ite.getCause().getClass().getName());
 			assertEquals("methoddeletion.TypeA.forDeletion()V", ite.getCause().getMessage());
 		}
@@ -1254,17 +1321,21 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	 * Basically testing
 	 * 
 	 * <pre>
+	 * 
 	 * class A {
+	 * 
 	 * 	public void foo() {
 	 * 	}
 	 * }
 	 * 
 	 * class B extends A {
+	 * 
 	 * 	public void foo() {
 	 * 	}
 	 * }
 	 * 
 	 * class C {
+	 * 
 	 * 	public void m() {
 	 * 		A a = new B();
 	 * 		a.foo();
@@ -1295,7 +1366,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		try {
 			m.invoke(null);
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertEquals("java.lang.NoSuchMethodError", ite.getCause().getClass().getName());
 			assertEquals("A.foo()I", ite.getCause().getMessage());
 		}
@@ -1321,7 +1393,7 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		// a new version of the concrete type without method() in it
 		rAbsimpl.loadNewVersion("2", retrieveRename(absimpl, absimpl + "2"));
 		rImpl.loadNewVersion("2", retrieveRename(impl, impl + "2", absimpl + "2:" + absimpl));
-//		ClassPrinter.print(rAbsimpl.bytesLoaded);
+		//		ClassPrinter.print(rAbsimpl.bytesLoaded);
 		result = runUnguarded(rImpl.getClazz(), "run");
 		assertEquals("2", result.stdout);
 	}
@@ -1347,7 +1419,7 @@ public class TypeRewriterTests extends SpringLoadedTests {
 		result = runUnguarded(type.getClazz(), "run");
 		assertEquals("hello", result.returnValue);
 		type.loadNewVersion("2", retrieveRename(t, t + "2"));
-//		ClassPrinter.print(type.getLatestExecutorBytes());
+		//		ClassPrinter.print(type.getLatestExecutorBytes());
 		result = runUnguarded(type.getClazz(), "run");
 		assertEquals("world", result.returnValue);
 	}
@@ -1365,9 +1437,9 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Testing the type delta which records what has changed on a reload. Here we are reloading a type twice. In the first reload
-	 * nothing has changed. In the second reload the code in the constructor has changed, but the invokespecial call to super has
-	 * not changed.
+	 * Testing the type delta which records what has changed on a reload. Here we are reloading a type twice. In the
+	 * first reload nothing has changed. In the second reload the code in the constructor has changed, but the
+	 * invokespecial call to super has not changed.
 	 */
 	@Test
 	public void constructorChangingButNotSuper() throws Exception {
@@ -1404,8 +1476,8 @@ public class TypeRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Testing that even though a type is reloaded, if the constructor body hasn't changed then we still run the original version of
-	 * it.
+	 * Testing that even though a type is reloaded, if the constructor body hasn't changed then we still run the
+	 * original version of it.
 	 */
 	@Test
 	public void originalConstructorRunOnReload() throws Exception {

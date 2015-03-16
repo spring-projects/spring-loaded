@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -27,9 +28,9 @@ import org.springsource.loaded.TypeRegistry;
 
 
 /**
- * These tests verify the correct behaviour for reflective calls made using reflection. They should all be intercepted by the
- * method.invoke() that runs and in the handler for that (ReflectiveInterceptor.jlrMethodInvoke) they should be recognized and
- * dispatched to their intercepting function in the ReflectiveInterceptor.
+ * These tests verify the correct behaviour for reflective calls made using reflection. They should all be intercepted
+ * by the method.invoke() that runs and in the handler for that (ReflectiveInterceptor.jlrMethodInvoke) they should be
+ * recognized and dispatched to their intercepting function in the ReflectiveInterceptor.
  * 
  * @author Andy Clement
  * @since 0.7.3
@@ -367,7 +368,8 @@ public class ReflectiveReflectionTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(rtype.getClazz(), "run");
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertTrue(ite.getCause() instanceof NoSuchMethodException);
 			assertEquals("iri.JLCGetConstructorB.<init>(java.lang.String)", ite.getCause().getMessage());
 		}
@@ -551,7 +553,7 @@ public class ReflectiveReflectionTests extends SpringLoadedTests {
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("null @java.lang.Deprecated()", result.returnValue);
 	}
-	
+
 	@Test
 	public void testJRMethodGetAnnotationViaAccessibleObject() throws Exception {
 		String t = "iri.JLRMGetAnnotationViaAccessibleObject";
@@ -563,7 +565,7 @@ public class ReflectiveReflectionTests extends SpringLoadedTests {
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("null @java.lang.Deprecated()", result.returnValue);
 	}
-	
+
 	@Test
 	public void testGetAnnotationViaAnnotatedElement() throws Exception {
 		String t = "iri.JLRMGetAnnotationViaAnnotatedElement";

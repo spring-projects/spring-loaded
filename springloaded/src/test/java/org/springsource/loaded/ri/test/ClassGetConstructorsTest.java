@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -37,11 +38,14 @@ public class ClassGetConstructorsTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	//	private Set<String> signatures;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String targetMethodName;
 
 	@Override
@@ -56,7 +60,8 @@ public class ClassGetConstructorsTest extends GenerativeSpringLoadedTest {
 
 		if (choice()) {
 			targetClass = targetClass("java.lang.String");
-		} else {
+		}
+		else {
 			targetClass = targetClass("ClassWithConstructors", choice("", "002"));
 		}
 
@@ -69,7 +74,8 @@ public class ClassGetConstructorsTest extends GenerativeSpringLoadedTest {
 		try {
 			Result r = runOnInstance(callerClazz, callerInstance, targetMethodName, targetClass);
 			return r;
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			throw new Error(e);
 		}
 	}

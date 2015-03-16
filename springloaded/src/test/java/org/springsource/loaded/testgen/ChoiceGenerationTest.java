@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springsource.loaded.testgen;
 
+package org.springsource.loaded.testgen;
 
 
 import org.junit.Assert;
@@ -33,8 +33,9 @@ import org.springsource.loaded.test.infra.ResultException;
 public class ChoiceGenerationTest extends GenerativeTest {
 
 	public static String invokerTypeName = "reflection.ClassInvoker";
+
 	public static String[] targetTypeNames = { "reflection.targets.ClassTarget", "reflection.targets.SubClassTarget",
-			"reflection.targets.SubClassImplementsInterface", "reflection.targets.InterfaceTarget" };
+		"reflection.targets.SubClassImplementsInterface", "reflection.targets.InterfaceTarget" };
 
 	/**
 	 * Tests parameter to be chosen by the test based on injected choice generator.
@@ -58,13 +59,17 @@ public class ChoiceGenerationTest extends GenerativeTest {
 		String testId = choiceGenerator.toString();
 		if (testId.equals("11")) {
 			Assert.assertEquals("reflection.targets.ClassTarget", targetTypeName);
-		} else if (testId.equals("10")) {
+		}
+		else if (testId.equals("10")) {
 			Assert.assertEquals("reflection.targets.SubClassTarget", targetTypeName);
-		} else if (testId.equals("01")) {
+		}
+		else if (testId.equals("01")) {
 			Assert.assertEquals("reflection.targets.SubClassImplementsInterface", targetTypeName);
-		} else if (testId.equals("00")) {
+		}
+		else if (testId.equals("00")) {
 			Assert.assertEquals("reflection.targets.InterfaceTarget", targetTypeName);
-		} else {
+		}
+		else {
 			Assert.fail("Unexpected test config: " + testId);
 		}
 	}

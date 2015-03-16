@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.lang.reflect.Method;
@@ -26,8 +27,8 @@ import org.springsource.loaded.test.infra.ResultException;
 
 
 /**
- * This tests whether the test runner sets up an appropriate context for executing the tests two times (once to predict the result
- * and once to verify it).
+ * This tests whether the test runner sets up an appropriate context for executing the tests two times (once to predict
+ * the result and once to verify it).
  * 
  * @author kdvolder
  */
@@ -38,6 +39,7 @@ public class ExecutionContextsTest extends GenerativeSpringLoadedTest {
 	private String targetTypeName = getTargetPackage() + ".ClassTarget";
 
 	private String version = null;
+
 	private Class<?> targetType = null;
 
 	@Override
@@ -53,10 +55,12 @@ public class ExecutionContextsTest extends GenerativeSpringLoadedTest {
 			try {
 				getDeclaredMethod();
 				Assert.fail("lateMethod should not exist in first version of the test");
-			} catch (NoSuchMethodException e) {
+			}
+			catch (NoSuchMethodException e) {
 				//OK
 			}
-		} else {
+		}
+		else {
 			Method m = getDeclaredMethod();
 			Assert.assertEquals("lateMethod", m.getName());
 		}
@@ -100,7 +104,8 @@ public class ExecutionContextsTest extends GenerativeSpringLoadedTest {
 			Assert.assertEquals(slClassProvider.getClassLoader(), targetType.getClassLoader());
 			//Check that we have some funky SpringLoaded stuff in this class
 			Assert.assertEquals(ReloadableType.class, ReflectiveInterceptor.getRType(targetType).getClass());
-		} else { /* Just Java */
+		}
+		else { /* Just Java */
 			//Check that we have the right execution context.
 			JustJavaClassProvider jClassProvider = (JustJavaClassProvider) classProvider;
 			//Check that classes were loaded with correct class loader

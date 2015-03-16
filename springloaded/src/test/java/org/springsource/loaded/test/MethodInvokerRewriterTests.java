@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -34,9 +35,9 @@ import org.springsource.loaded.test.infra.Result;
 /**
  * Tests morphing method invocations made on Reloadable types.
  * <p>
- * Morphing the method invocations allows us to achieve support for methods that are added or removed since the target type was
- * originally loaded. Most importantly is recognizing when they are added - and once added they must be dynamically invoked because
- * they will not exist on the extracted interface for the target.
+ * Morphing the method invocations allows us to achieve support for methods that are added or removed since the target
+ * type was originally loaded. Most importantly is recognizing when they are added - and once added they must be
+ * dynamically invoked because they will not exist on the extracted interface for the target.
  * 
  * @author Andy Clement
  */
@@ -168,7 +169,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(botR.getClazz(), "run");
 			fail("Should have failed!");
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertTrue(ite.getCause() instanceof NoSuchMethodError);
 			assertEquals("FourBot.bar()I", ite.getCause().getMessage());
 		}
@@ -202,8 +204,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Similar to previous test but now new method is in the middle of the hierarchy (and in the top, but the middle one should be
-	 * answering the request)
+	 * Similar to previous test but now new method is in the middle of the hierarchy (and in the top, but the middle one
+	 * should be answering the request)
 	 */
 	@Test
 	public void invokevirtualNonCatchers3() throws Exception {
@@ -230,8 +232,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Two classes in a hierarchy, both reloadable. Neither of them defines a toString(), what happens as we reload versions of them
-	 * adding then removing toString().
+	 * Two classes in a hierarchy, both reloadable. Neither of them defines a toString(), what happens as we reload
+	 * versions of them adding then removing toString().
 	 */
 	@Test
 	public void invokevirtual2() throws Exception {
@@ -269,8 +271,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Variant of the above test that this time uses a 3 class hierarchy, checks we can get to the top.toString() that is added when
-	 * toString() is invoked on bottom.
+	 * Variant of the above test that this time uses a 3 class hierarchy, checks we can get to the top.toString() that
+	 * is added when toString() is invoked on bottom.
 	 */
 	@Test
 	public void invokevirtual3() throws Exception {
@@ -310,7 +312,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Here an interface is changed (reloaded) to include a new method, the implementing class already provides an implementation.
+	 * Here an interface is changed (reloaded) to include a new method, the implementing class already provides an
+	 * implementation.
 	 */
 	@Test
 	public void rewriteInvokeInterface1() throws Exception {
@@ -398,7 +401,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 			// run the original working thing post-reload - check it is still ok
 			result = runUnguarded(callerClazz, "run");
 			fail("Method no longer exists, should not have been callable");
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertTrue(ite.getCause() instanceof NoSuchMethodError);
 			assertEquals("SimpleI.toInt(Ljava/lang/String;)I", ite.getCause().getMessage());
 		}
@@ -482,13 +486,13 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 
 		byte[] callerbytes = loadBytesForClass("tgt.StaticCaller");
 		// @formatter:off
-		checkMethod(callerbytes, 
-				"run", 
-				" L0\n"+
-				"    LDC 123\n"+
-				"    INVOKESTATIC tgt/SimpleClass.toInt(Ljava/lang/String;)I\n"+
-				"    IRETURN\n"+
-				" L1\n");
+		checkMethod(callerbytes,
+				"run",
+				" L0\n" +
+						"    LDC 123\n" +
+						"    INVOKESTATIC tgt/SimpleClass.toInt(Ljava/lang/String;)I\n" +
+						"    IRETURN\n" +
+						" L1\n");
 		// @formatter:on
 
 		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
@@ -497,45 +501,66 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		checkMethod(
 				rewrittenBytes,
 				"run",
-				" L0\n"+
-				"    LDC 123\n"+
-				"    LDC "+r.getId()+"\n"+
-				"    LDC toInt(Ljava/lang/String;)I\n"+
-				"    INVOKESTATIC org/springsource/loaded/TypeRegistry.istcheck(ILjava/lang/String;)Ljava/lang/Object;\n"+
-				"    DUP\n"+
-				"    IFNULL L1\n"+
-				"    CHECKCAST tgt/SimpleClass__I\n"+
-				"    ASTORE 1\n"+ // store the dispatcher to call in 1
-				
-				// Can we reduce this by calling some kind of pack method, if we make a static call then whatever is
-				// on the stack can be the 'input' and the output can be the packed array.  But primitives make that
-				// hard because they massively increase the number of variants of the pack method, we can't just have
-				// for example, 1-20 arguments of type Object.
-				// Object[] TypeRegistry.pack(int) would be enough here since the input value is an int.
-				
-				// it would remove from here:
-				"    LDC 1\n"+ // load 1
-				"    ANEWARRAY java/lang/Object\n"+ // new array of size 1
-				"    DUP_X1\n"+ // put it under the argument (it'll be under and on top)
-				"    SWAP\n"+ // put it under and under, arg on top
-				"    LDC 0\n"+ // load 0
-				"    SWAP\n"+ // swap 
-				"    AASTORE\n"+ // store that in the array at index 0
-				// to here
-				"    ALOAD 1\n"+ // load the target
-				"    SWAP\n"+ // put the target at the bottom
-				"    ACONST_NULL\n"+ // load the instance (static call so null)
-				"    LDC toInt(Ljava/lang/String;)I\n"+ // load the name+descriptor
-				"    INVOKEINTERFACE tgt/SimpleClass__I.__execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"+
-				"    CHECKCAST java/lang/Integer\n"+
-				"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n"+
-				"    GOTO L2\n"+
-				" L1\n"+
-				"    POP\n"+
-				"    INVOKESTATIC tgt/SimpleClass.toInt(Ljava/lang/String;)I\n"+
-				" L2\n"+
-				"    IRETURN\n"+
-				" L3\n");
+				" L0\n" +
+						"    LDC 123\n" +
+						"    LDC "
+						+ r.getId()
+						+ "\n"
+						+
+						"    LDC toInt(Ljava/lang/String;)I\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.istcheck(ILjava/lang/String;)Ljava/lang/Object;\n"
+						+
+						"    DUP\n"
+						+
+						"    IFNULL L1\n"
+						+
+						"    CHECKCAST tgt/SimpleClass__I\n"
+						+
+						"    ASTORE 1\n"
+						+ // store the dispatcher to call in 1
+
+						// Can we reduce this by calling some kind of pack method, if we make a static call then whatever is
+						// on the stack can be the 'input' and the output can be the packed array.  But primitives make that
+						// hard because they massively increase the number of variants of the pack method, we can't just have
+						// for example, 1-20 arguments of type Object.
+						// Object[] TypeRegistry.pack(int) would be enough here since the input value is an int.
+
+						// it would remove from here:
+						"    LDC 1\n"
+						+ // load 1
+						"    ANEWARRAY java/lang/Object\n"
+						+ // new array of size 1
+						"    DUP_X1\n"
+						+ // put it under the argument (it'll be under and on top)
+						"    SWAP\n"
+						+ // put it under and under, arg on top
+						"    LDC 0\n"
+						+ // load 0
+						"    SWAP\n"
+						+ // swap 
+						"    AASTORE\n"
+						+ // store that in the array at index 0
+						// to here
+						"    ALOAD 1\n"
+						+ // load the target
+						"    SWAP\n"
+						+ // put the target at the bottom
+						"    ACONST_NULL\n"
+						+ // load the instance (static call so null)
+						"    LDC toInt(Ljava/lang/String;)I\n"
+						+ // load the name+descriptor
+						"    INVOKEINTERFACE tgt/SimpleClass__I.__execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						+
+						"    CHECKCAST java/lang/Integer\n" +
+						"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n" +
+						"    GOTO L2\n" +
+						" L1\n" +
+						"    POP\n" +
+						"    INVOKESTATIC tgt/SimpleClass.toInt(Ljava/lang/String;)I\n" +
+						" L2\n" +
+						"    IRETURN\n" +
+						" L3\n");
 		// @formatter:on
 		Class<?> callerClazz = loadit("tgt.StaticCaller", rewrittenBytes);
 		//		ClassPrinter.print(r.bytesLoaded);
@@ -730,9 +755,9 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	// TODO review optimization: extending 2 could even pull the invokestatic of anyChanges out into that helper too
 
 	/**
-	 * Rewrite of a simple INVOKESTATIC call - change the callee (to exercise the dispatching through the interface). This checks
-	 * the behaviour of the TypeRegistry.anyChanges(int, String) method which determines whether we have to dispatch to something
-	 * different due to a reload.
+	 * Rewrite of a simple INVOKESTATIC call - change the callee (to exercise the dispatching through the interface).
+	 * This checks the behaviour of the TypeRegistry.anyChanges(int, String) method which determines whether we have to
+	 * dispatch to something different due to a reload.
 	 */
 	@Test
 	public void rewriteInvokeStatic2() throws Exception {
@@ -832,7 +857,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(callerClazz, "run");
 			Assert.fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			Throwable t = ite.getCause();
 			NoSuchMethodError icce = (NoSuchMethodError) t;
 			assertEquals("SimpleClass.toInt(Ljava/lang/String;)I", icce.getMessage());
@@ -865,10 +891,12 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(callerClazz, "run");
 			Assert.fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			Throwable t = ite.getCause();
 			IncompatibleClassChangeError icce = (IncompatibleClassChangeError) t;
-			assertEquals("SpringLoaded: Target of static call is no longer static 'SimpleClass.toInt(Ljava/lang/String;)I'",
+			assertEquals(
+					"SpringLoaded: Target of static call is no longer static 'SimpleClass.toInt(Ljava/lang/String;)I'",
 					icce.getMessage());
 		}
 	}
@@ -976,57 +1004,57 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		assertEquals("hi from CC.foo", result.returnValue);
 	}
 
-//		// @formatter:off
-//		checkMethod(callerbytes, 
-//				"one", 
-//				" L0\n" + 
-//				"    ALOAD 0\n" + 
-//				"    GETFIELD data/Orange.appleLdata/Apple;\n"+
-//				"    INVOKEVIRTUAL data/Apple.run()V\n" + 
-//				" L1\n" + 
-//				"    RETURN\n" + 
-//				" L2\n");
-//		// @formatter:on
+	//		// @formatter:off
+	//		checkMethod(callerbytes, 
+	//				"one", 
+	//				" L0\n" + 
+	//				"    ALOAD 0\n" + 
+	//				"    GETFIELD data/Orange.appleLdata/Apple;\n"+
+	//				"    INVOKEVIRTUAL data/Apple.run()V\n" + 
+	//				" L1\n" + 
+	//				"    RETURN\n" + 
+	//				" L2\n");
+	//		// @formatter:on
 	//
 	//		// the call to Apple.run() will be rewritten
 	//
 	//		byte[] rewrittenBytes = MethodInvokerRewriter.rewrite(typeRegistry, callerbytes);
-//		// @formatter:off
-//		checkMethod(
-//				rewrittenBytes,
-//				"one",
-//				" L0\n" + 
-//				"    ALOAD 0\n" + 
-//				"    GETFIELD data/Orange.appleLdata/Apple;\n" + 
-//				"    LDC "
-//						+ typeRegistry.getId()
-//						+ "\n"
-//						+ "    LDC 1\n"
-//						+ "    LDC 2\n"
-//						+ "    LDC run\n"
-//						+ "    LDC ()V\n"
-//						+ "    INVOKESTATIC org/springsource/loaded/TypeRegistry.anyChanges(IIILjava/lang/String;Ljava/lang/String;)Ljava/lang/Object;\n"
-//						+ "    DUP\n"
-//						+ "    IFNULL L1\n"
-//						+ "    ASTORE 1\n"
-//						+ "    ALOAD 1\n"
-//						+ "    SWAP\n"
-//						+ "    ACONST_NULL\n"
-//						+ "    LDC run\n"
-//						+ "    LDC ()V\n"
-//						+ "    INVOKEINTERFACE data/Apple$I.s$execute(Ldata/Apple;[Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;\n"
-//						+ "    POP\n" + 
-//						"    GOTO L2\n" + 
-//						" L1\n" + 
-//						"    POP\n" + 
-//						"    INVOKEVIRTUAL data/Apple.run()V\n" + " L2\n"+
-//						"    RETURN\n" + " L3\n");
-//		// @formatter:on
+	//		// @formatter:off
+	//		checkMethod(
+	//				rewrittenBytes,
+	//				"one",
+	//				" L0\n" + 
+	//				"    ALOAD 0\n" + 
+	//				"    GETFIELD data/Orange.appleLdata/Apple;\n" + 
+	//				"    LDC "
+	//						+ typeRegistry.getId()
+	//						+ "\n"
+	//						+ "    LDC 1\n"
+	//						+ "    LDC 2\n"
+	//						+ "    LDC run\n"
+	//						+ "    LDC ()V\n"
+	//						+ "    INVOKESTATIC org/springsource/loaded/TypeRegistry.anyChanges(IIILjava/lang/String;Ljava/lang/String;)Ljava/lang/Object;\n"
+	//						+ "    DUP\n"
+	//						+ "    IFNULL L1\n"
+	//						+ "    ASTORE 1\n"
+	//						+ "    ALOAD 1\n"
+	//						+ "    SWAP\n"
+	//						+ "    ACONST_NULL\n"
+	//						+ "    LDC run\n"
+	//						+ "    LDC ()V\n"
+	//						+ "    INVOKEINTERFACE data/Apple$I.s$execute(Ldata/Apple;[Ljava/lang/Object;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;\n"
+	//						+ "    POP\n" + 
+	//						"    GOTO L2\n" + 
+	//						" L1\n" + 
+	//						"    POP\n" + 
+	//						"    INVOKEVIRTUAL data/Apple.run()V\n" + " L2\n"+
+	//						"    RETURN\n" + " L3\n");
+	//		// @formatter:on
 
 	/**
-	 * This test is interesting. It loads a type 'AspectReceiver' that has been advised by an aspect 'AnAspect'. The receiver gets
-	 * its method calls rewritten and is then invoked. The aspect is not actually loaded up front and so at the point the rewritten
-	 * method logic executes it will:<br>
+	 * This test is interesting. It loads a type 'AspectReceiver' that has been advised by an aspect 'AnAspect'. The
+	 * receiver gets its method calls rewritten and is then invoked. The aspect is not actually loaded up front and so
+	 * at the point the rewritten method logic executes it will:<br>
 	 * - call anyChanges() to see if the receiver is still OK<br>
 	 * - call the dynamic dispatch execute method on the result of anyChanges()<br>
 	 * 
@@ -1106,7 +1134,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			runUnguarded(callerClazz, "callApple1", new Object[] { "a", 1, "b", 2 });
 			Assert.fail("should not work, Apple doesn't have that method in it!");
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			String cause = ite.getCause().toString();
 			if (!cause.startsWith("java.lang.NoSuchMethodError")) {
 				ite.printStackTrace();
@@ -1124,7 +1153,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(callerClazz, "callApple1", new Object[] { "a", 1, "b", 2 });
 			Assert.fail("should not work, Apple doesn't have that method in it!");
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			String cause = ite.getCause().toString();
 			if (!cause.startsWith("java.lang.NoSuchMethodError")) {
 				ite.printStackTrace();
@@ -1142,7 +1172,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		TypeRegistry typeRegistry = getTypeRegistry("data.Apple");
 		ReloadableType target = typeRegistry.addType("data.Apple", loadBytesForClass("data.Apple"));
 
-		byte[] callerb = ClassRenamer.rename("data.Orange", loadBytesForClass("data.Orange002"), "data.Apple002:data.Apple");
+		byte[] callerb = ClassRenamer.rename("data.Orange", loadBytesForClass("data.Orange002"),
+				"data.Apple002:data.Apple");
 		byte[] rewrittencallerb = MethodInvokerRewriter.rewrite(typeRegistry, callerb);
 		Class<?> callerClazz = loadit("data.Orange", rewrittencallerb);
 
@@ -1173,16 +1204,19 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		Class<?> callerClazz = loadit("data.Orange", rewrittenBytes);
 
 		// public String callApple3(String s, int i, double d, String t, int[] is) {
-		runExpectNoSuchMethodException(callerClazz, "callApple3x", new Object[] { "abc", 1, 2.0d, "def", new int[] { 42, 53 } });
+		runExpectNoSuchMethodException(callerClazz, "callApple3x", new Object[] { "abc", 1, 2.0d, "def",
+			new int[] { 42, 53 } });
 
 		// Load a version of Apple that does define that method
 		apple.loadNewVersion("002", retrieveRename("data.Apple", "data.Apple002"));
-		Result result = runUnguarded(callerClazz, "callApple3x", new Object[] { "abc", 1, 2.0d, "def", new int[] { 42, 53 } });
+		Result result = runUnguarded(callerClazz, "callApple3x", new Object[] { "abc", 1, 2.0d, "def",
+			new int[] { 42, 53 } });
 		assertEquals("abc12.0def42", result.returnValue);
 
 		// Load a version of Apple that doesn't define it
 		apple.loadNewVersion("003", loadBytesForClass("data.Apple"));
-		runExpectNoSuchMethodException(callerClazz, "callApple3x", new Object[] { "abc", 1, 2.0d, "def", new int[] { 42, 53 } });
+		runExpectNoSuchMethodException(callerClazz, "callApple3x", new Object[] { "abc", 1, 2.0d, "def",
+			new int[] { 42, 53 } });
 
 	}
 
@@ -1254,10 +1288,10 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * This is the 'control' testcase that loads a pair of types in a hierarchy, and calls methods on the subtype that simply make
-	 * super calls to the supertype. Different variants are tested - with/without parameters, double slot parameters and methods
-	 * that access private instance state. There is no reloading here, it is basically checking that the format of the rewritten
-	 * super calls is OK.
+	 * This is the 'control' testcase that loads a pair of types in a hierarchy, and calls methods on the subtype that
+	 * simply make super calls to the supertype. Different variants are tested - with/without parameters, double slot
+	 * parameters and methods that access private instance state. There is no reloading here, it is basically checking
+	 * that the format of the rewritten super calls is OK.
 	 */
 	@Test
 	public void superCallsControlCheck() throws Exception {
@@ -1286,9 +1320,9 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * This is similar to the first case except the hierarchy is split such that a middle type exists which does not initially
-	 * implement the methods, they are added in a reload. This variant of the testcase is checking dispatch through the dynamic
-	 * dispatch __execute method will work.
+	 * This is similar to the first case except the hierarchy is split such that a middle type exists which does not
+	 * initially implement the methods, they are added in a reload. This variant of the testcase is checking dispatch
+	 * through the dynamic dispatch __execute method will work.
 	 */
 	@Test
 	public void superCallsDynamicDispatcher() throws Exception {
@@ -1319,8 +1353,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * This is similar to the first case except the hierarchy is split such that a middle type exists where the methods initially
-	 * exist but then they are removed in a reload. We should end up at the top level methods.
+	 * This is similar to the first case except the hierarchy is split such that a middle type exists where the methods
+	 * initially exist but then they are removed in a reload. We should end up at the top level methods.
 	 */
 	@Test
 	public void superCallsRemovingMethods() throws Exception {
@@ -1363,7 +1397,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			string = (String) method.invoke(object);
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertEquals("java.lang.NoSuchMethodError", ite.getCause().getClass().getName());
 			assertEquals("invokespecial.A.getInt()I", ite.getCause().getMessage());
 		}
@@ -1406,13 +1441,15 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		assertEquals("X002.foo", string);
 
 		// Now reload Y, should make no difference.  Y002 is no different
-		y.loadNewVersion("002", retrieveRename("invokespecial.Y", "invokespecial.Y002", "invokespecial.X002:invokespecial.X"));
+		y.loadNewVersion("002",
+				retrieveRename("invokespecial.Y", "invokespecial.Y002", "invokespecial.X002:invokespecial.X"));
 		assertEquals("X002.foo", method.invoke(object));
-		
+
 		// I see it is Ys dispatcher that isn't dispatching to the X.foo() method
 
 		// Now reload Y, Y003 does provide an implementation
-		y.loadNewVersion("003", retrieveRename("invokespecial.Y", "invokespecial.Y003", "invokespecial.X002:invokespecial.X"));
+		y.loadNewVersion("003",
+				retrieveRename("invokespecial.Y", "invokespecial.Y003", "invokespecial.X002:invokespecial.X"));
 		assertEquals("Y003.foo", method.invoke(object));
 
 		// Now remove it from Y
@@ -1425,7 +1462,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			string = (String) method.invoke(object);
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertEquals("java.lang.NoSuchMethodError", ite.getCause().getClass().getName());
 			assertEquals("invokespecial.Y.foo()Ljava/lang/String;", ite.getCause().getMessage());
 		}
@@ -1477,7 +1515,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		try {
 			string = method.invoke(object).toString();
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertEquals("java.lang.NoSuchMethodError", ite.getCause().getClass().getName());
 			assertEquals("invokespecial.P.foo()I", ite.getCause().getMessage());
 		}
@@ -1508,8 +1547,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Rewriting invokespecial when used for private method access. Similar to the previous test but now we are deleting some of the
-	 * methods on reload.
+	 * Rewriting invokespecial when used for private method access. Similar to the previous test but now we are deleting
+	 * some of the methods on reload.
 	 */
 	@Test
 	public void privateMethodCallsAndInvokeSpecial2() throws Exception {
@@ -1523,7 +1562,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		assertEquals("12123abctruez", m.invoke(o));
 
 		// Reload a version where a private method has been deleted
-		t.loadNewVersion("002", retrieveRename("invokespecial.ContainsPrivateCalls", "invokespecial.ContainsPrivateCalls002"));
+		t.loadNewVersion("002",
+				retrieveRename("invokespecial.ContainsPrivateCalls", "invokespecial.ContainsPrivateCalls002"));
 
 		// With the removal of the private method the code won't even compile without the call to it being removed,
 		// so it just works...
@@ -1531,8 +1571,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Rewriting invokespecial when used for private method access. Similar to the previous test but now changing the visibility of
-	 * the private method.
+	 * Rewriting invokespecial when used for private method access. Similar to the previous test but now changing the
+	 * visibility of the private method.
 	 */
 	@Test
 	public void privateMethodCallsAndInvokeSpecial3() throws Exception {
@@ -1546,15 +1586,16 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		assertEquals("12123abctruez", m.invoke(o));
 
 		// Reload a version where a private method has been deleted
-		t.loadNewVersion("002", retrieveRename("invokespecial.ContainsPrivateCalls", "invokespecial.ContainsPrivateCalls003"));
+		t.loadNewVersion("002",
+				retrieveRename("invokespecial.ContainsPrivateCalls", "invokespecial.ContainsPrivateCalls003"));
 
 		// private method is promoted to public, invokespecial won't be getting used, so just works...
 		assertEquals("12123abctruez", m.invoke(o));
 	}
 
 	/**
-	 * Rewriting invokespecial when used for private method access. Similar to the previous test but now we change a public method
-	 * to private
+	 * Rewriting invokespecial when used for private method access. Similar to the previous test but now we change a
+	 * public method to private
 	 * 
 	 */
 	@Test
@@ -1569,7 +1610,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 		assertEquals("12123abctruez", m.invoke(o));
 
 		// Reload a version where a private method has been deleted
-		t.loadNewVersion("002", retrieveRename("invokespecial.ContainsPrivateCallsB", "invokespecial.ContainsPrivateCallsB002"));
+		t.loadNewVersion("002",
+				retrieveRename("invokespecial.ContainsPrivateCallsB", "invokespecial.ContainsPrivateCallsB002"));
 
 		// public method is made private, changes from invokevirtual to invokespecial which is then rewritten to use
 		// executor method
@@ -1719,7 +1761,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 
 		// Load a version of Apple that does define that method
 		apple.loadNewVersion("002", retrieveRename("data.Apple", "data.Apple002"));
-		Result result = runUnguarded(callerClazz, "callAppleRetArrayString", new Object[] { new String[] { "abc", "def" } });
+		Result result = runUnguarded(callerClazz, "callAppleRetArrayString",
+				new Object[] { new String[] { "abc", "def" } });
 		assertEquals("abc", ((String[]) result.returnValue)[0]);
 	}
 
@@ -1774,8 +1817,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Tests introduction of a change that causes us to invoke a private method. Tests that these calls are specially rewritten to
-	 * be local executor calls.
+	 * Tests introduction of a change that causes us to invoke a private method. Tests that these calls are specially
+	 * rewritten to be local executor calls.
 	 */
 	@Test
 	public void testCallingNewCodeWithPrivateVisibility() throws Exception {
@@ -1799,8 +1842,8 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Calling a method on a target that is initially satisfied by the subtype but is then added to the subtype with a different
-	 * implementation.
+	 * Calling a method on a target that is initially satisfied by the subtype but is then added to the subtype with a
+	 * different implementation.
 	 */
 	@Test
 	public void virtualDispatchCallingSubMethodIntroducedLater() throws Exception {
@@ -1827,8 +1870,9 @@ public class MethodInvokerRewriterTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Calling a method on a target that is initially satisfied by the subtype but is then added to the subtype with a different
-	 * implementation. This is a 3 level hierarchy unlike the previous one, and the new method is added to the 'middle' type.
+	 * Calling a method on a target that is initially satisfied by the subtype but is then added to the subtype with a
+	 * different implementation. This is a 3 level hierarchy unlike the previous one, and the new method is added to the
+	 * 'middle' type.
 	 */
 	@Test
 	public void virtualDispatchCallingSubMethodIntroducedLater2() throws Exception {

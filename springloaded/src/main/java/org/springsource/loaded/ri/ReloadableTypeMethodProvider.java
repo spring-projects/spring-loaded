@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.util.Collection;
@@ -29,8 +30,8 @@ import org.springsource.loaded.Utils;
 
 
 /**
- * Concrete implementation of MethodProvider that provides methods for a Reloadable Type, taking into account any changes made to
- * the type by reloading.
+ * Concrete implementation of MethodProvider that provides methods for a Reloadable Type, taking into account any
+ * changes made to the type by reloading.
  * 
  * @author Kris De Volder
  * @since 0.5.0
@@ -50,7 +51,8 @@ public class ReloadableTypeMethodProvider extends TypeDescriptorMethodProvider {
 		if (rtype.getLiveVersion() == null) {
 			//Should be possible to call the original method
 			return new OriginalClassInvoker(rtype.getClazz(), methodMember, rtype.getJavaMethodCache());
-		} else {
+		}
+		else {
 			//Should be calling executor method
 			return ReloadedTypeInvoker.create(this, methodMember);
 		}
@@ -72,7 +74,7 @@ public class ReloadableTypeMethodProvider extends TypeDescriptorMethodProvider {
 	@Override
 	public List<Invoker> getDeclaredMethods() {
 		if (rtype.invokersCache_getDeclaredMethods != null) {
-//		if (TypeRegistry.nothingReloaded && rtype.invokersCache_getDeclaredMethods != null) {
+			//		if (TypeRegistry.nothingReloaded && rtype.invokersCache_getDeclaredMethods != null) {
 			// use the cached version, it will not change if a reload hasn't occurred
 			return rtype.invokersCache_getDeclaredMethods;
 		}
@@ -83,7 +85,7 @@ public class ReloadableTypeMethodProvider extends TypeDescriptorMethodProvider {
 
 	@Override
 	public Collection<Invoker> getMethods() {
-//		if ((TypeRegistry.nothingReloaded || !rtype.isAffectedByReload()) && 
+		//		if ((TypeRegistry.nothingReloaded || !rtype.isAffectedByReload()) && 
 		if (rtype.invokersCache_getMethods != null) {
 			return rtype.invokersCache_getMethods;
 		}

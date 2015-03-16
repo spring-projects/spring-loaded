@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.Modifier;
@@ -27,10 +28,12 @@ import java.util.List;
 public class DynamicLookup {
 
 	private String name;
+
 	private String methodDescriptor;
 
 	/**
 	 * Create an object capable of performing a dynamic method lookup in some MethodProvider
+	 * 
 	 * @param name method name
 	 * @param methodDescriptor method descriptor (e.g. (Ljava/lang/String;)V)
 	 */

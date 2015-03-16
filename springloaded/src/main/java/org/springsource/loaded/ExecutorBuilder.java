@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Modifier;
@@ -31,16 +32,17 @@ import org.objectweb.asm.Opcodes;
  * <p>
  * The executor is the class full of static methods that looks very like the original class.
  * <p>
- * <b>Methods</b>. For each method in the original type we have a method in the executor, it has the same SourceFile attribute and
- * the same local variable and line number details for debugging to work. Note the first variable will have been renamed from 'this'
- * to 'thiz' to prevent the eclipse debugger crashing. All annotations from the new version will be copied to the methods on an
- * executor.
+ * <b>Methods</b>. For each method in the original type we have a method in the executor, it has the same SourceFile
+ * attribute and the same local variable and line number details for debugging to work. Note the first variable will
+ * have been renamed from 'this' to 'thiz' to prevent the eclipse debugger crashing. All annotations from the new
+ * version will be copied to the methods on an executor.
  * <p>
- * <b>Fields</b>. Fields are copied into the executor but only so that there is a place to hang the annotations off (so that they
- * can be accessed through reflection).
+ * <b>Fields</b>. Fields are copied into the executor but only so that there is a place to hang the annotations off (so
+ * that they can be accessed through reflection).
  * <p>
- * <b>Constructors</b>. Constructors are added to the executor as ___init___ methods, with the invokespecials within them
- * transformed, either removed if they are calls to Object.&lt;init&gt; or mutated into ___init___ calls on the supertype instance.
+ * <b>Constructors</b>. Constructors are added to the executor as ___init___ methods, with the invokespecials within
+ * them transformed, either removed if they are calls to Object.&lt;init&gt; or mutated into ___init___ calls on the
+ * supertype instance.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -53,28 +55,32 @@ public class ExecutorBuilder {
 		this.typeRegistry = typeRegistry;
 	}
 
-	public byte[] createFor(ReloadableType reloadableType, String versionstamp, TypeDescriptor typeDescriptor, byte[] newVersionData) {
+	public byte[] createFor(ReloadableType reloadableType, String versionstamp, TypeDescriptor typeDescriptor,
+			byte[] newVersionData) {
 		if (typeDescriptor == null) {
 			// must be reloadable or we would not be here - so can pass 'true'
 			typeDescriptor = typeRegistry.getExtractor().extract(newVersionData, true);
 		}
 		ClassReader fileReader = new ClassReader(newVersionData);
-		ExecutorBuilderVisitor executorVisitor = new ExecutorBuilderVisitor(reloadableType.getSlashedName(), versionstamp,
+		ExecutorBuilderVisitor executorVisitor = new ExecutorBuilderVisitor(reloadableType.getSlashedName(),
+				versionstamp,
 				typeDescriptor);
 		fileReader.accept(executorVisitor, 0);
 		return executorVisitor.getBytes();
 	}
 
 	/**
-	 * ClassVisitor that constructs the executor by visiting the original class. The basic goal is to visit the original class and
-	 * 'copy' the methods into the executor, making adjustments as we go.
+	 * ClassVisitor that constructs the executor by visiting the original class. The basic goal is to visit the original
+	 * class and 'copy' the methods into the executor, making adjustments as we go.
 	 */
 	static class ExecutorBuilderVisitor extends ClassVisitor implements Constants {
 
 		private ClassWriter cw = new ClassWriter(0);
 
 		private String classname;
+
 		private String suffix;
+
 		protected TypeDescriptor typeDescriptor;
 
 		public ExecutorBuilderVisitor(String classname, String suffix, TypeDescriptor typeDescriptor) {
@@ -88,8 +94,10 @@ public class ExecutorBuilder {
 			return cw.toByteArray();
 		}
 
-		public void visit(int version, int flags, String name, String signature, String superclassName, String[] interfaceNames) {
-			cw.visit(version, Opcodes.ACC_PUBLIC, Utils.getExecutorName(classname, suffix), null, "java/lang/Object", null);
+		public void visit(int version, int flags, String name, String signature, String superclassName,
+				String[] interfaceNames) {
+			cw.visit(version, Opcodes.ACC_PUBLIC, Utils.getExecutorName(classname, suffix), null, "java/lang/Object",
+					null);
 		}
 
 		// For type level annotation copying
@@ -104,15 +112,18 @@ public class ExecutorBuilder {
 		}
 
 		// For each method, copy it into the new class making appropriate adjustments
-		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
+		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature,
+				String[] exceptions) {
 			if (!Utils.isInitializer(name)) {
 				// method
 				if (!Modifier.isStatic(flags)) {
 					// For non static methods add the extra initial parameter which is 'this'
 					descriptor = Utils.insertExtraParameter(classname, descriptor);
 					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, name, descriptor, signature, exceptions);
-					return new MethodCopier(mv, typeDescriptor.isInterface(), descriptor, typeDescriptor, classname, suffix);
-				} else {
+					return new MethodCopier(mv, typeDescriptor.isInterface(), descriptor, typeDescriptor, classname,
+							suffix);
+				}
+				else {
 					// If this static method would 'clash' with an instance method that has the extra parameter added then
 					// we have a couple of options to make them different:
 					// 1. tweak the name
@@ -122,31 +133,37 @@ public class ExecutorBuilder {
 						name = "__" + name;
 					}
 					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, name, descriptor, signature, exceptions);
-					return new MethodCopier(mv, typeDescriptor.isInterface(), descriptor, typeDescriptor, classname, suffix);
+					return new MethodCopier(mv, typeDescriptor.isInterface(), descriptor, typeDescriptor, classname,
+							suffix);
 				}
-			} else {
+			}
+			else {
 				// constructor
 				if (name.charAt(1) != 'c') {
 					// regular constructor
 					// want to create the ___init___ handler for this constructor
-					
+
 					// With the JDT compiler the inner class constructor gets an extra first parameter that is the type of
 					// containing class. But with javac the inner class constructor gets an extra first parameter that is of
 					// a special anonymous type (inner class of the containing class)
 					// For example:  class Foo { class Bar {}}
 					// JDT: ctor in Bar is <init>(Foo) {}
 					// JAVAC: ctor in Bar is <init>(Foo$1) {}
-										
+
 					descriptor = Utils.insertExtraParameter(classname, descriptor);
-					
-					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mInitializerName, descriptor, signature, exceptions);
+
+					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mInitializerName, descriptor, signature,
+							exceptions);
 
 					ConstructorCopier cc = new ConstructorCopier(mv, typeDescriptor, suffix, classname);
 					return cc;
-				} else {
+				}
+				else {
 					// static initializer
-					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mStaticInitializerName, descriptor, signature, exceptions);
-					return new MethodCopier(mv, typeDescriptor.isInterface(), descriptor, typeDescriptor, classname, suffix);
+					MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mStaticInitializerName, descriptor, signature,
+							exceptions);
+					return new MethodCopier(mv, typeDescriptor.isInterface(), descriptor, typeDescriptor, classname,
+							suffix);
 				}
 			}
 		}
@@ -154,7 +171,7 @@ public class ExecutorBuilder {
 		public void visitSource(String sourcefile, String debug) {
 			cw.visitSource(sourcefile, debug);//getSMAP(sourcefile));
 		}
-		
+
 		/**
 		 * Create the SMAP according to the JSR45 spec, *Note* this method is a work in progress not currently used.
 		 * 
@@ -162,30 +179,30 @@ public class ExecutorBuilder {
 		 * @return debug extension attribute encoded into a string
 		 */
 		public String getSMAP(String sourcefile) {
-			System.out.println("Building smap for "+sourcefile);
+			System.out.println("Building smap for " + sourcefile);
 			StringBuilder s = new StringBuilder();
-			
+
 			// Header
 			s.append("SMAP\n");
-			s.append(sourcefile+"\n"); // name of the generated file
+			s.append(sourcefile + "\n"); // name of the generated file
 			s.append("SpringLoaded\n"); // Default stratum (Java)	
 
 			// StratumSection
 			s.append("*S SpringLoaded\n");
-			
+
 			// FileSection
 			s.append("*F\n");
-			s.append("+ 1 "+sourcefile+"\n");
-			s.append("jaapplication1/"+sourcefile+"\n");
-//			s.append("1 javaapplication1/"+sourcefile+"\n");
-			
+			s.append("+ 1 " + sourcefile + "\n");
+			s.append("jaapplication1/" + sourcefile + "\n");
+			//			s.append("1 javaapplication1/"+sourcefile+"\n");
+
 			// LineSection
 			s.append("*L\n");
 			s.append("1#1,1000:1,1\n");
-			
+
 			// EndSection
 			s.append("*E\n");
-			
+
 			System.out.println(s.toString());
 			return s.toString();
 		}

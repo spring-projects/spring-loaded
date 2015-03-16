@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Method;
@@ -28,13 +29,14 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
- * This is a special rewriter that should be used on system classes that are using reflection. These classes are loader above the
- * agent code and so cannot use the agent code directly (they can't see the classes). In these situations we will do some rewriting
- * that will only use other system types. How can that work? Well the affected types are modified to expose a static field (per
- * reflective API used), these static fields are set by springloaded during later startup and then are available for access from the
- * rewritten system class code.
+ * This is a special rewriter that should be used on system classes that are using reflection. These classes are loader
+ * above the agent code and so cannot use the agent code directly (they can't see the classes). In these situations we
+ * will do some rewriting that will only use other system types. How can that work? Well the affected types are modified
+ * to expose a static field (per reflective API used), these static fields are set by springloaded during later startup
+ * and then are available for access from the rewritten system class code.
  * <p>
- * There is a null check in the injected method for cases where everything runs even sooner than can be plugged by SpringLoaded.
+ * There is a null check in the injected method for cases where everything runs even sooner than can be plugged by
+ * SpringLoaded.
  * <p>
  * The following are implemented so far:
  * 
@@ -64,8 +66,9 @@ import org.objectweb.asm.Opcodes;
  * The method hasStaticInitializer(Class) in ObjectStream needs special handling.
  * 
  * <p>
- * This class modifies the calls to the reflective APIs, adds the fields and helper methods. The wiring of the SpringLoaded
- * reflectiveinterceptor into types affected by this rewriter is currently done in SpringLoadedPreProcessor.
+ * This class modifies the calls to the reflective APIs, adds the fields and helper methods. The wiring of the
+ * SpringLoaded reflectiveinterceptor into types affected by this rewriter is currently done in
+ * SpringLoadedPreProcessor.
  * 
  * @author Andy Clement
  * @since 0.7.3
@@ -89,6 +92,7 @@ public class SystemClassReflectionRewriter {
 	public static class RewriteResult implements Constants {
 
 		public final byte[] bytes;
+
 		// These bits describe which kinds of reflective things were done in the 
 		// type - and so which fields (of the __sl variety) need filling in.  For example,
 		// if the JLC_GETDECLAREDFIELDS bit is set, the field __sljlcgdfs must be set
@@ -101,7 +105,7 @@ public class SystemClassReflectionRewriter {
 
 		public String summarize() {
 			StringBuilder s = new StringBuilder();
-			s.append((bits & JLC_GETDECLAREDCONSTRUCTORS) != 0 ? "Class.getDeclaredConstructors()":"");
+			s.append((bits & JLC_GETDECLAREDCONSTRUCTORS) != 0 ? "Class.getDeclaredConstructors()" : "");
 			s.append((bits & JLC_GETDECLAREDCONSTRUCTOR) != 0 ? "Class.getDeclaredConstructor()" : "");
 			s.append((bits & JLC_GETCONSTRUCTOR) != 0 ? "Class.getConstructor()" : "");
 			s.append((bits & JLC_GETMODIFIERS) != 0 ? "Class.getModifiers()" : "");
@@ -123,8 +127,11 @@ public class SystemClassReflectionRewriter {
 	static class RewriteClassAdaptor extends ClassVisitor implements Constants {
 
 		private ClassWriter cw;
+
 		int bits = 0x0000;
+
 		private String classname;
+
 		private boolean is_jlObjectStream;
 
 		//		enum SpecialRewrite { NotSpecial, java_io_ObjectStreamClass_2 };
@@ -135,9 +142,9 @@ public class SystemClassReflectionRewriter {
 			String s = new StringBuilder(owner).append(".").append(methodName).toString();
 			return MethodInvokerRewriter.RewriteClassAdaptor.intercepted.contains(s);
 		}
-		
+
 		public RewriteClassAdaptor(boolean is_jlObjectStream) {
-			super(ASM5,new ClassWriter(ClassWriter.COMPUTE_MAXS));
+			super(ASM5, new ClassWriter(ClassWriter.COMPUTE_MAXS));
 			cw = (ClassWriter) cv;
 			this.is_jlObjectStream = is_jlObjectStream;
 			if (this.is_jlObjectStream) {
@@ -162,21 +169,22 @@ public class SystemClassReflectionRewriter {
 			//				special = SpecialRewrite.java_io_ObjectStreamClass_2;
 			//			}
 		}
-		
+
 		static Method m = null;
 
 		@Override
-		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
-//			if (is_jlObjectStream) {
-//				// TODO [serialization] clear those caches in the JVMPlugin
-//				// TODO [serialization] deal with FieldReflectors and changing formats? Maybe leave that for now and assume all the real fields are 'first'?
-//				// TODO [serialization] because not all classes to be serialized are reloadable ones, we'll need to change what we do here, generate the existing native method but an additional one that can delegate to it or call our SL layer
-//				if (name.equals("hasStaticInitializer")) {
-//					bits |= JLOS_HASSTATICINITIALIZER;
-//					SystemClassReflectionGenerator.generateJLObjectStream_hasStaticInitializer(cw, classname);
-//					return null;
-//				}
-//			}
+		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature,
+				String[] exceptions) {
+			//			if (is_jlObjectStream) {
+			//				// TODO [serialization] clear those caches in the JVMPlugin
+			//				// TODO [serialization] deal with FieldReflectors and changing formats? Maybe leave that for now and assume all the real fields are 'first'?
+			//				// TODO [serialization] because not all classes to be serialized are reloadable ones, we'll need to change what we do here, generate the existing native method but an additional one that can delegate to it or call our SL layer
+			//				if (name.equals("hasStaticInitializer")) {
+			//					bits |= JLOS_HASSTATICINITIALIZER;
+			//					SystemClassReflectionGenerator.generateJLObjectStream_hasStaticInitializer(cw, classname);
+			//					return null;
+			//				}
+			//			}
 			MethodVisitor mv = super.visitMethod(flags, name, descriptor, signature, exceptions);
 			return new RewritingMethodAdapter(mv);
 		}
@@ -238,12 +246,12 @@ public class SystemClassReflectionRewriter {
 		class RewritingMethodAdapter extends MethodVisitor implements Opcodes, Constants {
 
 			public RewritingMethodAdapter(MethodVisitor mv) {
-				super(ASM5,mv);
+				super(ASM5, mv);
 			}
 
 			/**
-			 * The big method for intercepting reflection. It is passed what the original code is trying to do (which method it is
-			 * calling) and decides:
+			 * The big method for intercepting reflection. It is passed what the original code is trying to do (which
+			 * method it is calling) and decides:
 			 * <ul>
 			 * <li>whether to rewrite it
 			 * <li>what method should be called instead
@@ -269,7 +277,8 @@ public class SystemClassReflectionRewriter {
 			}
 
 			@Override
-			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
+			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
+					final boolean itf) {
 				if (!GlobalConfiguration.interceptReflection || rewriteReflectiveCall(opcode, owner, name, desc)) {
 					return;
 				}
@@ -327,7 +336,7 @@ public class SystemClassReflectionRewriter {
 				}
 				else if (is_jlObjectStream && owner.equals(classname) && name.equals("hasStaticInitializer")) {
 					// Call our interception method generated into this type
-					mv.visitMethodInsn(INVOKESTATIC,classname,jloObjectStream_hasInitializerMethod,desc);
+					mv.visitMethodInsn(INVOKESTATIC, classname, jloObjectStream_hasInitializerMethod, desc);
 					return true;
 				}
 				return false;
@@ -340,80 +349,96 @@ public class SystemClassReflectionRewriter {
 						bits |= JLC_GETDECLAREDFIELDS;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdfs, jlcgdfsDescriptor, false);
 						return true;
-					} else if (name.equals("getDeclaredField")) {
+					}
+					else if (name.equals("getDeclaredField")) {
 						// stack on arrival: <Class instance> <String fieldname>
 						bits |= JLC_GETDECLAREDFIELD;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdf, jlcgdfDescriptor, false);
 						return true;
-					} else if (name.equals("getField")) {
+					}
+					else if (name.equals("getField")) {
 						// stack on arrival: <Class instance> <String fieldname>
 						bits |= JLC_GETFIELD;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgf, jlcgfDescriptor, false);
 						return true;
-					} else if (name.equals("getDeclaredMethods")) {
+					}
+					else if (name.equals("getDeclaredMethods")) {
 						// stack on arrival: <Class instance>
 						bits |= JLC_GETDECLAREDMETHODS;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdms, jlcgdmsDescriptor, false);
 						return true;
-					} else if (name.equals("getDeclaredMethod")) {
+					}
+					else if (name.equals("getDeclaredMethod")) {
 						// stack on arrival: <Class instance> <String methodname> <Class[] paramTypes>
 						bits |= JLC_GETDECLAREDMETHOD;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdm, jlcgdmDescriptor, false);
 						return true;
-					} else if (name.equals("getMethod")) {
+					}
+					else if (name.equals("getMethod")) {
 						// stack on arrival: <Class instance> <String methodname> <Class[] paramTypes>
 						bits |= JLC_GETMETHOD;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgm, jlcgmDescriptor, false);
 						return true;
-					} else if (name.equals("getDeclaredConstructor")) {
+					}
+					else if (name.equals("getDeclaredConstructor")) {
 						// stack on arrival: <Class instance> <Class[] paramTypes>
 						bits |= JLC_GETDECLAREDCONSTRUCTOR;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgdc, jlcgdcDescriptor, false);
 						return true;
-					} else if (name.equals("getDeclaredConstructors")) {
+					}
+					else if (name.equals("getDeclaredConstructors")) {
 						// stack on arrival: <Class instance>
 						bits |= JLC_GETDECLAREDCONSTRUCTORS;
-						mv.visitMethodInsn(INVOKESTATIC, classname, jlcGetDeclaredConstructorsMember,jlcGetDeclaredConstructorsDescriptor, false);
+						mv.visitMethodInsn(INVOKESTATIC, classname, jlcGetDeclaredConstructorsMember,
+								jlcGetDeclaredConstructorsDescriptor, false);
 						return true;
-					} else if (name.equals("getConstructor")) {
+					}
+					else if (name.equals("getConstructor")) {
 						// stack on arrival: <Class instance> <Class[] paramTypes>
 						bits |= JLC_GETCONSTRUCTOR;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgc, jlcgcDescriptor, false);
 						return true;
-					} else if (name.equals("getModifiers")) {
+					}
+					else if (name.equals("getModifiers")) {
 						// stack on arrival: <Class instance>
 						bits |= JLC_GETMODIFIERS;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgmods, jlcgmodsDescriptor, false);
 						return true;
-					} else if (name.equals("getMethods")) {
+					}
+					else if (name.equals("getMethods")) {
 						// stack on arrival: <class instance>
 						bits |= JLC_GETMETHODS;
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlcgms, jlcgmsDescriptor, false);
 						return true;
-					} else if (name.equals("newInstance")) {
+					}
+					else if (name.equals("newInstance")) {
 						// TODO determine if this actually needs rewriting? Just catching in this if clause to avoid the message
 						return false;
 					}
-				} else if (owner.equals("java/lang/reflect/Constructor")) {
+				}
+				else if (owner.equals("java/lang/reflect/Constructor")) {
 					if (name.equals("newInstance")) {
 						// catching to avoid message
 						// seen: in Proxy Constructor.newInstance() is used on the newly created proxy class - we don't need to intercept that
 						return false;
 					}
-				} else if (owner.equals("java/lang/reflect/Method")) {
+				}
+				else if (owner.equals("java/lang/reflect/Method")) {
 					if (name.equals("invoke")) {
 						bits |= JLRM_INVOKE;
 						// stack on arrival: <Method> <target instance> <parameters array>
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlrmInvokeMember, jlrmInvokeDescriptor);
 						return true;
 					}
-				} else if (owner.equals("java/lang/reflect/Field")) {
+				}
+				else if (owner.equals("java/lang/reflect/Field")) {
 					if (name.equals("get")) {
 						bits |= JLRF_GET;
 						// stack on arrival: <Field> <target instance>
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlrfGetMember, jlrfGetDescriptor);
 						return true;
-					} else if (name.equals("getLong")) {
+					}
+					else if (name.equals("getLong")) {
 						bits |= JLRF_GETLONG;
 						// stack on arrival: <Field> <target instance>
 						mv.visitMethodInsn(INVOKESTATIC, classname, jlrfGetLongMember, jlrfGetLongDescriptor);
@@ -426,6 +451,7 @@ public class SystemClassReflectionRewriter {
 		}
 	}
 }
+
 
 /**
  * This helper class will generate the fields/methods in the system classes that are being rewritten.
@@ -537,61 +563,62 @@ class SystemClassReflectionGenerator implements Constants {
 	//			return 0;
 	//		}
 	//	}
-	
-//	public static Method __sljlcgdcs;
-//	private static Constructor[] __sljlcgdcs(Class<?> clazz) {
-//		if (__sljlcgdcs == null) {
-//			return clazz.getDeclaredConstructors();
-//		}
-//		try {
-//			return (Constructor[])__sljlcgdcs.invoke(null,clazz);
-//		} catch (Exception e) {
-//			return null;
-//		}
-//	}
-	
-//	public static Method __sljlrmi;
-//	private static Object __sljlrmi(Method method, Object instance, Object[] args) throws InvocationTargetException, IllegalAccessException {
-//		if (__sljlrmi == null) {
-//			return method.invoke(instance,args);
-//		}
-//		try {
-//			return __sljlrmi.invoke(null, method, instance, args);
-//		} catch (Exception e) {
-//			return null;
-//		}
-//	}
-	
-//	public static Method __sljlrfg;
-//	private static Object __sljlrfg(Field field, Object instance) throws IllegalArgumentException, IllegalAccessException {
-//		if (__sljlrfg == null) {
-//			return field.get(instance);
-//		}
-//		try {
-//			return __sljlrfg.invoke(null, field,instance);
-//		} catch (Exception e) {
-//			return null;
-//		}
-//	}
 
-//	public static Method __sljlrfgl;
-//	private static long __sljlrfgl(Field field, Object instance) throws IllegalArgumentException, IllegalAccessException {
-//		if (__sljlrfgl == null) {
-//			return field.getLong(instance);
-//		}
-//		try {
-//			return (Long)__sljlrfgl.invoke(null, field, instance);
-//		} catch (Exception e) {
-//			return 0;
-//		}
-//	}
+	//	public static Method __sljlcgdcs;
+	//	private static Constructor[] __sljlcgdcs(Class<?> clazz) {
+	//		if (__sljlcgdcs == null) {
+	//			return clazz.getDeclaredConstructors();
+	//		}
+	//		try {
+	//			return (Constructor[])__sljlcgdcs.invoke(null,clazz);
+	//		} catch (Exception e) {
+	//			return null;
+	//		}
+	//	}
+
+	//	public static Method __sljlrmi;
+	//	private static Object __sljlrmi(Method method, Object instance, Object[] args) throws InvocationTargetException, IllegalAccessException {
+	//		if (__sljlrmi == null) {
+	//			return method.invoke(instance,args);
+	//		}
+	//		try {
+	//			return __sljlrmi.invoke(null, method, instance, args);
+	//		} catch (Exception e) {
+	//			return null;
+	//		}
+	//	}
+
+	//	public static Method __sljlrfg;
+	//	private static Object __sljlrfg(Field field, Object instance) throws IllegalArgumentException, IllegalAccessException {
+	//		if (__sljlrfg == null) {
+	//			return field.get(instance);
+	//		}
+	//		try {
+	//			return __sljlrfg.invoke(null, field,instance);
+	//		} catch (Exception e) {
+	//			return null;
+	//		}
+	//	}
+
+	//	public static Method __sljlrfgl;
+	//	private static long __sljlrfgl(Field field, Object instance) throws IllegalArgumentException, IllegalAccessException {
+	//		if (__sljlrfgl == null) {
+	//			return field.getLong(instance);
+	//		}
+	//		try {
+	//			return (Long)__sljlrfgl.invoke(null, field, instance);
+	//		} catch (Exception e) {
+	//			return 0;
+	//		}
+	//	}
 
 	public static void generateJLRF_GetLong(ClassWriter cw, String classname) {
-		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrfGetLongMember, "Ljava/lang/reflect/Method;", null, null);
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrfGetLongMember, "Ljava/lang/reflect/Method;", null,
+				null);
 		fv.visitEnd();
 
 		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlrfGetLongMember, jlrfGetLongDescriptor,
-				null, new String[]{"java/lang/IllegalAccessException","java/lang/IllegalArgumentException"});
+				null, new String[] { "java/lang/IllegalAccessException", "java/lang/IllegalArgumentException" });
 		mv.visitCode();
 		Label l0 = new Label();
 		Label l1 = new Label();
@@ -624,7 +651,7 @@ class SystemClassReflectionGenerator implements Constants {
 				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
 		mv.visitLabel(l1);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/Long");
-		mv.visitMethodInsn(INVOKEVIRTUAL,"java/lang/Long","longValue","()J");
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Long", "longValue", "()J");
 		mv.visitInsn(LRETURN);
 		mv.visitLabel(l2);
 		mv.visitVarInsn(ASTORE, 2);
@@ -651,10 +678,12 @@ class SystemClassReflectionGenerator implements Constants {
 	 */
 	public static void generateJLObjectStream_hasStaticInitializer(
 			ClassWriter cw, String classname) {
-		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jloObjectStream_hasInitializerMethod, "Ljava/lang/reflect/Method;", null, null);
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jloObjectStream_hasInitializerMethod,
+				"Ljava/lang/reflect/Method;", null, null);
 		fv.visitEnd();
 
-		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jloObjectStream_hasInitializerMethod, "(Ljava/lang/Class;)Z", null, null);
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jloObjectStream_hasInitializerMethod,
+				"(Ljava/lang/Class;)Z", null, null);
 		mv.visitCode();
 		Label l0 = new Label();
 		Label l1 = new Label();
@@ -664,7 +693,7 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitFieldInsn(GETSTATIC, classname, jloObjectStream_hasInitializerMethod, "Ljava/lang/reflect/Method;");
 		mv.visitInsn(ACONST_NULL);
 		mv.visitInsn(ICONST_1);
-		mv.visitTypeInsn(ANEWARRAY,"java/lang/Object");
+		mv.visitTypeInsn(ANEWARRAY, "java/lang/Object");
 		mv.visitInsn(DUP);
 		mv.visitInsn(ICONST_0);
 		mv.visitVarInsn(ALOAD, 0);
@@ -678,19 +707,20 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitLabel(l2);
 		// If not a reloadable type, we'll end up here (the method we called threw IllegalStateException), just make that native method call
 		mv.visitVarInsn(ASTORE, 1);
-		mv.visitVarInsn(ALOAD,0);
-		mv.visitMethodInsn(INVOKESTATIC, classname, "hasStaticInitializer","(Ljava/lang/Class;)Z");
+		mv.visitVarInsn(ALOAD, 0);
+		mv.visitMethodInsn(INVOKESTATIC, classname, "hasStaticInitializer", "(Ljava/lang/Class;)Z");
 		mv.visitInsn(IRETURN);
 		mv.visitMaxs(3, 1);
 		mv.visitEnd();
 	}
 
 	public static void generateJLRF_Get(ClassWriter cw, String classname) {
-		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrfGetMember, "Ljava/lang/reflect/Method;", null, null);
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrfGetMember, "Ljava/lang/reflect/Method;", null,
+				null);
 		fv.visitEnd();
 
 		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlrfGetMember, jlrfGetDescriptor,
-				null, new String[]{"java/lang/IllegalAccessException","java/lang/IllegalArgumentException"});
+				null, new String[] { "java/lang/IllegalAccessException", "java/lang/IllegalArgumentException" });
 		mv.visitCode();
 		Label l0 = new Label();
 		Label l1 = new Label();
@@ -704,7 +734,8 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitLabel(l4);
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Field", "get", "(Ljava/lang/Object;)Ljava/lang/Object;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Field", "get", "(Ljava/lang/Object;)Ljava/lang/Object;",
+				false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, jlrfGetMember, "Ljava/lang/reflect/Method;");
@@ -736,13 +767,15 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitMaxs(8, 4);
 		mv.visitEnd();
 	}
-	
+
 	public static void generateJLRM_Invoke(ClassWriter cw, String classname) {
-		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrmInvokeMember, "Ljava/lang/reflect/Method;", null, null);
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlrmInvokeMember, "Ljava/lang/reflect/Method;", null,
+				null);
 		fv.visitEnd();
 
 		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlrmInvokeMember, jlrmInvokeDescriptor,
-				null, new String[]{"java/lang/IllegalAccessException","java/lang/reflect/InvocationTargetException"});
+				null,
+				new String[] { "java/lang/IllegalAccessException", "java/lang/reflect/InvocationTargetException" });
 		mv.visitCode();
 		Label l0 = new Label();
 		Label l1 = new Label();
@@ -757,7 +790,8 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/Method", "invoke",
+				"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, jlrmInvokeMember, "Ljava/lang/reflect/Method;");
@@ -793,12 +827,14 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitMaxs(8, 4);
 		mv.visitEnd();
 	}
-	
+
 	public static void generateJLC_GetDeclaredConstructors(ClassWriter cw, String classname) {
-		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlcGetDeclaredConstructorsMember, "Ljava/lang/reflect/Method;", null, null);
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, jlcGetDeclaredConstructorsMember,
+				"Ljava/lang/reflect/Method;", null, null);
 		fv.visitEnd();
 
-		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlcGetDeclaredConstructorsMember, jlcGetDeclaredConstructorsDescriptor,
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, jlcGetDeclaredConstructorsMember,
+				jlcGetDeclaredConstructorsDescriptor,
 				null, null);
 		mv.visitCode();
 		Label l0 = new Label();
@@ -812,7 +848,8 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l4 = new Label();
 		mv.visitLabel(l4);
 		mv.visitVarInsn(ALOAD, 0);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors", "()[Ljava/lang/reflect/Constructor;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", "getDeclaredConstructors",
+				"()[Ljava/lang/reflect/Constructor;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, jlcGetDeclaredConstructorsMember, "Ljava/lang/reflect/Method;");
@@ -845,7 +882,8 @@ class SystemClassReflectionGenerator implements Constants {
 	}
 
 	public static void generateJLCGMODS(ClassWriter cw, String classname) {
-		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, "__sljlcgmods", "Ljava/lang/reflect/Method;", null, null);
+		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, "__sljlcgmods", "Ljava/lang/reflect/Method;", null,
+				null);
 		fv.visitEnd();
 
 		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, "__sljlcgmods", "(Ljava/lang/Class;)I",
@@ -946,18 +984,21 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l6 = new Label();
 		mv.visitLabel(l6);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V",
+				false);
 		Label l7 = new Label();
 		mv.visitLabel(l7);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchMethodException");
 		Label l8 = new Label();
 		mv.visitJumpInsn(IFEQ, l8);
 		Label l9 = new Label();
 		mv.visitLabel(l9);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchMethodException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1028,18 +1069,21 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l6 = new Label();
 		mv.visitLabel(l6);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "printStackTrace", "()V",
+				false);
 		Label l7 = new Label();
 		mv.visitLabel(l7);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchMethodException");
 		Label l8 = new Label();
 		mv.visitJumpInsn(IFEQ, l8);
 		Label l9 = new Label();
 		mv.visitLabel(l9);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchMethodException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1120,14 +1164,16 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l7 = new Label();
 		mv.visitLabel(l7);
 		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchMethodException");
 		Label l8 = new Label();
 		mv.visitJumpInsn(IFEQ, l8);
 		Label l9 = new Label();
 		mv.visitLabel(l9);
 		mv.visitVarInsn(ALOAD, 3);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchMethodException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1153,9 +1199,11 @@ class SystemClassReflectionGenerator implements Constants {
 	public static void generateJLCMethod(ClassWriter cw, String classname, String operation) {
 		if (operation.equals("getDeclaredMethod")) {
 			generateJLCMethod(cw, classname, "__sljlcgdm", "getDeclaredMethod");
-		} else if (operation.equals("getMethod")) {
+		}
+		else if (operation.equals("getMethod")) {
 			generateJLCMethod(cw, classname, "__sljlcgm", "getMethod");
-		} else {
+		}
+		else {
 			throw new IllegalStateException("nyi:" + operation);
 		}
 	}
@@ -1163,9 +1211,11 @@ class SystemClassReflectionGenerator implements Constants {
 	public static void generateJLC(ClassWriter cw, String classname, String operation) {
 		if (operation.equals("getDeclaredField")) {
 			generateJLCGDF(cw, classname, "__sljlcgdf", "getDeclaredField");
-		} else if (operation.equals("getField")) {
+		}
+		else if (operation.equals("getField")) {
 			generateJLCGDF(cw, classname, "__sljlcgf", "getField");
-		} else {
+		}
+		else {
 			throw new IllegalStateException("nyi:" + operation);
 		}
 	}
@@ -1192,7 +1242,8 @@ class SystemClassReflectionGenerator implements Constants {
 		mv.visitLabel(l5);
 		mv.visitVarInsn(ALOAD, 0);
 		mv.visitVarInsn(ALOAD, 1);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", methodname, "(Ljava/lang/String;)Ljava/lang/reflect/Field;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/Class", methodname,
+				"(Ljava/lang/String;)Ljava/lang/reflect/Field;", false);
 		mv.visitInsn(ARETURN);
 		mv.visitLabel(l0);
 		mv.visitFieldInsn(GETSTATIC, classname, fieldname, "Ljava/lang/reflect/Method;");
@@ -1217,14 +1268,16 @@ class SystemClassReflectionGenerator implements Constants {
 		Label l6 = new Label();
 		mv.visitLabel(l6);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(INSTANCEOF, "java/lang/NoSuchFieldException");
 		Label l7 = new Label();
 		mv.visitJumpInsn(IFEQ, l7);
 		Label l8 = new Label();
 		mv.visitLabel(l8);
 		mv.visitVarInsn(ALOAD, 2);
-		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause", "()Ljava/lang/Throwable;", false);
+		mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/reflect/InvocationTargetException", "getCause",
+				"()Ljava/lang/Throwable;", false);
 		mv.visitTypeInsn(CHECKCAST, "java/lang/NoSuchFieldException");
 		mv.visitInsn(ATHROW);
 		mv.visitLabel(l3);
@@ -1244,9 +1297,11 @@ class SystemClassReflectionGenerator implements Constants {
 	public static void generateJLCGetXXXMethods(ClassWriter cw, String classname, String variant) {
 		if (variant.equals("getDeclaredMethods")) {
 			generateJLCGDMS(cw, classname, "__sljlcgdms", "getDeclaredMethods");
-		} else if (variant.equals("getMethods")) {
+		}
+		else if (variant.equals("getMethods")) {
 			generateJLCGDMS(cw, classname, "__sljlcgms", "getMethods");
-		} else {
+		}
+		else {
 			throw new IllegalStateException(variant);
 		}
 	}
@@ -1256,7 +1311,8 @@ class SystemClassReflectionGenerator implements Constants {
 		FieldVisitor fv = cw.visitField(ACC_PUBLIC + ACC_STATIC, field, "Ljava/lang/reflect/Method;", null, null);
 		fv.visitEnd();
 
-		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, field, "(Ljava/lang/Class;)[Ljava/lang/reflect/Method;", null,
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, field,
+				"(Ljava/lang/Class;)[Ljava/lang/reflect/Method;", null,
 				null);
 		mv.visitCode();
 		Label l0 = new Label();
@@ -1304,7 +1360,8 @@ class SystemClassReflectionGenerator implements Constants {
 		FieldVisitor fv = cw.visitField(ACC_PUBLIC_STATIC, "__sljlcgdfs", "Ljava/lang/reflect/Method;", null, null);
 		fv.visitEnd();
 
-		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, "__sljlcgdfs", "(Ljava/lang/Class;)[Ljava/lang/reflect/Field;",
+		MethodVisitor mv = cw.visitMethod(ACC_PRIVATE + ACC_STATIC, "__sljlcgdfs",
+				"(Ljava/lang/Class;)[Ljava/lang/reflect/Field;",
 				null, null);
 		mv.visitCode();
 		Label l0 = new Label();

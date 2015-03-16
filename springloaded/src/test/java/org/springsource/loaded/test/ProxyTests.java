@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -150,7 +151,8 @@ public class ProxyTests extends SpringLoadedTests {
 		assertContains("TestInvocationHandler1.invoke() for m", r.stdout);
 
 		// Now load new version of proxy.TestA1 that will enable us to call n on the new interface
-		byte[] newVersionOfTestA2 = retrieveRename("proxy.TestA1", "proxy.TestA2", "proxy.TestIntfaceA2:proxy.TestIntfaceA1");
+		byte[] newVersionOfTestA2 = retrieveRename("proxy.TestA1", "proxy.TestA2",
+				"proxy.TestIntfaceA2:proxy.TestIntfaceA1");
 		tr.getReloadableType(clazz).loadNewVersion(newVersionOfTestA2);
 
 		// running m() should still work
@@ -248,7 +250,8 @@ public class ProxyTests extends SpringLoadedTests {
 
 		// Now load new version of proxy.TestA1 that will enable us to call n on the new interface
 		byte[] newVersionOfTestA2 = retrieveRename("proxy.three.TestA1", "proxy.three.TestA2",
-				"proxy.three.TestIntfaceA2:proxy.three.TestIntfaceA1", "proxy.three.TestIntfaceB2:proxy.three.TestIntfaceB1");
+				"proxy.three.TestIntfaceA2:proxy.three.TestIntfaceA1",
+				"proxy.three.TestIntfaceB2:proxy.three.TestIntfaceB1");
 		tr.getReloadableType(clazz).loadNewVersion(newVersionOfTestA2);
 
 		// running ma() should still work
@@ -264,7 +267,8 @@ public class ProxyTests extends SpringLoadedTests {
 		try {
 			runUnguarded(clazz, "runNB");
 			fail();
-		} catch (InvocationTargetException re) {
+		}
+		catch (InvocationTargetException re) {
 			assertTrue(re.getCause() instanceof NoSuchMethodError);
 			assertEquals("proxy.three.TestIntfaceB1.nb()V", re.getCause().getMessage());
 		}

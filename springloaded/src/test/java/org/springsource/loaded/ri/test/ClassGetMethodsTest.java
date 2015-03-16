@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -36,11 +37,14 @@ public class ClassGetMethodsTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	//	private Set<String> signatures;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String targetMethodName;
 
 	@Override
@@ -56,12 +60,14 @@ public class ClassGetMethodsTest extends GenerativeSpringLoadedTest {
 		if (choice()) {
 			/* Test with a non reloadable class */
 			targetClass = targetClass("java.lang.String");
-		} else if (choice()) {
+		}
+		else if (choice()) {
 			/* To get coverage of JavaClassMethodProvider, we need a case where a reloadable type.
 			 * extends a non-reloadable type that inherits methods from a superclass and interfaces */
 			targetClass = targetClass("java.awt.Frame");
 			targetClass = targetClass("MyFrame", "002");
-		} else {
+		}
+		else {
 			/* Testing with just interfaces */
 			targetClass = targetClass("GetMethodInterface", choice("", "002"));
 			if (choice()) {
@@ -85,7 +91,8 @@ public class ClassGetMethodsTest extends GenerativeSpringLoadedTest {
 		try {
 			Result r = runOnInstance(callerClazz, callerInstance, targetMethodName, targetClass);
 			return r;
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			throw new Error(e);
 		}
 	}

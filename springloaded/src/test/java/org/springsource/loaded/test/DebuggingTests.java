@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springsource.loaded.test;
 
+package org.springsource.loaded.test;
 
 
 import org.junit.Assert;
@@ -27,6 +27,7 @@ import org.springsource.loaded.TypeRegistry;
  * @author Andy Clement
  */
 public class DebuggingTests extends SpringLoadedTests {
+
 	@Test
 	public void rewrite() throws Exception {
 		TypeRegistry typeRegistry = getTypeRegistry("data.HelloWorld");

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.test.SpringLoadedTests.runOnInstance;
@@ -38,11 +39,14 @@ public class BridgeMethodTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String testedMethodCaller; // Method to call in 'invoker' class
+
 	private Method targetMethod; // Method to call the method on
 
 	@Override
@@ -69,7 +73,8 @@ public class BridgeMethodTest extends GenerativeSpringLoadedTest {
 		try {
 			Result r = runOnInstance(callerClazz, callerInstance, testedMethodCaller, targetMethod);
 			return r;
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			Assert.fail(e.toString());
 			return null;
 		}

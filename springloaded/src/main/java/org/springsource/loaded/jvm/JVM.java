@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.jvm;
 
 import java.lang.reflect.Constructor;
@@ -26,7 +27,7 @@ import org.springsource.loaded.ri.ReflectiveInterceptor;
 
 /**
  * Utility class containing operations that are "JVM" specific and may need porting when changing JVMs.
- * 
+ *
  * @author Kris De Volder
  * @since 0.5.0
  */
@@ -38,54 +39,63 @@ public class JVM {
 	private static Constructor<Method> jlrMethodCtor = (Constructor<Method>) Method.class.getDeclaredConstructors()[0];
 
 	private static Method jlrMethodCopy;
-	private static Method jlrMethodGetRoot;	
-	
+
+	private static Method jlrMethodGetRoot;
+
 	static {
 		try {
 			jlrMethodCopy = Method.class.getDeclaredMethod("copy");
 			jlrMethodCopy.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting 'Method.copy()' method. Incompatible JVM?", e);
 		}
 		try {
 			jlrMethodGetRoot = Method.class.getDeclaredMethod("getRoot");
 			jlrMethodGetRoot.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// Possibly on a JDK level that didn't have this?
 		}
 	}
 
 	private static Field jlrFieldRootField;
+
 	private static Method jlrFieldCopy;
 	static {
 		try {
 			jlrFieldCopy = Field.class.getDeclaredMethod("copy");
 			jlrFieldCopy.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting 'Field.copy()' method. Incompatible JVM?", e);
 		}
 		try {
 			jlrFieldRootField = Field.class.getDeclaredField("root");
 			jlrFieldRootField.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// Possibly on a JDK level that didn't have this?
 		}
 	}
 
-	private static Method jlrConstructorGetRoot;	
+	private static Method jlrConstructorGetRoot;
+
 	private static Method jlrConstructorCopy;
 	static {
 		try {
-			
+
 			jlrConstructorCopy = Constructor.class.getDeclaredMethod("copy");
 			jlrConstructorCopy.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting 'Constructor.copy()' method. Incompatible JVM?", e);
 		}
 		try {
 			jlrConstructorGetRoot = Constructor.class.getDeclaredMethod("getRoot");
 			jlrConstructorGetRoot.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// Possibly on a JDK level that didn't have this?
 		}
 	}
@@ -95,7 +105,8 @@ public class JVM {
 		try {
 			jlrMethodModifiers = Method.class.getDeclaredField("modifiers");
 			jlrMethodModifiers.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting Field 'Method.modifiers' method. Incompatible JVM?", e);
 		}
 	}
@@ -105,7 +116,8 @@ public class JVM {
 		try {
 			jlrConstructorModifiers = Constructor.class.getDeclaredField("modifiers");
 			jlrConstructorModifiers.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting Field 'Constructor.modifiers' method. Incompatible JVM?", e);
 		}
 	}
@@ -115,7 +127,8 @@ public class JVM {
 		try {
 			jlrFieldModifiers = Field.class.getDeclaredField("modifiers");
 			jlrFieldModifiers.setAccessible(true);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems getting Field 'Field.modifiers' method. Incompatible JVM?", e);
 		}
 	}
@@ -130,7 +143,8 @@ public class JVM {
 	 * Create a new Method object from scratch. This Method object is 'fake' and will not be "invokable". ReflectionInterceptor will
 	 * be responsible to make sure user code calling 'invoke' on this object will be intercepted and handled appropriately.
 	 */
-	public static Method newMethod(Class<?> clazz, String name, Class<?>[] params, Class<?> returnType, Class<?>[] exceptions,
+	public static Method newMethod(Class<?> clazz, String name, Class<?>[] params, Class<?> returnType,
+			Class<?>[] exceptions,
 			int modifiers, String signature) {
 		// This is what the constructor looks like:
 		// Method(Class declaringClass, String name, Class[] parameterTypes, Class returnType,
@@ -139,9 +153,11 @@ public class JVM {
 		Method returnMethod;
 		try {
 			jlrMethodCtor.setAccessible(true);
-			returnMethod = jlrMethodCtor.newInstance(clazz, name, params, returnType, exceptions, modifiers, 0, signature, null,
+			returnMethod = jlrMethodCtor.newInstance(clazz, name, params, returnType, exceptions, modifiers, 0,
+					signature, null,
 					null, null);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			//This shouldn't happen...
 			ReflectiveInterceptor.log.log(Level.SEVERE, "Internal Error", e);
 			throw new Error(e);
@@ -161,7 +177,8 @@ public class JVM {
 				}
 			}
 			return (Method) jlrMethodCopy.invoke(method);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems copying method. Incompatible JVM?", e);
 			return method; // return original as the best we can do
 		}
@@ -171,13 +188,14 @@ public class JVM {
 		try {
 			if (jlrFieldRootField != null) {
 				jlrFieldRootField.setAccessible(true);
-				Field possibleRoot = (Field)jlrFieldRootField.get(field);
+				Field possibleRoot = (Field) jlrFieldRootField.get(field);
 				if (possibleRoot != null) {
 					field = possibleRoot;
 				}
 			}
 			return (Field) jlrFieldCopy.invoke(field);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems copying field. Incompatible JVM?", e);
 			return field; // return original as the best we can do
 		}
@@ -192,7 +210,8 @@ public class JVM {
 				}
 			}
 			return (Constructor<?>) jlrConstructorCopy.invoke(c);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Problems copying constructor. Incompatible JVM?", e);
 			return c; // return original as the best we can do
 		}
@@ -201,7 +220,8 @@ public class JVM {
 	public static void setMethodModifiers(Method method, int modifiers) {
 		try {
 			jlrMethodModifiers.setInt(method, modifiers);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Couldn't set correct modifiers on reflected method: " + method, e);
 		}
 	}
@@ -209,7 +229,8 @@ public class JVM {
 	public static void setConstructorModifiers(Constructor<?> c, int modifiers) {
 		try {
 			jlrConstructorModifiers.setInt(c, modifiers);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Couldn't set correct modifiers on reflected constructor: " + c, e);
 		}
 	}
@@ -217,7 +238,8 @@ public class JVM {
 	public static void setFieldModifiers(Field field, int mods) {
 		try {
 			jlrFieldModifiers.setInt(field, mods);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			log.log(Level.SEVERE, "Couldn't set correct modifiers on reflected field: " + field, e);
 		}
 	}
@@ -232,7 +254,8 @@ public class JVM {
 		// byte[] annotations)
 		try {
 			return jlFieldCtor.newInstance(declaring, name, type, mods, 0, sig, null);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new IllegalStateException("Problem creating reloadable Field: " + declaring.getName() + "." + name, e);
 		}
 	}
@@ -241,7 +264,8 @@ public class JVM {
 	private static final Constructor<Constructor<?>> jlConstructorCtor = (Constructor<Constructor<?>>) Constructor.class
 			.getDeclaredConstructors()[0];
 
-	public static Constructor<?> newConstructor(Class<?> clazz, Class<?>[] params, Class<?>[] exceptions, int modifiers,
+	public static Constructor<?> newConstructor(Class<?> clazz, Class<?>[] params, Class<?>[] exceptions,
+			int modifiers,
 			String signature) {
 		jlConstructorCtor.setAccessible(true);
 		// This is what the constructor looks like:
@@ -255,7 +279,8 @@ public class JVM {
 		//                byte[] parameterAnnotations)
 		try {
 			return jlConstructorCtor.newInstance(clazz, params, exceptions, modifiers, 0, signature, null, null);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			StringBuffer msg = new StringBuffer("Problem creating reloadable Constructor: ");
 			msg.append(clazz.getName());
 			msg.append("(");

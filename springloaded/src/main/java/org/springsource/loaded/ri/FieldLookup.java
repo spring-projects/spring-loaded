@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.Field;
@@ -33,8 +34,9 @@ import org.springsource.loaded.jvm.JVM;
 /**
  * This class contains code that is used as support infrastructure to implement Field lookup algorithms.
  * 
- * Mainly, it provides an abstraction to allows Java classes and reloadable types to be treated as instances of a common abstraction
- * "FieldProvider" and then implement algorithms to find fields in those providers independent of how the fields are being provided.
+ * Mainly, it provides an abstraction to allows Java classes and reloadable types to be treated as instances of a common
+ * abstraction "FieldProvider" and then implement algorithms to find fields in those providers independent of how the
+ * fields are being provided.
  * 
  * @author Kris De Volder
  * @since 0.5.0
@@ -123,6 +125,7 @@ public class FieldLookup {
 	public static class ReloadedTypeFieldRef extends FieldRef {
 
 		private ReloadableType rtype;
+
 		private FieldMember f;
 
 		public ReloadedTypeFieldRef(ReloadableType rtype, FieldMember f) {
@@ -139,7 +142,8 @@ public class FieldLookup {
 			Class<?> type;
 			try {
 				type = Utils.toClass(Type.getType(f.getDescriptor()), rtype.typeRegistry.getClassLoader());
-			} catch (ClassNotFoundException e) {
+			}
+			catch (ClassNotFoundException e) {
 				throw new IllegalStateException(e);
 			}
 			return JVM.newField(declaring, type, f.getModifiers(), f.getName(), f.getGenericSignature());
@@ -174,10 +178,12 @@ public class FieldLookup {
 		public static FieldProvider create(TypeRegistry typeRegistry, String slashyName) {
 			if (typeRegistry.isReloadableTypeName(slashyName)) {
 				return create(typeRegistry.getReloadableType(slashyName));
-			} else {
+			}
+			else {
 				try {
 					return create(Utils.toClass(Type.getObjectType(slashyName), typeRegistry.getClassLoader()));
-				} catch (ClassNotFoundException e) {
+				}
+				catch (ClassNotFoundException e) {
 					throw new IllegalStateException(e);
 				}
 			}
@@ -189,6 +195,7 @@ public class FieldLookup {
 	}
 
 	public static class ReloadableTypeFieldProvider extends FieldProvider {
+
 		private ReloadableType rtype;
 
 		public ReloadableTypeFieldProvider(ReloadableType rtype) {
@@ -213,10 +220,12 @@ public class FieldLookup {
 					Field jf = rtype.getClazz().getDeclaredField(f.getName());
 					ReflectiveInterceptor.fixModifier(rtype.getLatestTypeDescriptor(), jf);
 					return new JavaFieldRef(jf);
-				} catch (Exception e) {
+				}
+				catch (Exception e) {
 					throw new IllegalStateException(e);
 				}
-			} else {
+			}
+			else {
 				//Already reloaded
 				return new ReloadedTypeFieldRef(rtype, f);
 			}

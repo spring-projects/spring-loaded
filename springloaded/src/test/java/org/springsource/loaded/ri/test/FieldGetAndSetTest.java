@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -44,11 +45,14 @@ public class FieldGetAndSetTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private List<Class<?>> loadedClasses = new ArrayList<Class<?>>();
+
 	private Class<?> targetClass;
+
 	private Field field; //Field we should get/set
 
 	String calledMethod;
@@ -68,12 +72,14 @@ public class FieldGetAndSetTest extends GenerativeSpringLoadedTest {
 		}
 		calledMethod = choice("callGet", "callSetNull",
 
-		"callSetAndGet", "callSetUnboxAndGet",
+				"callSetAndGet", "callSetUnboxAndGet",
 
-		"callSetAndGetBoolean", "callSetAndGetByte", "callSetAndGetChar", "callSetAndGetShort", "callSetAndGetInt",
+				"callSetAndGetBoolean", "callSetAndGetByte", "callSetAndGetChar", "callSetAndGetShort",
+				"callSetAndGetInt",
 				"callSetAndGetLong", "callSetAndGetDouble", "callSetAndGetFloat",
 
-				"callSetBoolean", "callSetByte", "callSetChar", "callSetShort", "callSetInt", "callSetLong", "callSetDouble",
+				"callSetBoolean", "callSetByte", "callSetChar", "callSetShort", "callSetInt", "callSetLong",
+				"callSetDouble",
 				"callSetFloat");
 		toStringValue.append(calledMethod + ": ");
 		targetClass = targetClass("reflection.nonrelfields.NonReloadableClassWithFields");

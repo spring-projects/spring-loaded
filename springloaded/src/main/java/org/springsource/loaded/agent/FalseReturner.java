@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import org.objectweb.asm.ClassVisitor;
@@ -31,7 +32,7 @@ public class FalseReturner extends ClassVisitor implements Constants {
 	private String methodname;
 
 	public FalseReturner(String methodname) {
-		super(ASM5,new ClassWriter(0)); // TODO review 0 here
+		super(ASM5, new ClassWriter(0)); // TODO review 0 here
 		this.methodname = methodname;
 	}
 
@@ -59,7 +60,8 @@ public class FalseReturner extends ClassVisitor implements Constants {
 			mv.visitEnd();
 			return mv;
 			//			return new FalseReturnerMV(mv);
-		} else {
+		}
+		else {
 			return super.visitMethod(access, name, desc, signature, exceptions);
 		}
 	}

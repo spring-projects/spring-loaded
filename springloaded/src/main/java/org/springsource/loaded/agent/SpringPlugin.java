@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.lang.reflect.Field;
@@ -34,11 +35,11 @@ import org.springsource.loaded.ReloadEventProcessorPlugin;
  * First stab at the Spring plugin for Spring-Loaded. Notes...<br>
  * <ul>
  * <li>On reload, removes the Class entry in
- * org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter.methodResolverCache. This enables us to add/changes
- * request mappings in controllers.
- * <li>That was for Roo, if we create a simple spring template project and run it, this doesn't work. It seems we need to redrive
- * detectHandlers() on the DefaultAnnotationHandlerMapping type which will rediscover the URL mappings and add them into the handler
- * list. We don't clear old ones out (yet) but the old mappings appear not to work anyway.
+ * org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter.methodResolverCache. This enables us to
+ * add/changes request mappings in controllers.
+ * <li>That was for Roo, if we create a simple spring template project and run it, this doesn't work. It seems we need
+ * to redrive detectHandlers() on the DefaultAnnotationHandlerMapping type which will rediscover the URL mappings and
+ * add them into the handler list. We don't clear old ones out (yet) but the old mappings appear not to work anyway.
  * </ul>
  * 
  * @author Andy Clement
@@ -51,28 +52,38 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	private static Logger log = Logger.getLogger(SpringPlugin.class.getName());
 
 	private static boolean debug = true;
-	
+
 	// TODO [gc] what about GC here - how do we know when they are finished with?
 	public static List<Object> annotationMethodHandlerAdapterInstances = new ArrayList<Object>();
+
 	public static List<Object> defaultAnnotationHandlerMappingInstances = new ArrayList<Object>();
+
 	public static List<Object> requestMappingHandlerMappingInstances = new ArrayList<Object>();
+
 	public static List<Object> localVariableTableParameterNameDiscovererInstances = null;
-	
+
 	public static boolean support305 = true;
 
 	private Field classCacheField; // From CachedIntrospectionResults (Spring <= 4.0.x)
+
 	private Field strongClassCacheField; // From CachedIntrospectionResults (Spring >= 4.1.0)
+
 	private Field softClassCacheField; // From CachedIntrospectionResults (Spring >= 4.1.0)
-	private Field declaredMethodsCacheField;  // From ReflectionUtils
+
+	private Field declaredMethodsCacheField; // From ReflectionUtils
+
 	private Field parameterNamesCacheField; // From LocalVariableTableParameterNameDiscoverer
 
 	private boolean cachedIntrospectionResultsClassLoaded = false;
+
 	private boolean reflectionUtilsClassLoaded = false;
 
 	private Class<?> cachedIntrospectionResultsClass = null;
+
 	private Class<?> reflectionUtilsClass = null;
 
-	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
+	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain,
+			byte[] bytes) {
 		// TODO take classloader into account?
 		if (slashedTypeName == null) {
 			return false;
@@ -88,12 +99,14 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		if (slashedTypeName.equals("org/springframework/util/ReflectionUtils")) {
 			reflectionUtilsClassLoaded = true;
 		}
-		return slashedTypeName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter") ||
-				slashedTypeName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping") || // 3.1
+		return slashedTypeName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter")
+				||
+				slashedTypeName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")
+				|| // 3.1
 				(support305 && slashedTypeName
 						.equals("org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"));
 	}
-	
+
 
 	public byte[] modify(String slashedClassName, ClassLoader classLoader, byte[] bytes) {
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
@@ -102,17 +115,18 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		if (slashedClassName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter")) {
 			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
 					"recordAnnotationMethodHandlerAdapterInstance");
-		} 
+		}
 		else if (slashedClassName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")) {
 			// springmvc spring 3.1 - doesnt work on 3.1 post M2 snapshots
 			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
 					"recordRequestMappingHandlerMappingInstance");
 		}
 		else if (slashedClassName.equals("org/springframework/core/LocalVariableTableParameterNameDiscoverer")) {
-			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,"recordLocalVariableTableParameterNameDiscoverer");
+			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
+					"recordLocalVariableTableParameterNameDiscoverer");
 		}
 		else { // "org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"
-			// springmvc spring 3.0
+				// springmvc spring 3.0
 			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
 					"recordDefaultAnnotationHandlerMappingInstance");
 		}
@@ -136,9 +150,10 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 
 	static {
 		try {
-			String debugString = System.getProperty("springloaded.plugins.spring.debug","false");
+			String debugString = System.getProperty("springloaded.plugins.spring.debug", "false");
 			debug = Boolean.valueOf(debugString);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// likely security exception
 		}
 	}
@@ -161,8 +176,9 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	}
 
 	/**
-	 * The Spring class LocalVariableTableParameterNameDiscoverer holds a cache of parameter names discovered for members within
-	 * classes and needs clearing if the class changes.
+	 * The Spring class LocalVariableTableParameterNameDiscoverer holds a cache of parameter names discovered for
+	 * members within classes and needs clearing if the class changes.
+	 * 
 	 * @param clazz the class being reloaded, which may exist in a parameter name discoverer cache
 	 */
 	private void clearLocalVariableTableParameterNameDiscovererCache(Class<?> clazz) {
@@ -176,20 +192,24 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 			try {
 				parameterNamesCacheField = localVariableTableParameterNameDiscovererInstances
 						.get(0).getClass().getDeclaredField("parameterNamesCache");
-			} catch (NoSuchFieldException nsfe) {
-				log.log(Level.SEVERE, "Unexpectedly cannot find parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
+			}
+			catch (NoSuchFieldException nsfe) {
+				log.log(Level.SEVERE,
+						"Unexpectedly cannot find parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
 			}
 		}
-		for (Object instance: localVariableTableParameterNameDiscovererInstances) {
+		for (Object instance : localVariableTableParameterNameDiscovererInstances) {
 			parameterNamesCacheField.setAccessible(true);
 			try {
-				Map<?,?> parameterNamesCache = (Map<?,?>) parameterNamesCacheField.get(instance);
+				Map<?, ?> parameterNamesCache = (Map<?, ?>) parameterNamesCacheField.get(instance);
 				Object o = parameterNamesCache.remove(clazz);
 				if (debug) {
-					System.out.println("ParameterNamesCache: Removed "+clazz.getName()+" from cache?"+(o!=null));
+					System.out.println("ParameterNamesCache: Removed " + clazz.getName() + " from cache?" + (o != null));
 				}
-			} catch (IllegalAccessException e) {
-				log.log(Level.SEVERE, "Unexpected IllegalAccessException trying to access parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
+			}
+			catch (IllegalAccessException e) {
+				log.log(Level.SEVERE,
+						"Unexpected IllegalAccessException trying to access parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
 			}
 		}
 	}
@@ -208,7 +228,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 					log.info("cleared a cache entry? " + (ret != null));
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				log.log(Level.SEVERE, "Unexpected problem accessing methodResolverCache on " + o, e);
 			}
 		}
@@ -227,21 +248,24 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				if (declaredMethodsCacheField == null) {
 					try {
 						declaredMethodsCacheField = reflectionUtilsClass.getDeclaredField("declaredMethodsCache");
-					} catch(NoSuchFieldException e) {
+					}
+					catch (NoSuchFieldException e) {
 
 					}
 
 				}
-				if(declaredMethodsCacheField != null) {
+				if (declaredMethodsCacheField != null) {
 					declaredMethodsCacheField.setAccessible(true);
 					Map m = (Map) declaredMethodsCacheField.get(null);
 					Object o = m.remove(clazz);
 					if (GlobalConfiguration.debugplugins) {
-						System.err.println("SpringPlugin: clearing ReflectionUtils.declaredMethodsCache for " + clazz.getName() + " removed=" + o);
+						System.err.println("SpringPlugin: clearing ReflectionUtils.declaredMethodsCache for "
+								+ clazz.getName() + " removed=" + o);
 					}
 				}
 
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (GlobalConfiguration.debugplugins) {
 					e.printStackTrace();
 				}
@@ -262,38 +286,43 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				if (classCacheField == null && strongClassCacheField == null) {
 					try {
 						classCacheField = cachedIntrospectionResultsClass.getDeclaredField("classCache");
-					} catch(NoSuchFieldException e) {
+					}
+					catch (NoSuchFieldException e) {
 						strongClassCacheField = cachedIntrospectionResultsClass.getDeclaredField("strongClassCache");
 						softClassCacheField = cachedIntrospectionResultsClass.getDeclaredField("softClassCache");
 					}
 
 				}
-				if(classCacheField != null) {
+				if (classCacheField != null) {
 					classCacheField.setAccessible(true);
 					Map m = (Map) classCacheField.get(null);
 					Object o = m.remove(clazz);
 					if (GlobalConfiguration.debugplugins) {
-						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.classCache for " + clazz.getName() + " removed=" + o);
+						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.classCache for "
+								+ clazz.getName() + " removed=" + o);
 					}
 				}
-				if(strongClassCacheField != null) {
+				if (strongClassCacheField != null) {
 					strongClassCacheField.setAccessible(true);
 					Map m = (Map) strongClassCacheField.get(null);
 					Object o = m.remove(clazz);
 					if (GlobalConfiguration.debugplugins) {
-						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.strongClassCache for " + clazz.getName() + " removed=" + o);
+						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.strongClassCache for "
+								+ clazz.getName() + " removed=" + o);
 					}
 				}
-				if(softClassCacheField != null) {
+				if (softClassCacheField != null) {
 					softClassCacheField.setAccessible(true);
 					Map m = (Map) softClassCacheField.get(null);
 					Object o = m.remove(clazz);
 					if (GlobalConfiguration.debugplugins) {
-						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.softClassCache for " + clazz.getName() + " removed=" + o);
+						System.err.println("SpringPlugin: clearing CachedIntrospectionResults.softClassCache for "
+								+ clazz.getName() + " removed=" + o);
 					}
 				}
 
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (GlobalConfiguration.debugplugins) {
 					e.printStackTrace();
 				}
@@ -313,7 +342,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				Method method_detectHandlers = clazz_AbstractDetectingUrlHandlerMapping.getDeclaredMethod("detectHandlers");
 				method_detectHandlers.setAccessible(true);
 				method_detectHandlers.invoke(o);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				// if debugging then print it
 				if (GlobalConfiguration.debugplugins) {
 					e.printStackTrace();
@@ -347,16 +377,19 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				Method method_initHandlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredMethod("initHandlerMethods");
 				method_initHandlerMethods.setAccessible(true);
 				method_initHandlerMethods.invoke(o);
-			} catch (NoSuchFieldException nsfe) {
+			}
+			catch (NoSuchFieldException nsfe) {
 				if (debug) {
 					if (nsfe.getMessage().equals("handlerMethods")) {
 						System.out.println("problem resetting request mapping handlers - unable to find field 'handlerMethods' on type 'AbstractHandlerMethodMapping' - you probably are not on Spring 3.1");
 					}
 					else {
-						System.out.println("problem resetting request mapping handlers - NoSuchFieldException: "+nsfe.getMessage());
+						System.out.println("problem resetting request mapping handlers - NoSuchFieldException: "
+								+ nsfe.getMessage());
 					}
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (GlobalConfiguration.debugplugins) {
 					e.printStackTrace();
 				}
@@ -369,8 +402,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	}
 
 	/**
-	 * Modify the supplied bytes such that constructors are intercepted and will invoke the specified class/method so that the
-	 * instances can be tracked.
+	 * Modify the supplied bytes such that constructors are intercepted and will invoke the specified class/method so
+	 * that the instances can be tracked.
 	 * 
 	 * @return modified bytes for the class
 	 */

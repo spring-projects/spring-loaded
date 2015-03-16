@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -36,8 +37,8 @@ import org.springsource.loaded.testgen.RejectedChoice;
  * 
  * Field.getAnnotation Field.isAnnotationPresent
  * 
- * It is convenient to test both of these here, since they have the kinds of argument types, which means generation of test
- * parameters is the same.
+ * It is convenient to test both of these here, since they have the kinds of argument types, which means generation of
+ * test parameters is the same.
  * 
  * @author kdvolder
  */
@@ -46,11 +47,14 @@ public class FieldGetAnnotationTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private Field field; //A field declared on the target class
+
 	private Class<Annotation> annotClass; //An annotation type to look for
 
 	private String testedMethodCaller;
@@ -71,11 +75,13 @@ public class FieldGetAnnotationTest extends GenerativeSpringLoadedTest {
 
 		if (choice()) {
 			targetClass = targetClass("ClassTarget", choice("", "002", "003"));
-		} else {
+		}
+		else {
 			targetClass = targetClass("InterfaceTarget", choice("", "002", "003"));
 		}
 
-		String annotClassName = choice(null, "reflection.CTAnnoT", "reflection.AnnoT", "reflection.AnnoT2", "reflection.AnnoT3");
+		String annotClassName = choice(null, "reflection.CTAnnoT", "reflection.AnnoT", "reflection.AnnoT2",
+				"reflection.AnnoT3");
 		annotClass = (Class<Annotation>) targetClass(annotClassName);
 
 		callerClazz = loadClassVersion("reflection.AnnotationsInvoker", "");
@@ -83,10 +89,10 @@ public class FieldGetAnnotationTest extends GenerativeSpringLoadedTest {
 
 		Field[] fields = ReflectiveInterceptor.jlClassGetDeclaredFields(targetClass);
 		//To be deterministic we must sort these fields in a predictable fashion:
-		
+
 		sort(fields);
-		
-//		Arrays.sort(fields, new ToStringComparator());
+
+		//		Arrays.sort(fields, new ToStringComparator());
 
 		field = choice(fields);
 		toStringValue.append(field);

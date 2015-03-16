@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.junit.Assert.fail;
@@ -35,7 +36,8 @@ import org.springsource.loaded.test.infra.ResultException;
  */
 public class AbstractReflectionTests extends SpringLoadedTests {
 
-	public static Object newInstance(Class<?> clazz) throws IllegalArgumentException, SecurityException, InstantiationException,
+	public static Object newInstance(Class<?> clazz) throws IllegalArgumentException, SecurityException,
+			InstantiationException,
 			IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		return ReflectiveInterceptor.jlClassNewInstance(clazz);
 	}
@@ -66,8 +68,8 @@ public class AbstractReflectionTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * NoSuchMethodException should be thrown when trying to call a Method object when its modifiers forbid it (and access flag is
-	 * not set)
+	 * NoSuchMethodException should be thrown when trying to call a Method object when its modifiers forbid it (and
+	 * access flag is not set)
 	 * 
 	 * @param expectMsg
 	 */
@@ -81,7 +83,8 @@ public class AbstractReflectionTests extends SpringLoadedTests {
 		try {
 			reloadType(targetClass, version);
 			fail("An error: '" + expectedErrorMessage + "' was expected.");
-		} catch (ReloadException e) {
+		}
+		catch (ReloadException e) {
 			assertContains(expectedErrorMessage, e.getMessage());
 		}
 	}

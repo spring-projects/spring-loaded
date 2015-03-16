@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.pluginhelpers;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -52,7 +53,7 @@ public class EmptyCtor extends ClassVisitor implements Constants {
 	}
 
 	private EmptyCtor(String... descriptors) {
-		super(ASM5,new ClassWriter(0)); // TODO review 0 here
+		super(ASM5, new ClassWriter(0)); // TODO review 0 here
 		this.descriptors = descriptors;
 	}
 
@@ -75,7 +76,8 @@ public class EmptyCtor extends ClassVisitor implements Constants {
 		if (name.equals("<init>") && isInterestingDescriptor(desc)) {
 			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 			return new Emptier(mv);
-		} else {
+		}
+		else {
 			return super.visitMethod(access, name, desc, signature, exceptions);
 		}
 	}
@@ -127,10 +129,10 @@ public class EmptyCtor extends ClassVisitor implements Constants {
 
 		public void visitMethodInsn(int opcode, String owner, String name, String desc) {
 		}
-		
-	    public void visitMethodInsn(int opcode, String owner, String name,
-	            String desc, boolean itf) {
-	    }
+
+		public void visitMethodInsn(int opcode, String owner, String name,
+				String desc, boolean itf) {
+		}
 
 		public void visitJumpInsn(int opcode, Label label) {
 		}

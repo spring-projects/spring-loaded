@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -96,7 +97,8 @@ public class TypeDescriptorTests extends SpringLoadedTests {
 		assertEquals("defaultField", defaultField.getName());
 		assertEquals("Ljava/util/List;", defaultField.getDescriptor());
 		assertEquals("Ljava/util/List<Ljava/lang/String;>;", defaultField.getGenericSignature());
-		assertEquals("0x0 Ljava/util/List; defaultField [Ljava/util/List<Ljava/lang/String;>;]", defaultField.toString());
+		assertEquals("0x0 Ljava/util/List; defaultField [Ljava/util/List<Ljava/lang/String;>;]",
+				defaultField.toString());
 
 		FieldMember protectedField = fields[3];
 		assertEquals(Modifier.PROTECTED, protectedField.getModifiers());

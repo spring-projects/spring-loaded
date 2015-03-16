@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 import java.io.PrintStream;
@@ -34,7 +35,9 @@ import org.springsource.loaded.Utils;
 public class MethodPrinter extends MethodVisitor implements Opcodes {
 
 	PrintStream to;
+
 	int includeFlags;
+
 	List<Label> labels = new ArrayList<Label>();
 
 	private String toString(Label label) {
@@ -45,9 +48,9 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 		labels.add(label);
 		return "L" + labels.indexOf(label);
 	}
-	
+
 	public MethodPrinter(PrintStream destination) {
-		this(destination,0);
+		this(destination, 0);
 	}
 
 	public MethodPrinter(PrintStream destination, int includeFlags) {
@@ -59,27 +62,31 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	public void visitCode() {
 		to.print("    CODE\n");
 	}
-	
+
 	@Override
 	public void visitInvokeDynamicInsn(String name, String desc, Handle bsm, Object... bsmArgs) {
-		to.println("    INVOKEDYNAMIC " + name+"."+desc+"  bsm="+toString(bsm));
+		to.println("    INVOKEDYNAMIC " + name + "." + desc + "  bsm=" + toString(bsm));
 	}
 
 	private String toString(Handle bsm) {
-		return "#"+bsm.getTag()+" "+bsm.getOwner()+"."+bsm.getName()+bsm.getDesc();
+		return "#" + bsm.getTag() + " " + bsm.getOwner() + "." + bsm.getName() + bsm.getDesc();
 	}
 
 	// TODO include 'itf' flag in output (maybe only if true)
 	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
 		if (opcode == Opcodes.INVOKESTATIC) {
 			to.println("    INVOKESTATIC " + owner + "." + name + desc);
-		} else if (opcode == Opcodes.INVOKESPECIAL) {
+		}
+		else if (opcode == Opcodes.INVOKESPECIAL) {
 			to.println("    INVOKESPECIAL " + owner + "." + name + desc);
-		} else if (opcode == Opcodes.INVOKEVIRTUAL) {
+		}
+		else if (opcode == Opcodes.INVOKEVIRTUAL) {
 			to.println("    INVOKEVIRTUAL " + owner + "." + name + desc);
-		} else if (opcode == Opcodes.INVOKEINTERFACE) {
+		}
+		else if (opcode == Opcodes.INVOKEINTERFACE) {
 			to.println("    INVOKEINTERFACE " + owner + "." + name + desc);
-		} else {
+		}
+		else {
 			throw new IllegalStateException(":" + opcode);
 		}
 	}
@@ -126,7 +133,7 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	}
 
 	public void visitAttribute(Attribute attr) {
-		to.println("    ATTRIBUTE: "+attr);
+		to.println("    ATTRIBUTE: " + attr);
 	}
 
 	public void visitEnd() {
@@ -135,13 +142,17 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	public void visitFieldInsn(int opcode, String owner, String name, String desc) {
 		if (opcode == Opcodes.GETSTATIC) {
 			to.println("    GETSTATIC " + owner + "." + name + " " + desc);
-		} else if (opcode == Opcodes.PUTSTATIC) {
+		}
+		else if (opcode == Opcodes.PUTSTATIC) {
 			to.println("    PUTSTATIC " + owner + "." + name + " " + desc);
-		} else if (opcode == Opcodes.GETFIELD) {
+		}
+		else if (opcode == Opcodes.GETFIELD) {
 			to.println("    GETFIELD " + owner + "." + name + " " + desc);
-		} else if (opcode == Opcodes.PUTFIELD) {
+		}
+		else if (opcode == Opcodes.PUTFIELD) {
 			to.println("    PUTFIELD " + owner + "." + name + " " + desc);
-		} else {
+		}
+		else {
 			throw new IllegalStateException(":" + opcode);
 		}
 	}
@@ -173,8 +184,8 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	}
 
 	public void visitLineNumber(int line, Label start) {
-		if ((includeFlags & ClassPrinter.INCLUDE_LINE_NUMBERS)!=0) {
-			to.println("  LINE:"+line);
+		if ((includeFlags & ClassPrinter.INCLUDE_LINE_NUMBERS) != 0) {
+			to.println("  LINE:" + line);
 		}
 	}
 
@@ -203,13 +214,17 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	public void visitTypeInsn(int opcode, String type) {
 		if (opcode == Opcodes.NEW) { // 187
 			to.println("    NEW " + type);
-		} else if (opcode == Opcodes.ANEWARRAY) { // 189
+		}
+		else if (opcode == Opcodes.ANEWARRAY) { // 189
 			to.println("    ANEWARRAY " + type);
-		} else if (opcode == Opcodes.CHECKCAST) { // 192
+		}
+		else if (opcode == Opcodes.CHECKCAST) { // 192
 			to.println("    CHECKCAST " + type);
-		} else if (opcode == Opcodes.INSTANCEOF) { // 193
+		}
+		else if (opcode == Opcodes.INSTANCEOF) { // 193
 			to.println("    INSTANCEOF " + type);
-		} else {
+		}
+		else {
 			throw new IllegalStateException(":" + opcode);
 		}
 	}
@@ -217,21 +232,29 @@ public class MethodPrinter extends MethodVisitor implements Opcodes {
 	public void visitVarInsn(int opcode, int var) {
 		if (opcode == Opcodes.ALOAD) {
 			to.println("    ALOAD " + var);
-		} else if (opcode == Opcodes.ASTORE) {
+		}
+		else if (opcode == Opcodes.ASTORE) {
 			to.println("    ASTORE " + var);
-		} else if (opcode == Opcodes.ILOAD) {
+		}
+		else if (opcode == Opcodes.ILOAD) {
 			to.println("    ILOAD " + var);
-		} else if (opcode == FLOAD) {
+		}
+		else if (opcode == FLOAD) {
 			to.println("    FLOAD " + var);
-		} else if (opcode == LLOAD) {
+		}
+		else if (opcode == LLOAD) {
 			to.println("    LLOAD " + var);
-		} else if (opcode == DLOAD) {
+		}
+		else if (opcode == DLOAD) {
 			to.println("    DLOAD " + var);
-		} else if (opcode == ISTORE) {
+		}
+		else if (opcode == ISTORE) {
 			to.println("    ISTORE " + var);
-		} else if (opcode == LSTORE) {
+		}
+		else if (opcode == LSTORE) {
 			to.println("    LSTORE " + var);
-		} else {
+		}
+		else {
 			throw new IllegalStateException(":" + opcode);
 		}
 	}

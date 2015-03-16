@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 /**
- * Manages a mapping of names to numbers. The same number anywhere means the same name. This means that if some type a/b/C has been
- * loaded in two places (by different classloaders), it will have the same number in both. Only one of those a/b/C types will be
- * visible at the location in question, the tricky part could be working out which one (if classloaders are being naughty) but in
- * theory the first time we get confused (due to finding the name twice), we can work out which one is right and use that mapping
- * from then on.
+ * Manages a mapping of names to numbers. The same number anywhere means the same name. This means that if some type
+ * a/b/C has been loaded in two places (by different classloaders), it will have the same number in both. Only one of
+ * those a/b/C types will be visible at the location in question, the tricky part could be working out which one (if
+ * classloaders are being naughty) but in theory the first time we get confused (due to finding the name twice), we can
+ * work out which one is right and use that mapping from then on.
  * 
  * @author Andy Clement
  * @since 0.8.1
@@ -28,7 +29,9 @@ package org.springsource.loaded;
 public class NameRegistry {
 
 	private static int nextTypeId = 0;
+
 	private static int size = 10;
+
 	private static String[] allocatedIds = new String[size];
 
 	private NameRegistry() {
@@ -44,8 +47,8 @@ public class NameRegistry {
 	}
 
 	/**
-	 * Return the id for a particular type. This method will not allocate a new id if the type is unknown, it will return -1
-	 * instead.
+	 * Return the id for a particular type. This method will not allocate a new id if the type is unknown, it will
+	 * return -1 instead.
 	 * 
 	 * @param slashedClassName a type name like java/lang/String
 	 * @return the allocated ID for that type or -1 if unknown
@@ -61,8 +64,8 @@ public class NameRegistry {
 	}
 
 	/**
-	 * Return the id for a particular type. This method will not allocate a new id if the type is unknown, it will return -1
-	 * instead.
+	 * Return the id for a particular type. This method will not allocate a new id if the type is unknown, it will
+	 * return -1 instead.
 	 * 
 	 * @param slashedClassName a type name like java/lang/String
 	 * @return the allocated ID for that type or -1 if unknown

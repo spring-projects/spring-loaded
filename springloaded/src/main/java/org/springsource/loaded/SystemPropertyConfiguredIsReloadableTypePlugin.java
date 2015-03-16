@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.io.File;
@@ -29,9 +30,9 @@ import org.springsource.loaded.agent.ReloadDecision;
 
 /**
  * This is not a 'default' plugin, it must be registered by specifying the following on the springloaded option:
- * "plugins=org.springsource.loaded.SystemPropertyConfiguredIsReloadableTypePlugin". The behaviour of this plugin is configured by a
- * system property that is constantly checked (not cached), this property determines whether files in certain paths are reloadable
- * or not.
+ * "plugins=org.springsource.loaded.SystemPropertyConfiguredIsReloadableTypePlugin". The behaviour of this plugin is
+ * configured by a system property that is constantly checked (not cached), this property determines whether files in
+ * certain paths are reloadable or not.
  * 
  * @author Andy Clement
  * @since 0.7.3
@@ -43,8 +44,10 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 	static {
 		boolean value = false;
 		try {
-			value = System.getProperty("springloaded.directoriesContainingReloadableCode.debug", "false").equalsIgnoreCase("true");
-		} catch (Exception e) {
+			value = System.getProperty("springloaded.directoriesContainingReloadableCode.debug", "false").equalsIgnoreCase(
+					"true");
+		}
+		catch (Exception e) {
 
 		}
 		debug = value;
@@ -57,11 +60,14 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 	}
 
 	private List<String> includes = new ArrayList<String>();
+
 	private List<String> excludes = new ArrayList<String>();
+
 	private String mostRecentReloadableDirs = null;
 
 	// TODO need try/catch protection when calling plugins, in case of bad ones
-	public ReloadDecision shouldBeMadeReloadable(TypeRegistry typeRegistry, String typename, ProtectionDomain protectionDomain, byte[] bytes) {
+	public ReloadDecision shouldBeMadeReloadable(TypeRegistry typeRegistry, String typename,
+			ProtectionDomain protectionDomain, byte[] bytes) {
 		if (debug) {
 			System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: entered, for typename " + typename);
 		}
@@ -74,7 +80,8 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 		}
 		if (reloadableDirs == null) {
 			return ReloadDecision.PASS;
-		} else {
+		}
+		else {
 			if (mostRecentReloadableDirs != reloadableDirs) {
 				synchronized (includes) {
 					if (mostRecentReloadableDirs != reloadableDirs) {
@@ -87,7 +94,8 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 							boolean isNot = nextDir.charAt(0) == '!';
 							if (isNot) {
 								excludes.add(nextDir.substring(1));
-							} else {
+							}
+							else {
 								includes.add(nextDir);
 							}
 						}
@@ -105,7 +113,8 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			//			if (debug) {
 			//				System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename + " does not have a codeSource");
 			//			}
-		} else {
+		}
+		else {
 			// May have to do something special for CGLIB types
 			// These will have a type name of something like: grails/plugin/springsecurity/SpringSecurityService$$EnhancerByCGLIB$$8f956be2
 			// But a codesource location of file:/Users/aclement/.m2/repository/org/springframework/spring-core/3.2.5.RELEASE/spring-core-3.2.5.RELEASE.jar
@@ -125,7 +134,8 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			}
 
 			if (debug) {
-				System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename + " codeSource.getLocation() is "
+				System.out.println("SystemPropertyConfiguredIsReloadableTypePlugin: " + typename
+						+ " codeSource.getLocation() is "
 						+ codeSource.getLocation());
 			}
 		}
@@ -144,7 +154,7 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 						return ReloadDecision.NO;
 					}
 				}
-	
+
 				for (String include : includes) {
 					if (path.contains(include)) {
 						if (debug) {
@@ -155,7 +165,7 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 					}
 				}
 			}
-			
+
 			//			StringTokenizer st = new StringTokenizer(reloadableDirs, ",");
 			//			while (st.hasMoreTokens()) {
 			//				String nextDir = st.nextToken();
@@ -178,17 +188,22 @@ public class SystemPropertyConfiguredIsReloadableTypePlugin implements IsReloada
 			//					}
 			//				}
 			//			}
-		} catch (URISyntaxException e) {
+		}
+		catch (URISyntaxException e) {
 			e.printStackTrace();
-		} catch (IllegalArgumentException iae) {
+		}
+		catch (IllegalArgumentException iae) {
 			// grails-9654
 			// On File.<init>() call:
 			// IAE: URI is not hierarchical
 			if (debug) {
 				try {
-					System.out.println("IllegalArgumentException: URI is not hierarchical, uri is "+codeSource.getLocation().toURI());
-				} catch (URISyntaxException use) {
-					System.out.println("IllegalArgumentException: URI is not hierarchical, uri is "+codeSource.getLocation());
+					System.out.println("IllegalArgumentException: URI is not hierarchical, uri is "
+							+ codeSource.getLocation().toURI());
+				}
+				catch (URISyntaxException use) {
+					System.out.println("IllegalArgumentException: URI is not hierarchical, uri is "
+							+ codeSource.getLocation());
 				}
 			}
 		}

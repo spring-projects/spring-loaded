@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.lang.reflect.Modifier;
@@ -34,14 +35,14 @@ public class NonFinalizer extends ClassVisitor implements Constants {
 	private String fieldname;
 
 	/**
-	 * This ClassAdapter will visit a class and within the constructors it will add a call to the specified method (assumed static)
-	 * just before each constructor returns. The target of the call should be a collecting method that will likely do something with
-	 * the instances later on class reload.
+	 * This ClassAdapter will visit a class and within the constructors it will add a call to the specified method
+	 * (assumed static) just before each constructor returns. The target of the call should be a collecting method that
+	 * will likely do something with the instances later on class reload.
 	 * 
 	 * @param fieldname the name of the field to be made non final
 	 */
 	public NonFinalizer(String fieldname) {
-		super(ASM5,new ClassWriter(0)); // TODO review 0 here
+		super(ASM5, new ClassWriter(0)); // TODO review 0 here
 		this.fieldname = fieldname;
 	}
 
@@ -53,7 +54,8 @@ public class NonFinalizer extends ClassVisitor implements Constants {
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 		if (name.equals(fieldname)) {
 			return super.visitField(access & (~Modifier.FINAL), name, desc, signature, value);
-		} else {
+		}
+		else {
 			return super.visitField(access, name, desc, signature, value);
 		}
 	}
@@ -68,8 +70,8 @@ public class NonFinalizer extends ClassVisitor implements Constants {
 	//	}
 
 	/**
-	 * This constructor appender includes a couple of instructions at the end of each constructor it is asked to visit. It
-	 * recognizes the end by observing a RETURN instruction. The instructions are inserted just before the RETURN.
+	 * This constructor appender includes a couple of instructions at the end of each constructor it is asked to visit.
+	 * It recognizes the end by observing a RETURN instruction. The instructions are inserted just before the RETURN.
 	 */
 	//	class ConstructorAppender extends MethodAdapter implements Constants {
 	//

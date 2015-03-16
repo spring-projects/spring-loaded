@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.Modifier;
@@ -33,7 +34,8 @@ public class GetMethodsLookup {
 	}
 
 	/**
-	 * Collect all public methods from methodProvider and its supertypes into the 'found' hasmap, indexed by "name+descriptor".
+	 * Collect all public methods from methodProvider and its supertypes into the 'found' hasmap, indexed by
+	 * "name+descriptor".
 	 */
 	private void collectAll(MethodProvider methodProvider, Map<String, Invoker> found) {
 		// We do this in inverse order as in 'GetMethodLookup'. This is because GetMethodLookup

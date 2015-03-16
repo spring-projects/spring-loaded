@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Field;
@@ -22,10 +23,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Every reloadable hierarchy gets an Instance State Manager (ISMgr). The instance state manager is used to find the value of a
- * field for a particular object instance. The manager is added to the top most type in a reloadable hierarchy and is accessible to
- * all the subtypes. It maintains a map from types to secondary maps. The secondary maps record name,value pairs for each field. The
- * maps are only used if something has happened to mean we cannot continue to store the values in the original fields.
+ * Every reloadable hierarchy gets an Instance State Manager (ISMgr). The instance state manager is used to find the
+ * value of a field for a particular object instance. The manager is added to the top most type in a reloadable
+ * hierarchy and is accessible to all the subtypes. It maintains a map from types to secondary maps. The secondary maps
+ * record name,value pairs for each field. The maps are only used if something has happened to mean we cannot continue
+ * to store the values in the original fields.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -48,8 +50,8 @@ public class ISMgr {
 	 * Get the value of a instance field - this will use 'any means necessary' to get to it.
 	 * 
 	 * @param rtype the reloadabletype
-	 * @param instance the object instance on which the field is being accessed (whose type may not be that which declares the
-	 *        field)
+	 * @param instance the object instance on which the field is being accessed (whose type may not be that which
+	 *            declares the field)
 	 * @param name the name of the field
 	 * 
 	 * @return the value of the field
@@ -73,14 +75,17 @@ public class ISMgr {
 				// Used to be caused because we were not reloading constructors - so when a new version of the type was
 				// loaded, maybe a field was removed, but the constructor may still be referring to it.  Should no longer
 				// happen but what about static initializers that aren't run straightaway?
-				log.info("Unexpectedly unable to locate instance field " + name + " starting from type " + rtype.dottedtypename
+				log.info("Unexpectedly unable to locate instance field " + name + " starting from type "
+						+ rtype.dottedtypename
 						+ ": clinit running late?");
 				return null;
 			}
 			result = frw.getValue(instance, this);
-		} else {
+		}
+		else {
 			if (field.isStatic()) {
-				throw new IncompatibleClassChangeError("Expected non-static field " + rtype.dottedtypename + "." + field.getName());
+				throw new IncompatibleClassChangeError("Expected non-static field " + rtype.dottedtypename + "."
+						+ field.getName());
 			}
 			String declaringTypeName = field.getDeclaringTypeName();
 			Map<String, Object> typeLevelValues = values.get(declaringTypeName);
@@ -103,7 +108,8 @@ public class ISMgr {
 				// 'field' tells us if we know about it now, it doesn't tell us if we've always known about it
 
 				// TODO lookup performance
-				FieldMember fieldOnOriginalType = rtype.getTypeRegistry().getReloadableType(field.getDeclaringTypeName())
+				FieldMember fieldOnOriginalType = rtype.getTypeRegistry().getReloadableType(
+						field.getDeclaringTypeName())
 						.getTypeDescriptor().getField(name);
 
 				if (fieldOnOriginalType != null) {
@@ -118,11 +124,13 @@ public class ISMgr {
 							values.put(declaringTypeName, typeLevelValues);
 						}
 						typeLevelValues.put(name, result);
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						throw new IllegalStateException("Unexpectedly unable to access field " + name + " on type "
 								+ rt.getClazz().getName(), e);
 					}
-				} else {
+				}
+				else {
 					// The field was not on the original type.  As not seen before, can default it
 					result = Utils.toResultCheckIfNull(null, field.getDescriptor());
 					if (typeLevelValues == null) {
@@ -157,7 +165,8 @@ public class ISMgr {
 	 * @param name the name of the field
 	 * @throws IllegalAccessException if there is a problem setting the field value
 	 */
-	public void setValue(ReloadableType rtype, Object instance, Object value, String name) throws IllegalAccessException {
+	public void setValue(ReloadableType rtype, Object instance, Object value, String name)
+			throws IllegalAccessException {
 		//		System.err.println(">setValue(rtype=" + rtype + ",instance=" + instance + ",value=" + value + ",name=" + name + ")");
 
 		// Look up through our reloadable hierarchy to find it
@@ -170,12 +179,14 @@ public class ISMgr {
 			FieldReaderWriter frw = rtype.locateField(name);
 			if (frw == null) {
 				// bad code redeployed?
-				log.info("Unexpectedly unable to locate instance field " + name + " starting from type " + rtype.dottedtypename
+				log.info("Unexpectedly unable to locate instance field " + name + " starting from type "
+						+ rtype.dottedtypename
 						+ ": clinit running late?");
 				return;
 			}
 			frw.setValue(instance, value, this);
-		} else {
+		}
+		else {
 			if (fieldmember.isStatic()) {
 				throw new IncompatibleClassChangeError("Expected non-static field " + rtype.dottedtypename + "."
 						+ fieldmember.getName());

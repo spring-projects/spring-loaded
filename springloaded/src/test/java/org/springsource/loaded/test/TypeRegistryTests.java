@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -35,8 +36,9 @@ import org.springsource.loaded.TypeRegistry;
 
 
 /**
- * Tests for the TypeRegistry that exercise it in the same way it will actively be used when managing ReloadableType instances.
- * 
+ * Tests for the TypeRegistry that exercise it in the same way it will actively be used when managing ReloadableType
+ * instances.
+ *
  * @author Andy Clement
  * @since 1.0
  */
@@ -208,8 +210,8 @@ public class TypeRegistryTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Test that when the child classloader being managed by the type registry has reached the limit, it is recreated and types are
-	 * then defined on the fly as it is used (dispatchers/executors).
+	 * Test that when the child classloader being managed by the type registry has reached the limit, it is recreated
+	 * and types are then defined on the fly as it is used (dispatchers/executors).
 	 */
 	@Test
 	public void classloaderRecreation() throws Exception {

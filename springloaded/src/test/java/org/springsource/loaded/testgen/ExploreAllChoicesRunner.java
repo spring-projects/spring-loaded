@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.util.ArrayList;
@@ -30,19 +31,23 @@ import org.springsource.loaded.test.infra.ResultException;
 
 
 /**
- * This test runner in injects an IChoiceGenerator into the test class it is running. The choice generator is injected by setting
- * choiceGenerator field in the test instance.
+ * This test runner in injects an IChoiceGenerator into the test class it is running. The choice generator is injected
+ * by setting choiceGenerator field in the test instance.
  * <p>
- * For now this test runner assumes the test class is using JUnit 3 style method conventions for setup and teardown, and should
- * provide only a single 'test' method to run the tests.
+ * For now this test runner assumes the test class is using JUnit 3 style method conventions for setup and teardown, and
+ * should provide only a single 'test' method to run the tests.
  * 
  * @author kdvolder
  */
 public class ExploreAllChoicesRunner extends ParentRunner<GeneratedTest> {
-	private static boolean generatedTestsOn = Boolean.parseBoolean(System.getProperty("springloaded.tests.generatedTests", "true"));
+
+	private static boolean generatedTestsOn = Boolean.parseBoolean(System.getProperty(
+			"springloaded.tests.generatedTests", "true"));
 
 	private Class<? extends GenerativeSpringLoadedTest> testClass;
+
 	private List<GeneratedTest> children = null;
+
 	private boolean predictResults;
 
 	public ExploreAllChoicesRunner(Class<? extends GenerativeSpringLoadedTest> testClass) throws InitializationError {
@@ -73,23 +78,29 @@ public class ExploreAllChoicesRunner extends ParentRunner<GeneratedTest> {
 					if (predictResults) {
 						try {
 							r = test.test(); //run test in generative mode
-						} catch (ResultException e) {
+						}
+						catch (ResultException e) {
 							r = e;
-						} catch (RejectedChoice e) {
+						}
+						catch (RejectedChoice e) {
 							//Choices shouldn't be rejected during test run only during setup!
 							throw new IllegalStateException(e);
 						}
 					}
 					addTest(newChildren, new GeneratedTest(choiceGenerator.choices, r, test.getConfigDescription()));
-				} catch (RejectedChoice e) {
+				}
+				catch (RejectedChoice e) {
 					//Ignore this test
-				} finally {
+				}
+				finally {
 					test.teardown();
 				}
-			} while (choiceGenerator.backtrack());
+			}
+			while (choiceGenerator.backtrack());
 			children = newChildren;
 			return newChildren;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			//TODO: [...] use JUnit framework to handle this more gracefully
 			//  This probably means overriding one of the validation methods and, moving most of this code into validation
 			//  and storing the children during validation so that this method here will only have to return the stored
@@ -131,9 +142,11 @@ public class ExploreAllChoicesRunner extends ParentRunner<GeneratedTest> {
 				try {
 					test.setup();
 					expectedResult = test.test();
-				} catch (ResultException e) {
+				}
+				catch (ResultException e) {
 					expectedResult = e;
-				} finally {
+				}
+				finally {
 					test.teardown();
 				}
 			}
@@ -150,16 +163,20 @@ public class ExploreAllChoicesRunner extends ParentRunner<GeneratedTest> {
 				IResult actual;
 				try {
 					actual = test.test(); //run test in verify mode
-				} catch (ResultException e) {
+				}
+				catch (ResultException e) {
 					actual = e;
 				}
 				test.assertEqualIResults(expectedResult, actual);
-			} finally {
+			}
+			finally {
 				test.teardown();
 			}
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			notifier.fireTestFailure(new Failure(describeChild(testPredicted), e));
-		} finally {
+		}
+		finally {
 			notifier.fireTestFinished(describeChild(testPredicted));
 		}
 	}

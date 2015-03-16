@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 import org.objectweb.asm.ClassReader;
@@ -25,8 +26,8 @@ import org.springsource.loaded.TypeRegistry;
 
 
 /**
- * Need to intercept the defineClass() here and do the reloadable thing - won't be needed at real runtime because all classloaders
- * will be getting intercepted through the SpringLoadedPreProcessor.
+ * Need to intercept the defineClass() here and do the reloadable thing - won't be needed at real runtime because all
+ * classloaders will be getting intercepted through the SpringLoadedPreProcessor.
  * 
  * @author Andy Clement
  * @version 0.8.3
@@ -42,7 +43,7 @@ public class RewriteReflectUtilsDefineClass extends ClassVisitor implements Cons
 	}
 
 	private RewriteReflectUtilsDefineClass() {
-		super(ASM5,new ClassWriter(0)); // TODO review 0 here
+		super(ASM5, new ClassWriter(0)); // TODO review 0 here
 	}
 
 	public byte[] getBytes() {
@@ -68,7 +69,8 @@ public class RewriteReflectUtilsDefineClass extends ClassVisitor implements Cons
 		if (name.equals("defineClass")) {
 			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 			return new DefineClassInterceptor(mv);
-		} else {
+		}
+		else {
 			return super.visitMethod(access, name, desc, signature, exceptions);
 		}
 	}
@@ -76,7 +78,7 @@ public class RewriteReflectUtilsDefineClass extends ClassVisitor implements Cons
 	class DefineClassInterceptor extends MethodVisitor implements Constants {
 
 		public DefineClassInterceptor(MethodVisitor mv) {
-			super(ASM5,mv);
+			super(ASM5, mv);
 		}
 
 		@Override
@@ -84,7 +86,8 @@ public class RewriteReflectUtilsDefineClass extends ClassVisitor implements Cons
 			mv.visitVarInsn(ALOAD, 0);
 			mv.visitVarInsn(ALOAD, 1);
 			mv.visitVarInsn(ALOAD, 2);
-			mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/test/infra/RewriteReflectUtilsDefineClass", "defineClass",
+			mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/test/infra/RewriteReflectUtilsDefineClass",
+					"defineClass",
 					"(Ljava/lang/String;[BLjava/lang/ClassLoader;)[B");
 			mv.visitVarInsn(ASTORE, 1);
 		}

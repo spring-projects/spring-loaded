@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.util.Collection;
@@ -26,8 +27,8 @@ import org.springsource.loaded.Utils;
 
 
 /**
- * To manage the complexity of the different cases created by a variety of different types of contexts where we can do 'method
- * lookup' we need an abstraction to represent them all.
+ * To manage the complexity of the different cases created by a variety of different types of contexts where we can do
+ * 'method lookup' we need an abstraction to represent them all.
  * <p>
  * This class provides that abstraction.
  * 
@@ -49,7 +50,8 @@ public abstract class MethodProvider {
 					ClassLoader pcl = tr.getClassLoader().getParent();
 					if (pcl == null) {
 						break;
-					} else {
+					}
+					else {
 						tr = TypeRegistry.getTypeRegistryFor(pcl);
 						if (tr == null) {
 							break;
@@ -86,11 +88,13 @@ public abstract class MethodProvider {
 					}
 				}
 				return create(class1);
-			} catch (ClassNotFoundException e) {
+			}
+			catch (ClassNotFoundException e) {
 				throw new IllegalStateException("We have a type descriptor for '" + typeDescriptor.getName()
 						+ " but no corresponding Java class", e);
 			}
-		} catch (RuntimeException re) {
+		}
+		catch (RuntimeException re) {
 			re.printStackTrace();
 			throw re;
 		}

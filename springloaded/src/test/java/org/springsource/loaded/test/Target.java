@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
  * @since 1.0
  */
 public class Target {
+
 	public static List<Object> collectedInstances = new ArrayList<Object>();
 
 	public static void foo(Object obj) {

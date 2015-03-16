@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.util.List;
@@ -21,18 +22,18 @@ import org.junit.Assert;
 import org.springsource.loaded.test.infra.IResult;
 
 
-
-
 /**
- * Helper class used by the test runner. An instance of this class stores a 'choice' configuration and the associated expected
- * result (the result is only stored if it was predicted ahead of time see {@link PredictResult}).
+ * Helper class used by the test runner. An instance of this class stores a 'choice' configuration and the associated
+ * expected result (the result is only stored if it was predicted ahead of time see {@link PredictResult}).
  * 
  * @author kdvolder
  */
 public class GeneratedTest {
 
 	private List<Boolean> choices;
+
 	private IResult expectedResult = null;
+
 	private String configDesc = null;
 
 	public GeneratedTest(List<Boolean> choices, IResult expectedResult, String configDesc) {

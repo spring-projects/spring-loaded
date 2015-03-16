@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -33,11 +34,11 @@ import org.springsource.loaded.testgen.RejectedChoice;
  * 
  * getAnnotations getDeclaredAnnoations
  * 
- * It is convenient to test both of these here, since they have the same kinds of argument types, which means generation of test
- * parameters is the same.
+ * It is convenient to test both of these here, since they have the same kinds of argument types, which means generation
+ * of test parameters is the same.
  * <p>
- * Note that these same methods are also tested by {@link MethodGetAnnotationsTest}. But that test only passes Method instances to
- * tested method. This test will pass other types of AccessibleObject (Field and Constructor) instead.
+ * Note that these same methods are also tested by {@link MethodGetAnnotationsTest}. But that test only passes Method
+ * instances to tested method. This test will pass other types of AccessibleObject (Field and Constructor) instead.
  * 
  * @author kdvolder
  */
@@ -47,7 +48,9 @@ public class ConstructorGetAnnotationsTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	private Class<?> targetClass; //One class chosen to focus test on
 
 	// Parameters that change for different test runs
@@ -66,7 +69,8 @@ public class ConstructorGetAnnotationsTest extends GenerativeSpringLoadedTest {
 		if (choice()) {
 			testedMethodCaller = "call" + choice("AnnotatedElement", "AccessibleObject", "Constructor")
 					+ choice("GetAnnotations", "GetDeclaredAnnotations");
-		} else {
+		}
+		else {
 			testedMethodCaller = "callConstructorGetParameterAnnotations";
 		}
 

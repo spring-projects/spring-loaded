@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.infra;
 
 import java.util.logging.LogRecord;
@@ -28,14 +29,15 @@ public class SLFormatter extends java.util.logging.Formatter {
 		StringBuilder s = new StringBuilder();
 		s.append(record.getLevel());
 		String message = super.formatMessage(record);
-		
-		if (!(message.startsWith(">") || message.startsWith("<"))) {			
+
+		if (!(message.startsWith(">") || message.startsWith("<"))) {
 			s.append(":");
 			String sourceClassName = record.getSourceClassName();
 			int idx;
 			if ((idx = sourceClassName.lastIndexOf('.')) == -1) {
 				s.append(record.getSourceClassName());
-			} else {
+			}
+			else {
 				s.append(record.getSourceClassName().substring(idx + 1));
 			}
 			s.append(".");

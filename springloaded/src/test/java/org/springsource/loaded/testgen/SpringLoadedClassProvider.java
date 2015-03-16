@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import org.junit.Assert;
@@ -20,8 +21,6 @@ import org.springsource.loaded.MethodInvokerRewriter;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.test.SpringLoadedTests;
-
-
 
 
 /**
@@ -51,7 +50,8 @@ public class SpringLoadedClassProvider extends SpringLoadedTests implements ICla
 				Assert.assertEquals(targetVersion, loadedVersion);
 			}
 			return rtype.getClazz();
-		} else {
+		}
+		else {
 			Assert.assertEquals("Non reloadable types shouldn't have versions!", "", version);
 			return nonReloadableClass(typeName);
 		}

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -155,7 +156,8 @@ public class FileSystemWatcherTests {
 			FileOutputStream fos = new FileOutputStream(f);
 			fos.write(3);
 			fos.close();
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -170,7 +172,8 @@ public class FileSystemWatcherTests {
 	private void pause(long millis) {
 		try {
 			Thread.sleep(millis);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 		}
 	}
 
@@ -188,7 +191,8 @@ public class FileSystemWatcherTests {
 				throw new RuntimeException("Failed to create folder " + tempFile);
 			}
 			return tempFile;
-		} catch (IOException e) {
+		}
+		catch (IOException e) {
 			return null;
 		}
 	}

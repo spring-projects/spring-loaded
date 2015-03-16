@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Modifier;
@@ -33,11 +34,12 @@ import org.springsource.loaded.Utils.ReturnType;
 /**
  * Rewrites a class such that it is amenable to reloading. This involves:
  * <ul>
- * <li>In every method, introduce logic to check it it the latest version of that method - if it isn't dispatch to the latest
+ * <li>In every method, introduce logic to check it it the latest version of that method - if it isn't dispatch to the
+ * latest
  * <li>Creates additional methods to aid with field setting/getting
  * <li>Creates additional fields to help reloading (reloadable type instance, new field value holders)
- * <li>Creates catchers for inherited methods. Catchers are simply passed through unless a new version of the class provides an
- * implementation
+ * <li>Creates catchers for inherited methods. Catchers are simply passed through unless a new version of the class
+ * provides an implementation
  * </ul>
  * 
  * @author Andy Clement
@@ -57,13 +59,21 @@ public class TypeRewriter implements Constants {
 	static class RewriteClassAdaptor extends ClassVisitor implements Constants {
 
 		private ClassWriter cw;
+
 		private String slashedname;
+
 		private ReloadableType rtype;
+
 		private TypeDescriptor typeDescriptor;
+
 		private boolean clinitDone = false;
+
 		private String supertypeName;
+
 		private boolean isInterface;
+
 		private boolean isEnum;
+
 		private boolean isGroovy;
 
 		public RewriteClassAdaptor(ReloadableType rtype) {
@@ -71,7 +81,7 @@ public class TypeRewriter implements Constants {
 		}
 
 		public RewriteClassAdaptor(ReloadableType rtype, ClassWriter classWriter) {
-			super(ASM5,classWriter);
+			super(ASM5, classWriter);
 			this.rtype = rtype;
 			this.slashedname = rtype.getSlashedName();
 			this.cw = (ClassWriter) cv;
@@ -122,7 +132,8 @@ public class TypeRewriter implements Constants {
 			TypeRegistry typeRegistry = rtype.getTypeRegistry();
 			if (!typeRegistry.isReloadableTypeName(typeDescriptor.getSupertypeName())) {
 				return true;
-			} else {
+			}
+			else {
 				return false;
 			}
 		}
@@ -143,7 +154,8 @@ public class TypeRewriter implements Constants {
 		 * Create the static field getter method which ensures the static state manager is initialized.
 		 */
 		private void createStaticFieldGetterMethod() {
-			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mStaticFieldGetterName, "(Ljava/lang/String;)Ljava/lang/Object;",
+			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mStaticFieldGetterName,
+					"(Ljava/lang/String;)Ljava/lang/Object;",
 					null, null);
 			mv.visitFieldInsn(GETSTATIC, slashedname, fStaticFieldsName, lStaticStateManager);
 			Label l2 = new Label();
@@ -170,7 +182,8 @@ public class TypeRewriter implements Constants {
 				MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "___init___", desc, null, null);
 				mv.visitFieldInsn(GETSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
 				mv.visitInsn(ICONST_1);
-				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "getLatestDispatcherInstance", "(Z)Ljava/lang/Object;");
+				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "getLatestDispatcherInstance",
+						"(Z)Ljava/lang/Object;");
 				mv.visitTypeInsn(CHECKCAST, Utils.getInterfaceName(slashedname));
 				String desc2 = new StringBuffer("(L").append(slashedname).append(";").append(desc.substring(1)).toString();
 				mv.visitVarInsn(ALOAD, 0);
@@ -185,7 +198,8 @@ public class TypeRewriter implements Constants {
 		private void createManagedConstructors() {
 			String slashedSupertypeName = typeDescriptor.getSupertypeName();
 			if (slashedSupertypeName.equals("java/lang/Enum")) { // assert isEnum
-				MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(Ljava/lang/String;ILorg/springsource/loaded/C;)V", null,
+				MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>",
+						"(Ljava/lang/String;ILorg/springsource/loaded/C;)V", null,
 						null);
 				mv.visitVarInsn(ALOAD, 0);
 				mv.visitVarInsn(ALOAD, 1);
@@ -209,25 +223,29 @@ public class TypeRewriter implements Constants {
 				mv.visitVarInsn(ALOAD, 0); // this (uninitialized)
 				mv.visitVarInsn(ALOAD, 1); // 'owner'
 				mv.visitVarInsn(ALOAD, 2); // 'this'
-				mv.visitMethodInsn(INVOKESPECIAL, "groovy/lang/Closure", "<init>", "(Ljava/lang/Object;Ljava/lang/Object;)V");
+				mv.visitMethodInsn(INVOKESPECIAL, "groovy/lang/Closure", "<init>",
+						"(Ljava/lang/Object;Ljava/lang/Object;)V");
 				mv.visitInsn(RETURN);
 				mv.visitMaxs(3, 4);
 				mv.visitEnd();
-			} else {
+			}
+			else {
 				MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, "<init>", "(Lorg/springsource/loaded/C;)V", null, null);
 				mv.visitVarInsn(ALOAD, 0);
 				if (slashedSupertypeName.equals("java/lang/Object")) {
 					mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
 					mv.visitInsn(RETURN);
 					mv.visitMaxs(1, 2);
-				} else if (slashedSupertypeName.equals("java/lang/Enum")) { // assert isEnum
+				}
+				else if (slashedSupertypeName.equals("java/lang/Enum")) { // assert isEnum
 					// Call Enum.<init>(null,0)
 					mv.visitInsn(ACONST_NULL);
 					mv.visitLdcInsn(0);
 					mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Enum", "<init>", "(Ljava/lang/String;I)V");
 					mv.visitInsn(RETURN);
 					mv.visitMaxs(3, 3);
-				} else {
+				}
+				else {
 					ReloadableType superRtype = rtype.getTypeRegistry().getReloadableType(slashedSupertypeName);
 					if (superRtype == null) {
 						// This means we are crossing a reloadable boundary (this type is reloadable, the supertype is not).
@@ -237,7 +255,8 @@ public class TypeRewriter implements Constants {
 						MethodMember ctor = superDescriptor.getConstructor("()V");
 						if (ctor != null) {
 							mv.visitMethodInsn(INVOKESPECIAL, slashedSupertypeName, "<init>", "()V");
-						} else {
+						}
+						else {
 							String warningMessage = "SERIOUS WARNING (current limitation): At reloadable boundary of "
 									+ typeDescriptor.getDottedName()
 									+ " supertype="
@@ -258,9 +277,11 @@ public class TypeRewriter implements Constants {
 
 							// throw new IllegalStateException("at reloadable boundary, not sure how to construct " + supertypeName);
 						}
-					} else {
+					}
+					else {
 						mv.visitInsn(ACONST_NULL);
-						mv.visitMethodInsn(INVOKESPECIAL, slashedSupertypeName, "<init>", "(Lorg/springsource/loaded/C;)V");
+						mv.visitMethodInsn(INVOKESPECIAL, slashedSupertypeName, "<init>",
+								"(Lorg/springsource/loaded/C;)V");
 					}
 					mv.visitInsn(RETURN);
 					mv.visitMaxs(2, 2);
@@ -283,7 +304,8 @@ public class TypeRewriter implements Constants {
 		 * </pre></code>
 		 */
 		private void createStaticFieldSetterMethod() {
-			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mStaticFieldSetterName, mStaticFieldSetterDescriptor, null, null);
+			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC_STATIC, mStaticFieldSetterName, mStaticFieldSetterDescriptor,
+					null, null);
 			mv.visitFieldInsn(GETSTATIC, slashedname, fStaticFieldsName, lStaticStateManager);
 			Label l2 = new Label();
 			mv.visitJumpInsn(IFNONNULL, l2);
@@ -316,7 +338,8 @@ public class TypeRewriter implements Constants {
 		 * </pre></code>
 		 */
 		private void createInstanceFieldGetterMethod() {
-			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, mInstanceFieldGetterName, mInstanceFieldGetterDescriptor, null, null);
+			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, mInstanceFieldGetterName, mInstanceFieldGetterDescriptor,
+					null, null);
 			mv.visitVarInsn(ALOAD, 0);
 			mv.visitFieldInsn(GETFIELD, slashedname, fInstanceFieldsName, lInstanceStateManager);
 			Label l1 = new Label();
@@ -350,7 +373,8 @@ public class TypeRewriter implements Constants {
 		 * Create a field setter for instance fields, signature of: public void r$set(Object,Object,String)
 		 */
 		private void createInstanceFieldSetterMethod() {
-			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, mInstanceFieldSetterName, mInstanceFieldSetterDescriptor, null, null);
+			MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, mInstanceFieldSetterName, mInstanceFieldSetterDescriptor,
+					null, null);
 			final int lvNewValue = 1;
 			final int lvInstance = 2;
 			final int lvName = 3;
@@ -391,7 +415,8 @@ public class TypeRewriter implements Constants {
 		}
 
 		private void createInstanceStateManagerInstance() {
-			FieldVisitor f = cw.visitField(ACC_PUBLIC | ACC_TRANSIENT, fInstanceFieldsName, lInstanceStateManager, null, null);
+			FieldVisitor f = cw.visitField(ACC_PUBLIC | ACC_TRANSIENT, fInstanceFieldsName, lInstanceStateManager,
+					null, null);
 			f.visitEnd();
 		}
 
@@ -402,8 +427,8 @@ public class TypeRewriter implements Constants {
 		}
 
 		/**
-		 * Create the reloadable type field, which can later answer questions about changes or be used to access the latest version
-		 * of a type/method.
+		 * Create the reloadable type field, which can later answer questions about changes or be used to access the
+		 * latest version of a type/method.
 		 */
 		private void createReloadableTypeField() {
 			int acc = isInterface ? ACC_PUBLIC_STATIC_FINAL : ACC_PUBLIC_STATIC; //ACC_PRIVATE_STATIC;
@@ -412,8 +437,10 @@ public class TypeRewriter implements Constants {
 		}
 
 		@Override
-		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
-			MethodVisitor mv = super.visitMethod(promoteIfNecessary(flags,name), name, descriptor, signature, exceptions);
+		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature,
+				String[] exceptions) {
+			MethodVisitor mv = super.visitMethod(promoteIfNecessary(flags, name), name, descriptor, signature,
+					exceptions);
 			MethodVisitor newMethodVisitor = getMethodVisitor(name, descriptor, mv);
 			return newMethodVisitor;
 		}
@@ -424,13 +451,16 @@ public class TypeRewriter implements Constants {
 				if (name.charAt(1) == 'c') { // <clinit>
 					clinitDone = true;
 					newMethodVisitor = new MethodPrepender(mv, new ClinitPrepender(mv));
-				} else { // <init>
-					newMethodVisitor = new AugmentingConstructorAdapter(mv, descriptor, slashedname, isTopmostReloadable());
+				}
+				else { // <init>
+					newMethodVisitor = new AugmentingConstructorAdapter(mv, descriptor, slashedname,
+							isTopmostReloadable());
 					// want to create a copy of the constructor called ___init___ so it is reachable from the executor of the subtype.
 					// All it really needs to do is call through the dispatcher to the executor for the relevant constructor.
 					// this will force a reload of the supertype (to create the super executor) - that is something we can address later
 				}
-			} else {
+			}
+			else {
 				// what about just copying if isgroovy and name.startsWith("$get");
 				// Can't do this for $getStaticMetaClass so let us use $get$$ for now, until we discover why that lets us down...
 				//				if (isGroovy && name.startsWith("$get$$")) {
@@ -443,7 +473,7 @@ public class TypeRewriter implements Constants {
 		}
 
 		// Default visibility elements need promotion to public so that they can be seen from the executor
-		private int promoteIfNecessary(int flags,String name) {
+		private int promoteIfNecessary(int flags, String name) {
 			int newflags = Utils.promoteDefaultOrProtectedToPublic(flags, isEnum, name);
 			return newflags;
 		}
@@ -457,12 +487,14 @@ public class TypeRewriter implements Constants {
 			if ((access & ACC_FINAL) != 0) {
 				if (name.equals("serialVersionUID")) {
 					modAccess = (access & ~(ACC_PRIVATE | ACC_PROTECTED)) | ACC_PUBLIC;
-				} else {
+				}
+				else {
 					// remove final
 					modAccess = (access & ~(ACC_PRIVATE | ACC_PROTECTED)) | ACC_PUBLIC;
 					modAccess = modAccess & ~ACC_FINAL;
 				}
-			} else {
+			}
+			else {
 				// remove final
 				modAccess = (access & ~(ACC_PRIVATE | ACC_PROTECTED)) | ACC_PUBLIC;
 				modAccess = modAccess & ~ACC_FINAL;
@@ -471,8 +503,11 @@ public class TypeRewriter implements Constants {
 		}
 
 		static class FieldHolder {
+
 			final int access;
+
 			final String name;
+
 			final String desc;
 
 			public FieldHolder(int access, String name, String desc) {
@@ -498,9 +533,10 @@ public class TypeRewriter implements Constants {
 		}
 
 		/**
-		 * Create a basic dynamic dispatch handler. To support changes to interfaces, a new method is added to all reloadable
-		 * interfaces and this needs an implementation. This method generates the implementation which delegates to the reloadable
-		 * interface for the type. As interfaces can't get static methods we only have to worry about instance methods here.
+		 * Create a basic dynamic dispatch handler. To support changes to interfaces, a new method is added to all
+		 * reloadable interfaces and this needs an implementation. This method generates the implementation which
+		 * delegates to the reloadable interface for the type. As interfaces can't get static methods we only have to
+		 * worry about instance methods here.
 		 */
 		private void generateDynamicDispatchHandler() {
 			final int indexThis = 0;
@@ -510,8 +546,10 @@ public class TypeRewriter implements Constants {
 
 			if (isInterface) {
 				cw.visitMethod(ACC_PUBLIC_ABSTRACT, mDynamicDispatchName, mDynamicDispatchDescriptor, null, null);
-			} else {
-				MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, mDynamicDispatchName, mDynamicDispatchDescriptor, null, null);
+			}
+			else {
+				MethodVisitor mv = cw.visitMethod(ACC_PUBLIC, mDynamicDispatchName, mDynamicDispatchDescriptor, null,
+						null);
 
 				// Sometimes we come into the dynamic dispatcher because we are handling an INVOKEINTERFACE for a method
 				// not defined on the original interface.  In these cases we will find that fetchLatest() returns null because
@@ -538,7 +576,8 @@ public class TypeRewriter implements Constants {
 
 					// 3. call it
 					//    return dispatchable.__execute(parameters,this,nameAndDescriptor)
-					mv.visitMethodInsn(INVOKEINTERFACE, "org/springsource/loaded/__DynamicallyDispatchable", mDynamicDispatchName,
+					mv.visitMethodInsn(INVOKEINTERFACE, "org/springsource/loaded/__DynamicallyDispatchable",
+							mDynamicDispatchName,
 							mDynamicDispatchDescriptor);
 					mv.visitInsn(ARETURN);
 				}
@@ -573,9 +612,10 @@ public class TypeRewriter implements Constants {
 		}
 
 		/**
-		 * Catcher methods are 'empty' methods added to subtypes to 'catch' any virtual dispatch calls that would otherwise be
-		 * missed. Catchers then check to see if the type on which they are defined now provides an implementation of the method in
-		 * question - if it does then it is called, otherwise the catcher simply calls the supertype.
+		 * Catcher methods are 'empty' methods added to subtypes to 'catch' any virtual dispatch calls that would
+		 * otherwise be missed. Catchers then check to see if the type on which they are defined now provides an
+		 * implementation of the method in question - if it does then it is called, otherwise the catcher simply calls
+		 * the supertype.
 		 * <p>
 		 * Catchers typically have the same visibility as the methods for which they exist, unless those methods are
 		 * protected/default, in which case the catcher is made public. This enables them to be seen from the executor.
@@ -589,10 +629,10 @@ public class TypeRewriter implements Constants {
 			for (FieldMember field : fms) {
 				createProtectedFieldGetterSetter(field);
 			}
-			
+
 			MethodMember[] methods = typeDescriptor.getMethods();
 
-			for (MethodMember method: methods) {
+			for (MethodMember method : methods) {
 				if (!MethodMember.isSuperDispatcher(method)) {
 					continue;
 				}
@@ -600,17 +640,19 @@ public class TypeRewriter implements Constants {
 				String name = method.getName();
 				String descriptor = method.getDescriptor();
 				if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINEST)) {
-					log.finest("Creating super dispatcher for method "+name+descriptor+" in type "+slashedname);
+					log.finest("Creating super dispatcher for method " + name + descriptor + " in type " + slashedname);
 				}
 				// Create a superdispatcher for this method
-				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC, method.getName(), method.getDescriptor(), null, method.getExceptions());
+				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC, method.getName(), method.getDescriptor(), null,
+						method.getExceptions());
 				int ps = Utils.getParameterCount(method.getDescriptor());
 				ReturnType methodReturnType = Utils.getReturnTypeDescriptor(method.getDescriptor());
 				int lvarIndex = 0;
 				mv.visitVarInsn(ALOAD, lvarIndex++); // load this
 				Utils.createLoadsBasedOnDescriptor(mv, descriptor, lvarIndex);
-				String targetMethod = method.getName().substring(0,method.getName().lastIndexOf("_$"));
-				mv.visitMethodInsn(Opcodes.INVOKESPECIAL,typeDescriptor.getSupertypeName(),targetMethod,method.getDescriptor());
+				String targetMethod = method.getName().substring(0, method.getName().lastIndexOf("_$"));
+				mv.visitMethodInsn(Opcodes.INVOKESPECIAL, typeDescriptor.getSupertypeName(), targetMethod,
+						method.getDescriptor());
 				Utils.addCorrectReturnInstruction(mv, methodReturnType, false);
 				int maxs = ps + 1;
 				if (methodReturnType.isDoubleSlot()) {
@@ -619,7 +661,7 @@ public class TypeRewriter implements Constants {
 				mv.visitMaxs(maxs, maxs);
 				mv.visitEnd();
 			}
-			
+
 			for (MethodMember method : methods) {
 				if (!MethodMember.isCatcher(method)) {
 					continue;
@@ -633,12 +675,14 @@ public class TypeRewriter implements Constants {
 				if (Modifier.isProtected(flags)) {
 					flags = flags - Modifier.PROTECTED + Modifier.PUBLIC;
 				}
-				MethodVisitor mv = cw.visitMethod(flags, method.getName(), method.getDescriptor(), null, method.getExceptions());
+				MethodVisitor mv = cw.visitMethod(flags, method.getName(), method.getDescriptor(), null,
+						method.getExceptions());
 
 				// 2. Ask the type if anything has changed from first load
 				mv.visitFieldInsn(Opcodes.GETSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
 				mv.visitLdcInsn(method.getId());
-				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, tReloadableType, "fetchLatestIfExists", "(I)Ljava/lang/Object;");
+				mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, tReloadableType, "fetchLatestIfExists",
+						"(I)Ljava/lang/Object;");
 
 				// If the return value is null, there is no implementation
 				mv.visitInsn(DUP);
@@ -672,7 +716,8 @@ public class TypeRewriter implements Constants {
 					mv.visitInsn(DUP);
 					mv.visitMethodInsn(INVOKESPECIAL, "java/lang/AbstractMethodError", "<init>", "()V");
 					mv.visitInsn(ATHROW);
-				} else {
+				}
+				else {
 					mv.visitVarInsn(ALOAD, 0); // load this
 					Utils.createLoadsBasedOnDescriptor(mv, method.getDescriptor(), 1);
 					mv.visitMethodInsn(INVOKESPECIAL, supertypeName, method.getName(), method.getDescriptor());
@@ -692,33 +737,34 @@ public class TypeRewriter implements Constants {
 		private void insertCorrectLoad(MethodVisitor mv, ReturnType rt, int slot) {
 			if (rt.isPrimitive()) {
 				switch (rt.descriptor.charAt(0)) {
-				case 'Z':
-				case 'S':
-				case 'I':
-				case 'B':
-				case 'C':
-					mv.visitVarInsn(ILOAD, slot);
-					break;
-				case 'F':
-					mv.visitVarInsn(FLOAD, slot);
-					break;
-				case 'J':
-					mv.visitVarInsn(LLOAD, slot);
-					break;
-				case 'D':
-					mv.visitVarInsn(DLOAD, slot);
-					break;
-				default:
-					throw new IllegalStateException(rt.descriptor);
+					case 'Z':
+					case 'S':
+					case 'I':
+					case 'B':
+					case 'C':
+						mv.visitVarInsn(ILOAD, slot);
+						break;
+					case 'F':
+						mv.visitVarInsn(FLOAD, slot);
+						break;
+					case 'J':
+						mv.visitVarInsn(LLOAD, slot);
+						break;
+					case 'D':
+						mv.visitVarInsn(DLOAD, slot);
+						break;
+					default:
+						throw new IllegalStateException(rt.descriptor);
 				}
-			} else {
+			}
+			else {
 				mv.visitVarInsn(ALOAD, slot);
 			}
 		}
 
 		/**
-		 * For the fields that need it (protected fields from a non-reloadable supertype), create the getters and setters so that
-		 * the executor can read/write them.
+		 * For the fields that need it (protected fields from a non-reloadable supertype), create the getters and
+		 * setters so that the executor can read/write them.
 		 * 
 		 */
 		private void createProtectedFieldGetterSetter(FieldMember field) {
@@ -726,22 +772,26 @@ public class TypeRewriter implements Constants {
 			String name = field.name;
 			ReturnType rt = ReturnType.getReturnType(descriptor);
 			if (field.isStatic()) {
-				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC | Modifier.STATIC, Utils.getProtectedFieldGetterName(name), "()"
-						+ descriptor, null, null);
+				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC | Modifier.STATIC,
+						Utils.getProtectedFieldGetterName(name), "()"
+								+ descriptor, null, null);
 				mv.visitFieldInsn(GETSTATIC, slashedname, name, descriptor);
 				Utils.addCorrectReturnInstruction(mv, rt, false);
 				mv.visitMaxs(rt.isDoubleSlot() ? 2 : 1, 0);
 				mv.visitEnd();
 
-				mv = cw.visitMethod(Modifier.PUBLIC | Modifier.STATIC, Utils.getProtectedFieldSetterName(name), "(" + descriptor
+				mv = cw.visitMethod(Modifier.PUBLIC | Modifier.STATIC, Utils.getProtectedFieldSetterName(name), "("
+						+ descriptor
 						+ ")V", null, null);
 				insertCorrectLoad(mv, rt, 0);
 				mv.visitFieldInsn(PUTSTATIC, slashedname, name, descriptor);
 				mv.visitInsn(RETURN);
 				mv.visitMaxs(rt.isDoubleSlot() ? 2 : 1, 1);
 				mv.visitEnd();
-			} else {
-				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC, Utils.getProtectedFieldGetterName(name), "()" + descriptor,
+			}
+			else {
+				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC, Utils.getProtectedFieldGetterName(name), "()"
+						+ descriptor,
 						null, null);
 				mv.visitVarInsn(ALOAD, 0);
 				mv.visitFieldInsn(GETFIELD, slashedname, name, descriptor);
@@ -749,7 +799,8 @@ public class TypeRewriter implements Constants {
 				mv.visitMaxs(rt.isDoubleSlot() ? 2 : 1, 1);
 				mv.visitEnd();
 
-				mv = cw.visitMethod(Modifier.PUBLIC, Utils.getProtectedFieldSetterName(name), "(" + descriptor + ")V", null, null);
+				mv = cw.visitMethod(Modifier.PUBLIC, Utils.getProtectedFieldSetterName(name), "(" + descriptor + ")V",
+						null, null);
 				mv.visitVarInsn(ALOAD, 0);
 				insertCorrectLoad(mv, rt, 1);
 				mv.visitFieldInsn(PUTFIELD, slashedname, name, descriptor);
@@ -765,10 +816,12 @@ public class TypeRewriter implements Constants {
 		class ClinitPrepender implements Prepender, Constants {
 
 			MethodVisitor mv;
-			
-			private final static String descriptorFor_getReloadableType = "(II)"+lReloadableType;
-			private final static String descriptorFor_associateReloadableType = "("+lReloadableType+"Ljava/lang/Class;)V";
-			
+
+			private final static String descriptorFor_getReloadableType = "(II)" + lReloadableType;
+
+			private final static String descriptorFor_associateReloadableType = "(" + lReloadableType
+					+ "Ljava/lang/Class;)V";
+
 			ClinitPrepender(MethodVisitor mv) {
 				this.mv = mv;
 			}
@@ -779,13 +832,14 @@ public class TypeRewriter implements Constants {
 				// TODO optimization: could collapse ints into one but this snippet isn't put in many places
 				mv.visitLdcInsn(rtype.getTypeRegistryId());
 				mv.visitLdcInsn(rtype.getId());
-				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, "getReloadableType", descriptorFor_getReloadableType, false);
-				
+				mv.visitMethodInsn(INVOKESTATIC, tRegistryType, "getReloadableType", descriptorFor_getReloadableType,
+						false);
+
 				mv.visitFieldInsn(PUTSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
 				//				mv.visitFieldInsn(GETSTATIC, slashedname, fReloadableTypeFieldName, lReloadableType);
 				//				mv.visitLdcInsn(Type.getObjectType(rtype.getSlashedSupertypeName()));//Type("L" + rtype.getSlashedSupertypeName() + ";")); // faster way?
 				//				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "setSuperclass", "(Ljava/lang/Class;)V");
-				
+
 				// only in the top most type - what about interfaces??
 				if (GlobalConfiguration.fieldRewriting) {
 					mv.visitFieldInsn(GETSTATIC, slashedname, fStaticFieldsName, lStaticStateManager);
@@ -822,13 +876,17 @@ public class TypeRewriter implements Constants {
 		class AugmentingMethodAdapter extends MethodVisitor implements Opcodes {
 
 			int methodId;
+
 			String name;
+
 			String descriptor;
+
 			MethodMember method;
+
 			ReturnType returnType;
 
 			public AugmentingMethodAdapter(MethodVisitor mv, String name, String descriptor) {
-				super(ASM5,mv);
+				super(ASM5, mv);
 				this.name = name;
 				this.method = rtype.getMethod(name, descriptor);
 				this.methodId = method.getId();
@@ -868,7 +926,8 @@ public class TypeRewriter implements Constants {
 					TypeDescriptor superDescriptor = rtype.getTypeRegistry().getDescriptorFor(supertypeName);
 					if (!superDescriptor.definesNonPrivate(name + descriptor)) {
 						insertThrowNoSuchMethodError();
-					} else {
+					}
+					else {
 						insertInvokeSpecialToCallSuperMethod();
 					}
 					mv.visitLabel(wasOne);
@@ -880,7 +939,8 @@ public class TypeRewriter implements Constants {
 				int lvarIndex = 0;
 				if (!isStaticMethod) {
 					mv.visitVarInsn(ALOAD, lvarIndex++);
-				} else {
+				}
+				else {
 					mv.visitInsn(ACONST_NULL);
 				}
 				Utils.createLoadsBasedOnDescriptor(mv, descriptor, lvarIndex);
@@ -922,14 +982,19 @@ public class TypeRewriter implements Constants {
 		class AugmentingConstructorAdapter extends MethodVisitor implements Opcodes {
 
 			int ctorId;
+
 			String name;
+
 			String descriptor;
+
 			MethodMember method;
+
 			String type;
+
 			boolean isTopMost;
 
 			public AugmentingConstructorAdapter(MethodVisitor mv, String descriptor, String type, boolean isTopMost) {
-				super(ASM5,mv);
+				super(ASM5, mv);
 				this.descriptor = descriptor;
 				this.type = type;
 				this.isTopMost = isTopMost;
@@ -965,8 +1030,10 @@ public class TypeRewriter implements Constants {
 					mv.visitVarInsn(ALOAD, 1);
 					mv.visitVarInsn(ILOAD, 2);
 					mv.visitInsn(ACONST_NULL);
-					mv.visitMethodInsn(INVOKESPECIAL, slashedname, "<init>", "(Ljava/lang/String;ILorg/springsource/loaded/C;)V");
-				} else {
+					mv.visitMethodInsn(INVOKESPECIAL, slashedname, "<init>",
+							"(Ljava/lang/String;ILorg/springsource/loaded/C;)V");
+				}
+				else {
 					mv.visitInsn(ACONST_NULL);
 					mv.visitMethodInsn(INVOKESPECIAL, slashedname, "<init>", "(Lorg/springsource/loaded/C;)V");
 				}
@@ -1024,7 +1091,8 @@ public class TypeRewriter implements Constants {
 			}
 
 			@Override
-			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
+			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
+					final boolean itf) {
 				super.visitMethodInsn(opcode, owner, name, desc, itf);
 				if (opcode == INVOKESPECIAL) {
 					unitializedObjectsCount--;
@@ -1053,6 +1121,7 @@ public class TypeRewriter implements Constants {
 		}
 
 		interface Prepender {
+
 			void prepend();
 		}
 
@@ -1061,7 +1130,7 @@ public class TypeRewriter implements Constants {
 			Prepender appender;
 
 			public MethodPrepender(MethodVisitor mv, Prepender appender) {
-				super(ASM5,mv);
+				super(ASM5, mv);
 				this.appender = appender;
 			}
 

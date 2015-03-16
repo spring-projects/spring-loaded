@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 import java.io.File;
@@ -41,14 +42,16 @@ import org.springsource.loaded.test.TestUtils;
 public class SubLoader extends ClassLoader {
 
 	public static final boolean DEBUG_LOADING = false;
-	
+
 	// @formatter:off
-	static String[] folders = new String[] { 
+	static String[] folders = new String[] {
 		TestUtils.getPathToClasses("../testdata-subloader")
-		};
-	static String[] jars = new String[] { 
+	};
+
+	static String[] jars = new String[] {
 		"../testdata-groovy/groovy-all-1.8.6.jar"
-		};
+	};
+
 	// @formatter:on
 
 	TypeRegistry tr;
@@ -63,13 +66,14 @@ public class SubLoader extends ClassLoader {
 
 	public ReloadableType loadAsReloadableType(String typename) throws ClassNotFoundException {
 		if (DEBUG_LOADING) {
-			System.out.println("SubLoader: loading "+typename);
+			System.out.println("SubLoader: loading " + typename);
 		}
 		if (tr == null) {
 			tr = TypeRegistry.getTypeRegistryFor(this);
 		}
 		Class<?> clazz = loadClass(typename);
-		return TypeRegistry.getTypeRegistryFor(clazz.getClassLoader()).getReloadableType(typename.replace('.', '/'), false);
+		return TypeRegistry.getTypeRegistryFor(clazz.getClassLoader()).getReloadableType(typename.replace('.', '/'),
+				false);
 	}
 
 	public SubLoader(String metainfFolder) {
@@ -106,7 +110,8 @@ public class SubLoader extends ClassLoader {
 					break;
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Problem defining class", e);
 		}
@@ -142,7 +147,8 @@ public class SubLoader extends ClassLoader {
 					}
 					zipfile.close();
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				e.printStackTrace();
 				throw new RuntimeException("Problem defining class", e);
 			}
@@ -175,7 +181,8 @@ public class SubLoader extends ClassLoader {
 				zipfile.close();
 			}
 			return null;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -216,7 +223,8 @@ public class SubLoader extends ClassLoader {
 				}
 
 			};
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}

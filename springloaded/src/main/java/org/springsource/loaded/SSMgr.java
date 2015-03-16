@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Field;
@@ -22,10 +23,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Static State Manager. The top most class in every hierarchy of reloadable types gets a static state manager instance. The static
- * state manager is used to find the value of a field for a particular object instance. The FieldAccessor is added to the top most
- * type in a reloadable hierarchy and is accessible to all the subtypes. It maintains a map from type names to fields (name/value
- * pairs).
+ * Static State Manager. The top most class in every hierarchy of reloadable types gets a static state manager instance.
+ * The static state manager is used to find the value of a field for a particular object instance. The FieldAccessor is
+ * added to the top most type in a reloadable hierarchy and is accessible to all the subtypes. It maintains a map from
+ * type names to fields (name/value pairs).
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -48,12 +49,14 @@ public class SSMgr {
 		if (fieldmember == null) {
 			FieldReaderWriter flr = rtype.locateField(name);
 			if (flr == null) {
-				log.info("Unexpectedly unable to locate static field " + name + " starting from type " + rtype.dottedtypename
+				log.info("Unexpectedly unable to locate static field " + name + " starting from type "
+						+ rtype.dottedtypename
 						+ ": clinit running late?");
 				return null;
 			}
 			result = flr.getStaticFieldValue(rtype.getClazz(), this);
-		} else {
+		}
+		else {
 			if (!fieldmember.isStatic()) {
 				throw new IncompatibleClassChangeError("Expected static field " + rtype.dottedtypename + "."
 						+ fieldmember.getName());
@@ -90,11 +93,13 @@ public class SSMgr {
 							values.put(declaringTypeName, typeLevelValues);
 						}
 						typeLevelValues.put(name, result);
-					} catch (Exception e) {
+					}
+					catch (Exception e) {
 						throw new IllegalStateException("Unexpectedly unable to access field " + name + " on type "
 								+ rt.getClazz().getName(), e);
 					}
-				} else {
+				}
+				else {
 					// The field was not on the original type.  As not seen before, can default it
 					result = Utils.toResultCheckIfNull(null, fieldmember.getDescriptor());
 					if (typeLevelValues == null) {
@@ -135,12 +140,14 @@ public class SSMgr {
 			FieldReaderWriter frw = rtype.locateField(name);
 			if (frw == null) {
 				// bad code redeployed?
-				log.info("Unexpectedly unable to locate static field " + name + " starting from type " + rtype.dottedtypename
+				log.info("Unexpectedly unable to locate static field " + name + " starting from type "
+						+ rtype.dottedtypename
 						+ ": clinit running late?");
 				return;
 			}
 			frw.setStaticFieldValue(rtype.getClazz(), newValue, this);
-		} else {
+		}
+		else {
 			if (!fieldmember.isStatic()) {
 				throw new IncompatibleClassChangeError("Expected static field " + rtype.dottedtypename + "."
 						+ fieldmember.getName());

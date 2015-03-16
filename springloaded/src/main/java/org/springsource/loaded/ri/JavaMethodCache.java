@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.Method;
@@ -24,11 +25,11 @@ import org.springsource.loaded.MethodMember;
 
 
 /**
- * Creating Java Method objects for a given MethodMember is rather expensive because it typically involves getting. The declared
- * methods of a Class and searching for one that matches the method signature. This is most problematic when we are trying to get a
- * Method for an array of MethodMembers, because in this case we will end up repeating the process multiple times. A JavaMethodCache
- * instance can cache Method objects from the first time we iterate the declared methods of a class so subsequently we can just get
- * the other methods from the cache.
+ * Creating Java Method objects for a given MethodMember is rather expensive because it typically involves getting. The
+ * declared methods of a Class and searching for one that matches the method signature. This is most problematic when we
+ * are trying to get a Method for an array of MethodMembers, because in this case we will end up repeating the process
+ * multiple times. A JavaMethodCache instance can cache Method objects from the first time we iterate the declared
+ * methods of a class so subsequently we can just get the other methods from the cache.
  * 
  * @author Kris De Volder
  * @since 0.5.0

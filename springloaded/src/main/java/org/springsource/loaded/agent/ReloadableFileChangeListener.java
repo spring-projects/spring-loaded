@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.io.File;
@@ -37,6 +38,7 @@ public class ReloadableFileChangeListener implements FileChangeListener {
 	private static Logger log = Logger.getLogger(ReloadableFileChangeListener.class.getName());
 
 	private TypeRegistry typeRegistry;
+
 	private Map<File, ReloadableType> correspondingReloadableTypes = new HashMap<File, ReloadableType>();
 
 	public ReloadableFileChangeListener(TypeRegistry typeRegistry) {

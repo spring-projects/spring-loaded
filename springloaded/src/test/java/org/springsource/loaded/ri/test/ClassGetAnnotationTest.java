@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -38,11 +39,14 @@ public class ClassGetAnnotationTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String testedMethodCaller; // Method to call in 'invoker' class
+
 	private Class<? extends Annotation> annotClass; //Annotation class to test for
 
 	@Override
@@ -54,19 +58,22 @@ public class ClassGetAnnotationTest extends GenerativeSpringLoadedTest {
 	@Override
 	protected void chooseTestParameters() throws RejectedChoice, Exception {
 
-		testedMethodCaller = "call" + choice("Class", "AnnotatedElement") + choice("GetAnnotation", "IsAnnotationPresent");
+		testedMethodCaller = "call" + choice("Class", "AnnotatedElement")
+				+ choice("GetAnnotation", "IsAnnotationPresent");
 
 		toStringValue.append(testedMethodCaller + ": ");
 
 		if (choice()) {
 			toStringValue.append("NRL");
 			targetClass = targetClass(getTargetPackage() + "." + "ClassTarget");
-		} else if (choice()) {
+		}
+		else if (choice()) {
 			targetClass = targetClass("ClassTarget", choice("", "002", "003"));
 			if (!choice()) {
 				targetClass = targetClass("SubClassTarget", choice("", "002", "003"));
 			}
-		} else {
+		}
+		else {
 			targetClass = targetClass("InterfaceTarget", choice("", "002", "003"));
 			if (!choice()) {
 				targetClass = targetClass("SubInterfaceTarget", choice("", "002"));

@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springsource.loaded.test;
 
+package org.springsource.loaded.test;
 
 
 import org.junit.Assert;
@@ -32,8 +32,8 @@ public class ScenarioTests extends SpringLoadedTests {
 
 	// TODO either flesh out these scenarios or delete this class
 	/**
-	 * A class is run that returns a value. The class is modified and then called again - this time the new value should be
-	 * returned.
+	 * A class is run that returns a value. The class is modified and then called again - this time the new value should
+	 * be returned.
 	 */
 	public void scenarioOne_methodBodyChange() {
 		// actions:
@@ -90,9 +90,9 @@ public class ScenarioTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Scenario: A method is being discovered through reflection (getDeclaredMethods()). The method does not exist initially but is
-	 * introduced later. Once found, an attempt is made to access annotations on this method (through getDeclaredAnnotations()) -
-	 * these annotations do not exist initially but are then added.
+	 * Scenario: A method is being discovered through reflection (getDeclaredMethods()). The method does not exist
+	 * initially but is introduced later. Once found, an attempt is made to access annotations on this method (through
+	 * getDeclaredAnnotations()) - these annotations do not exist initially but are then added.
 	 */
 	@Test
 	public void scenarioB_methodReplacement() throws Exception {

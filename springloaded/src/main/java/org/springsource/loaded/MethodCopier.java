@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import org.objectweb.asm.Label;
@@ -28,15 +29,21 @@ import org.springsource.loaded.Utils.ReturnType;
 class MethodCopier extends MethodVisitor implements Constants {
 
 	private boolean isInterface;
+
 	private String descriptor;
+
 	private TypeDescriptor typeDescriptor;
+
 	private String classname;
+
 	private String suffix;
+
 	private boolean hasFieldsRequiringAccessors;
 
-	public MethodCopier(MethodVisitor mv, boolean isInterface, String descriptor, TypeDescriptor typeDescriptor, String classname,
+	public MethodCopier(MethodVisitor mv, boolean isInterface, String descriptor, TypeDescriptor typeDescriptor,
+			String classname,
 			String suffix) {
-		super(ASM5,mv);
+		super(ASM5, mv);
 		this.isInterface = isInterface;
 		this.descriptor = descriptor;
 		this.typeDescriptor = typeDescriptor;
@@ -50,7 +57,8 @@ class MethodCopier extends MethodVisitor implements Constants {
 		// Rename 'this' to 'thiz' in executor otherwise Eclipse debugger will fail (static method with 'this')
 		if (index == 0 && name.equals("this")) {
 			super.visitLocalVariable("thiz", desc, signature, start, end, index);
-		} else {
+		}
+		else {
 			super.visitLocalVariable(name, desc, signature, start, end, index);
 		}
 	}
@@ -76,9 +84,9 @@ class MethodCopier extends MethodVisitor implements Constants {
 	}
 
 	/**
-	 * Determine if the supplied type is a supertype of the current type we are modifying. This is used to determine if the owner we
-	 * have discovered for a field is one of our supertypes (and so, if it is protected, whether it is something that needs
-	 * redirecting through an accessor).
+	 * Determine if the supplied type is a supertype of the current type we are modifying. This is used to determine if
+	 * the owner we have discovered for a field is one of our supertypes (and so, if it is protected, whether it is
+	 * something that needs redirecting through an accessor).
 	 * 
 	 * @param type the type which may be one of this types supertypes
 	 * @return true if it is a supertype
@@ -94,7 +102,7 @@ class MethodCopier extends MethodVisitor implements Constants {
 		}
 		return false;
 	}
-	
+
 	private TypeDescriptor getType(String type) {
 		TypeDescriptor typeDescriptor = this.typeDescriptor.getTypeRegistry().getDescriptorFor(type);
 		return typeDescriptor;
@@ -107,18 +115,22 @@ class MethodCopier extends MethodVisitor implements Constants {
 			FieldMember fm = findFieldIfRequiresAccessorUsage(owner, name);
 			if (fm != null) {
 				switch (opcode) {
-				case GETFIELD:
-					mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldGetterName(name), "()" + desc, false);
-					return;
-				case PUTFIELD:
-					mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldSetterName(name), "(" + desc + ")V", false);
-					return;
-				case GETSTATIC:
-					mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldGetterName(name), "()" + desc, false);
-					return;
-				case PUTSTATIC:
-					mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldSetterName(name), "(" + desc + ")V", false);
-					return;
+					case GETFIELD:
+						mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldGetterName(name), "()"
+								+ desc, false);
+						return;
+					case PUTFIELD:
+						mv.visitMethodInsn(INVOKEVIRTUAL, classname, Utils.getProtectedFieldSetterName(name), "("
+								+ desc + ")V", false);
+						return;
+					case GETSTATIC:
+						mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldGetterName(name), "()"
+								+ desc, false);
+						return;
+					case PUTSTATIC:
+						mv.visitMethodInsn(INVOKESTATIC, classname, Utils.getProtectedFieldSetterName(name), "(" + desc
+								+ ")V", false);
+						return;
 				}
 			}
 		}
@@ -137,18 +149,20 @@ class MethodCopier extends MethodVisitor implements Constants {
 				String descriptor = Utils.insertExtraParameter(owner, desc);
 				super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor, false);
 				return;
-			} else {
+			}
+			else {
 				// super call
 				// TODO Check if this is true: we can just call the catcher directly if there was one, there is no need
 				// for a superdispatcher
 
 				// Only need to redirect to the superdispatcher if it was a protected method
 				TypeDescriptor supertypeDescriptor = getType(owner);
-				MethodMember target = supertypeDescriptor.getByNameAndDescriptor(name+desc);
-				if (target!=null && target.isProtected()) {
+				MethodMember target = supertypeDescriptor.getByNameAndDescriptor(name + desc);
+				if (target != null && target.isProtected()) {
 					// A null target means that method is not in the supertype, so didn't get a superdispatcher
-					super.visitMethodInsn(INVOKESPECIAL,classname,name+methodSuffixSuperDispatcher,desc, false);
-				} else {
+					super.visitMethodInsn(INVOKESPECIAL, classname, name + methodSuffixSuperDispatcher, desc, false);
+				}
+				else {
 					super.visitMethodInsn(opcode, owner, name, desc, itf);
 				}
 				return;
@@ -183,33 +197,35 @@ class MethodCopier extends MethodVisitor implements Constants {
 		if (returnType.isVoid()) {
 			super.visitInsn(RETURN);
 			super.visitMaxs(1, descriptorSize);
-		} else if (returnType.isPrimitive()) {
+		}
+		else if (returnType.isPrimitive()) {
 			super.visitLdcInsn(0);
 			switch (returnType.descriptor.charAt(0)) {
-			case 'B':
-			case 'C':
-			case 'I':
-			case 'S':
-			case 'Z':
-				super.visitInsn(IRETURN);
-				super.visitMaxs(2, descriptorSize);
-				break;
-			case 'D':
-				super.visitInsn(DRETURN);
-				super.visitMaxs(3, descriptorSize);
-				break;
-			case 'F':
-				super.visitInsn(FRETURN);
-				super.visitMaxs(2, descriptorSize);
-				break;
-			case 'J':
-				super.visitInsn(LRETURN);
-				super.visitMaxs(3, descriptorSize);
-				break;
-			default:
-				throw new IllegalStateException(returnType.descriptor);
+				case 'B':
+				case 'C':
+				case 'I':
+				case 'S':
+				case 'Z':
+					super.visitInsn(IRETURN);
+					super.visitMaxs(2, descriptorSize);
+					break;
+				case 'D':
+					super.visitInsn(DRETURN);
+					super.visitMaxs(3, descriptorSize);
+					break;
+				case 'F':
+					super.visitInsn(FRETURN);
+					super.visitMaxs(2, descriptorSize);
+					break;
+				case 'J':
+					super.visitInsn(LRETURN);
+					super.visitMaxs(3, descriptorSize);
+					break;
+				default:
+					throw new IllegalStateException(returnType.descriptor);
 			}
-		} else {
+		}
+		else {
 			// reference type
 			super.visitInsn(ACONST_NULL);
 			super.visitInsn(ARETURN);

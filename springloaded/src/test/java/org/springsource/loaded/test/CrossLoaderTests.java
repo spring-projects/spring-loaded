@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -210,21 +211,21 @@ public class CrossLoaderTests extends SpringLoadedTests {
 		result = runUnguarded(invokerR.getClazz(), "run");
 		assertEquals("TargetB002.m() running", result.stdout);
 	}
-	
+
 	@Test
 	public void superdispatchers() throws Exception {
 		String sub = "subpkg.Controller";
-		
+
 		ReloadableType subR = subLoader.loadAsReloadableType(sub);
-		
+
 		Result result = runOnInstance(subR.getClazz(), subR.getClazz().newInstance(), "foo");
-		assertEquals("grails.Top.foo() running\nsubpkg.ControllerB.foo() running",result.stdout);
+		assertEquals("grails.Top.foo() running\nsubpkg.ControllerB.foo() running", result.stdout);
 
 		// Reload the subtype
-		subR.loadNewVersion("2",retrieveRename(sub,sub+"002"));
-		
+		subR.loadNewVersion("2", retrieveRename(sub, sub + "002"));
+
 		result = runOnInstance(subR.getClazz(), subR.getClazz().newInstance(), "foo");
-		assertEquals("grails.Top.foo() running\nsubpkg.ControllerB.foo() running again!",result.stdout);
+		assertEquals("grails.Top.foo() running\nsubpkg.ControllerB.foo() running again!", result.stdout);
 	}
 
 	/**
@@ -253,16 +254,17 @@ public class CrossLoaderTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(invokerR.getClazz(), "run");
 			fail("");
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertTrue(ite.getCause() instanceof NoSuchMethodError);
 			assertEquals("TargetB.m()V", ite.getCause().getMessage());
 		}
 	}
 
 	/**
-	 * This is testing field access when the value of the field is being checked against what is allowed to be returned. With
-	 * multiple classloaders around this can get a little messy, say the method returns 'Serializable' but the actual method returns
-	 * a type that the reloadable types classloader can't see (something from a subloader).<br>
+	 * This is testing field access when the value of the field is being checked against what is allowed to be returned.
+	 * With multiple classloaders around this can get a little messy, say the method returns 'Serializable' but the
+	 * actual method returns a type that the reloadable types classloader can't see (something from a subloader).<br>
 	 * Heres a trace when things go wrong:
 	 * 
 	 * Caused by: org.springsource.loaded.UnableToLoadClassException: Unable to find data for class 'subpkg/Subby' at
@@ -299,7 +301,8 @@ public class CrossLoaderTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * In a class loaded by the subloader, calling a new method in a class loaded by the superloader using super<dot>. (ispcheck)
+	 * In a class loaded by the subloader, calling a new method in a class loaded by the superloader using super<dot>.
+	 * (ispcheck)
 	 */
 	@Test
 	public void reloadTargetInSuperLoaderCallingSuper() throws Exception {
@@ -360,15 +363,16 @@ public class CrossLoaderTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(invokerR.getClazz(), "run");
 			fail("");
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertTrue(ite.getCause() instanceof NoSuchMethodError);
 			assertEquals("TargetC.m()V", ite.getCause().getMessage());
 		}
 	}
 
 	/**
-	 * Now calling through an interface loaded by the superloader (iincheck). This time a new method is added to the interface which
-	 * is *already* implemented by the impl.
+	 * Now calling through an interface loaded by the superloader (iincheck). This time a new method is added to the
+	 * interface which is *already* implemented by the impl.
 	 */
 	@Test
 	public void reloadTargetInterfaceIsInSuperloader2() throws Exception {
@@ -397,56 +401,56 @@ public class CrossLoaderTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(invokerR.getClazz(), "run");
 			fail("");
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			assertTrue(ite.getCause() instanceof NoSuchMethodError);
 			assertEquals("TargetC.n()V", ite.getCause().getMessage());
 		}
 	}
-	
 
-	
+
 	// Large scale test loading a bunch of types and verifying what happens in terms of tagging
 	@Test
 	public void verifyingAssociatedTypesInfo2() throws Exception {
 		// associatedtypes (top and middle) are in the super loader
 		// subassociatedtypes (bottom) are in the sub loader
-				
+
 		ReloadableType bm = subLoader.loadAsReloadableType("associatedtypes.CM");
 
 		ReloadableType cm = subLoader.loadAsReloadableType("associatedtypes.CM");
 		assertNotNull(cm);
-		assertNotEquals(subLoader,cm.getClazz().getClassLoader());
+		assertNotEquals(subLoader, cm.getClazz().getClassLoader());
 		ReloadableType im1 = subLoader.loadAsReloadableType("associatedtypes.IM");
 		assertNotNull(im1);
-		
+
 		runUnguarded(cm.getClazz(), "run"); // Cause clinit to run so associations are setup
 
 		assertContains("associatedtypes.CM", toString(im1.getAssociatedSubtypes()));
 		assertFalse(cm.isAffectedByReload());
 		assertFalse(cm.isAffectedByReload());
 		assertFalse(bm.isAffectedByReload());
-		
+
 		// Load CM again, should tag CM and IM
-		cm.loadNewVersion("2",cm.bytesInitial);
-		
+		cm.loadNewVersion("2", cm.bytesInitial);
+
 		assertTrue(cm.isAffectedByReload());
 		assertTrue(im1.isAffectedByReload());
 		assertTrue(bm.isAffectedByReload());
 	}
-	
+
 	public String toString(List<Reference<ReloadableType>> list) {
-		if (list==null) {
+		if (list == null) {
 			return "null";
 		}
 		StringBuilder b = new StringBuilder();
 		b.append("[");
-		for (int i=0;i<list.size();i++) {
-			if (i>0) {
+		for (int i = 0; i < list.size(); i++) {
+			if (i > 0) {
 				b.append(",");
 			}
 			Reference<ReloadableType> ref = list.get(i);
 			ReloadableType rtype = ref.get();
-			if (rtype!=null) {
+			if (rtype != null) {
 				b.append(rtype.getName());
 			}
 		}
@@ -502,6 +506,7 @@ public class CrossLoaderTests extends SpringLoadedTests {
 		//		assertContains("[void example.Simple.boo()]", output);
 		//		assertDoesNotContain("Simple2.boo running()", output);
 	}
+
 	// TODO tests:
 	// - cglib representative tests?
 	// - supertype not reloadable
@@ -516,18 +521,18 @@ public class CrossLoaderTests extends SpringLoadedTests {
 	// set the superclass for a reloadabletype when the clinit runs for the subtype, for quicker lookup of exactly the type we need (getRegistryFor(clazz.getClassLoader())
 	// use those sparse arrays and ID numbers more so that type lookups can be quicker.  Once we truly discover the right super type reference from a subtype, fill it in in the array
 	// optimize for the case where there will only be one type around of a given name *usually*
-	
+
 	@Test
 	public void github34() throws Exception {
 		ReloadableType rtypeA = subLoader.loadAsReloadableType("issue34.Implementation3");
 		result = runUnguarded(rtypeA.getClazz(), "run");
 		assertEquals("Hello World!", result.stdout);
 
-//		ReloadableType rtypeB = subLoader.loadAsReloadableType("subpkg.Bottom");
-//		result = runUnguarded(rtypeB.getClazz(), "m");
-//		assertEquals("Bottom.m() running", result.stdout);
-//		assertNotSame(rtypeA.getTypeRegistry(), rtypeB.getTypeRegistry());
+		//		ReloadableType rtypeB = subLoader.loadAsReloadableType("subpkg.Bottom");
+		//		result = runUnguarded(rtypeB.getClazz(), "m");
+		//		assertEquals("Bottom.m() running", result.stdout);
+		//		assertNotSame(rtypeA.getTypeRegistry(), rtypeB.getTypeRegistry());
 	}
-	
-	
+
+
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -79,64 +80,85 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 		rtype.loadNewVersion("2", rtype.bytesInitial);
 
 		// @formatter:off
-		checkType(rtype.getLatestExecutorBytes(),
-				"CLASS: executor/TestOne$$E2 v50 0x0001(public) super java/lang/Object\n"+
-				"SOURCE: TestOne.java null\n"+
-				"FIELD 0x0001(public) i I\n"+
-				"METHOD: 0x0009(public static) ___init___(Lexecutor/TestOne;)V\n"+
-				"    CODE\n"+
-				" L0\n"+
-				"    ALOAD 0\n"+
-				"    POP\n"+
-				" L1\n"+
-				"    ALOAD 0\n"+
-				"    BIPUSH 101\n"+
-				"    LDC 0\n"+
-				"    LDC i\n"+
-				"    INVOKESTATIC org/springsource/loaded/TypeRegistry.instanceFieldInterceptionRequired(ILjava/lang/String;)Z\n"+
-				"    IFEQ L2\n"+
-				"    INVOKESTATIC java/lang/Integer.valueOf(I)Ljava/lang/Integer;\n"+
-				"    SWAP\n"+
-				"    DUP_X1\n"+
-				"    LDC i\n"+
-				"    INVOKESPECIAL executor/TestOne.r$set(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V\n"+
-				"    GOTO L3\n"+
-				" L2\n"+
-				"    PUTFIELD executor/TestOne.i I\n"+
-				" L3\n"+
-				"    RETURN\n"+
-				" L4\n"+
-				"METHOD: 0x0009(public static) foo(Lexecutor/TestOne;Ljava/lang/String;)J\n"+
-				"    CODE\n"+
-				" L0\n"+
-				"    ALOAD 1\n"+
-				"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n"+
-				"    LRETURN\n"+
-				" L1\n"+
-				"METHOD: 0x0009(public static) hashCode(Lexecutor/TestOne;)I\n"+
-				"    CODE\n"+
-				" L0\n"+
-				"    BIPUSH 37\n"+
-				"    IRETURN\n"+
-				" L1\n"+
-				"\n");
+		checkType(
+				rtype.getLatestExecutorBytes(),
+				"CLASS: executor/TestOne$$E2 v50 0x0001(public) super java/lang/Object\n"
+						+
+						"SOURCE: TestOne.java null\n"
+						+
+						"FIELD 0x0001(public) i I\n"
+						+
+						"METHOD: 0x0009(public static) ___init___(Lexecutor/TestOne;)V\n"
+						+
+						"    CODE\n"
+						+
+						" L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    POP\n"
+						+
+						" L1\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    BIPUSH 101\n"
+						+
+						"    LDC 0\n"
+						+
+						"    LDC i\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.instanceFieldInterceptionRequired(ILjava/lang/String;)Z\n"
+						+
+						"    IFEQ L2\n"
+						+
+						"    INVOKESTATIC java/lang/Integer.valueOf(I)Ljava/lang/Integer;\n"
+						+
+						"    SWAP\n"
+						+
+						"    DUP_X1\n"
+						+
+						"    LDC i\n"
+						+
+						"    INVOKESPECIAL executor/TestOne.r$set(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V\n"
+						+
+						"    GOTO L3\n" +
+						" L2\n" +
+						"    PUTFIELD executor/TestOne.i I\n" +
+						" L3\n" +
+						"    RETURN\n" +
+						" L4\n" +
+						"METHOD: 0x0009(public static) foo(Lexecutor/TestOne;Ljava/lang/String;)J\n" +
+						"    CODE\n" +
+						" L0\n" +
+						"    ALOAD 1\n" +
+						"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n" +
+						"    LRETURN\n" +
+						" L1\n" +
+						"METHOD: 0x0009(public static) hashCode(Lexecutor/TestOne;)I\n" +
+						"    CODE\n" +
+						" L0\n" +
+						"    BIPUSH 37\n" +
+						"    IRETURN\n" +
+						" L1\n" +
+						"\n");
 
 		Assert.assertEquals(
-				" L0\n"+
-				"    ALOAD 1\n"+
-				"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n"+
-				"    LRETURN\n"+
-				" L1\n",
-				toStringMethod(rtype.getLatestExecutorBytes(),"foo",false));
+				" L0\n" +
+						"    ALOAD 1\n" +
+						"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n" +
+						"    LRETURN\n" +
+						" L1\n",
+				toStringMethod(rtype.getLatestExecutorBytes(), "foo", false));
 		// @formatter:on
 
 		// @formatter:off
 		Assert.assertEquals(
-				" L0\n"+
-				"    BIPUSH 37\n"+
-				"    IRETURN\n"+
-				" L1\n",
-				toStringMethod(rtype.getLatestExecutorBytes(),"hashCode",false));
+				" L0\n" +
+						"    BIPUSH 37\n" +
+						"    IRETURN\n" +
+						" L1\n",
+				toStringMethod(rtype.getLatestExecutorBytes(), "hashCode", false));
 		// @formatter:on
 	}
 
@@ -152,78 +174,116 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 		// testing executor is for second version and not first
 
 		// @formatter:off
-		checkType(rtype.getLatestExecutorBytes(),
-				"CLASS: executor/TestOne$$E2 v50 0x0001(public) super java/lang/Object\n"+
-				"SOURCE: TestOne2.java null\n"+
-				"FIELD 0x0001(public) i I\n"+
-				"METHOD: 0x0009(public static) ___init___(Lexecutor/TestOne;)V\n"+
-				"    CODE\n"+
-				" L0\n"+
-				"    ALOAD 0\n"+
-				"    POP\n"+
-				"    RETURN\n"+
-				" L1\n"+
-				"METHOD: 0x0009(public static) foo(Lexecutor/TestOne;Ljava/lang/String;)J\n"+
-				"    CODE\n"+
-				" L0\n"+
-				"    ALOAD 1\n"+
-				"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n"+
-				"    LRETURN\n"+
-				" L1\n"+
-				"METHOD: 0x0009(public static) hashCode(Lexecutor/TestOne;)I\n"+
-				"    CODE\n"+
-				" L0\n"+
-				"    ALOAD 0\n"+
-				"    LDC 0\n"+
-				"    LDC i\n"+
-				"    INVOKESTATIC org/springsource/loaded/TypeRegistry.instanceFieldInterceptionRequired(ILjava/lang/String;)Z\n"+
-				"    IFEQ L1\n"+
-				"    DUP\n"+
-				"    LDC i\n"+
-				"    INVOKESPECIAL executor/TestOne.r$get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"+
-				"    CHECKCAST java/lang/Integer\n"+
-				"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n"+
-				"    GOTO L2\n"+
-				" L1\n"+
-				"    GETFIELD executor/TestOne.i I\n"+
-				" L2\n"+
-				"    ICONST_2\n"+
-				"    IMUL\n"+
-				"    IRETURN\n"+
-				" L3\n"+
-				"\n");
+		checkType(
+				rtype.getLatestExecutorBytes(),
+				"CLASS: executor/TestOne$$E2 v50 0x0001(public) super java/lang/Object\n"
+						+
+						"SOURCE: TestOne2.java null\n"
+						+
+						"FIELD 0x0001(public) i I\n"
+						+
+						"METHOD: 0x0009(public static) ___init___(Lexecutor/TestOne;)V\n"
+						+
+						"    CODE\n"
+						+
+						" L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    POP\n"
+						+
+						"    RETURN\n"
+						+
+						" L1\n"
+						+
+						"METHOD: 0x0009(public static) foo(Lexecutor/TestOne;Ljava/lang/String;)J\n"
+						+
+						"    CODE\n"
+						+
+						" L0\n"
+						+
+						"    ALOAD 1\n"
+						+
+						"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n"
+						+
+						"    LRETURN\n"
+						+
+						" L1\n"
+						+
+						"METHOD: 0x0009(public static) hashCode(Lexecutor/TestOne;)I\n"
+						+
+						"    CODE\n"
+						+
+						" L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    LDC 0\n"
+						+
+						"    LDC i\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.instanceFieldInterceptionRequired(ILjava/lang/String;)Z\n"
+						+
+						"    IFEQ L1\n"
+						+
+						"    DUP\n"
+						+
+						"    LDC i\n"
+						+
+						"    INVOKESPECIAL executor/TestOne.r$get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						+
+						"    CHECKCAST java/lang/Integer\n" +
+						"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n" +
+						"    GOTO L2\n" +
+						" L1\n" +
+						"    GETFIELD executor/TestOne.i I\n" +
+						" L2\n" +
+						"    ICONST_2\n" +
+						"    IMUL\n" +
+						"    IRETURN\n" +
+						" L3\n" +
+						"\n");
 
 		Assert.assertEquals(
-				" L0\n"+
-				"    ALOAD 1\n"+
-				"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n"+
-				"    LRETURN\n"+
-				" L1\n",
-				toStringMethod(rtype.getLatestExecutorBytes(),"foo",false));
+				" L0\n" +
+						"    ALOAD 1\n" +
+						"    INVOKESTATIC java/lang/Long.parseLong(Ljava/lang/String;)J\n" +
+						"    LRETURN\n" +
+						" L1\n",
+				toStringMethod(rtype.getLatestExecutorBytes(), "foo", false));
 		// @formatter:on
 		//
 		// @formatter:off
 		Assert.assertEquals(
-				" L0\n"+
-				"    ALOAD 0\n"+
-				"    LDC 0\n"+
-				"    LDC i\n"+
-				"    INVOKESTATIC org/springsource/loaded/TypeRegistry.instanceFieldInterceptionRequired(ILjava/lang/String;)Z\n"+
-				"    IFEQ L1\n"+
-				"    DUP\n"+
-				"    LDC i\n"+
-				"    INVOKESPECIAL executor/TestOne.r$get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"+
-				"    CHECKCAST java/lang/Integer\n"+
-				"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n"+
-				"    GOTO L2\n"+
-				" L1\n"+
-				"    GETFIELD executor/TestOne.i I\n"+
-				" L2\n"+
-				"    ICONST_2\n"+
-				"    IMUL\n"+
-				"    IRETURN\n"+
-				" L3\n",
-				toStringMethod(rtype.getLatestExecutorBytes(),"hashCode",false));
+				" L0\n"
+						+
+						"    ALOAD 0\n"
+						+
+						"    LDC 0\n"
+						+
+						"    LDC i\n"
+						+
+						"    INVOKESTATIC org/springsource/loaded/TypeRegistry.instanceFieldInterceptionRequired(ILjava/lang/String;)Z\n"
+						+
+						"    IFEQ L1\n"
+						+
+						"    DUP\n"
+						+
+						"    LDC i\n"
+						+
+						"    INVOKESPECIAL executor/TestOne.r$get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						+
+						"    CHECKCAST java/lang/Integer\n" +
+						"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n" +
+						"    GOTO L2\n" +
+						" L1\n" +
+						"    GETFIELD executor/TestOne.i I\n" +
+						" L2\n" +
+						"    ICONST_2\n" +
+						"    IMUL\n" +
+						"    IRETURN\n" +
+						" L3\n",
+				toStringMethod(rtype.getLatestExecutorBytes(), "hashCode", false));
 		// @formatter:on
 	}
 
@@ -244,8 +304,8 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Testing that type level annotations are copied to the executor. This loads a different form of the type with a second
-	 * annotation.
+	 * Testing that type level annotations are copied to the executor. This loads a different form of the type with a
+	 * second annotation.
 	 */
 	@Test
 	public void typeLevelAnnotations2() {
@@ -265,8 +325,8 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 		Assert.assertTrue(s.remove("@common.Marker()"));
 		// Allow for alternate toString() variant
 		if (!s.remove("@common.Anno(someValue=37, longValue=2, id=abc)")) {
-			Assert.assertTrue(s.remove("@common.Anno(longValue=2, someValue=37, id=abc)"));			
-		} 
+			Assert.assertTrue(s.remove("@common.Anno(longValue=2, someValue=37, id=abc)"));
+		}
 		Assert.assertEquals(0, s.size());
 	}
 
@@ -282,7 +342,8 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/B;)V");
 		rtype.loadNewVersion("39", retrieveRename("executor.B", "executor.B2"));
 		checkAnnotations(rtype.getLatestExecutorBytes(), "m(Lexecutor/B;)V");
-		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/B;)V", "@common.Marker()", "@common.Anno(id=abc)");
+		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/B;)V", "@common.Marker()",
+				"@common.Anno(id=abc)");
 	}
 
 	@Test
@@ -297,39 +358,43 @@ public class ExecutorBuilderTests extends SpringLoadedTests {
 		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/I;)V");
 		rtype.loadNewVersion("39", retrieveRename("executor.I", "executor.I2"));
 		checkAnnotations(rtype.getLatestExecutorBytes(), "m(Lexecutor/I;)V");
-		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/I;)V", "@common.Marker()", "@common.Anno(id=abc)");
+		checkAnnotations(rtype.getLatestExecutorBytes(), "m2(Lexecutor/I;)V", "@common.Marker()",
+				"@common.Anno(id=abc)");
 		Method m = rtype.getLatestExecutorClass().getDeclaredMethod("m2", rtype.getClazz());
 		assertEquals("@common.Marker()", m.getAnnotations()[0].toString());
-		assertIsOneOfThese(printAnnotation(m.getAnnotations()[1]),"@common.Anno(someValue=37, longValue=2, id=abc)", "@common.Anno(longValue=2, someValue=37, id=abc)");
+		assertIsOneOfThese(printAnnotation(m.getAnnotations()[1]), "@common.Anno(someValue=37, longValue=2, id=abc)",
+				"@common.Anno(longValue=2, someValue=37, id=abc)");
 	}
-	
+
 	/**
 	 * Check the actual value is one of the possible options.
 	 */
 	private void assertIsOneOfThese(String actual, String... possibleValues) {
 		StringBuilder buf = new StringBuilder();
-		for (int i=0;i<possibleValues.length;i++) {
+		for (int i = 0; i < possibleValues.length; i++) {
 			if (actual.equals(possibleValues[i])) {
 				return;
 			}
-			buf.append("'"+possibleValues[i]+"'").append("\n");
+			buf.append("'" + possibleValues[i] + "'").append("\n");
 		}
-		fail("The value:\n'"+actual+"'\n does not match one of these possible options:\n"+buf.toString());
+		fail("The value:\n'" + actual + "'\n does not match one of these possible options:\n" + buf.toString());
 	}
-//	
+
+	//	
 	private String printAnnotation(Annotation a) {
 		return a.toString();
-//		StringBuilder buf = new StringBuilder();
-//		printAnnotationHelper(buf,a);
-//		return buf.toString();
+		//		StringBuilder buf = new StringBuilder();
+		//		printAnnotationHelper(buf,a);
+		//		return buf.toString();
 	}
-//
-//	private void printAnnotationHelper(StringBuilder buf, Annotation a) {
-//		Class<?> clazz = a.annotationType();a.toString()
-//		clazz.getDeclaredFields()[0].get
-//		System.out.println(a.annotationType());
-//		
-//	}
+
+	//
+	//	private void printAnnotationHelper(StringBuilder buf, Annotation a) {
+	//		Class<?> clazz = a.annotationType();a.toString()
+	//		clazz.getDeclaredFields()[0].get
+	//		System.out.println(a.annotationType());
+	//		
+	//	}
 
 	@Test
 	public void methodLevelAnnotationsOnInterfaces2() throws Exception {

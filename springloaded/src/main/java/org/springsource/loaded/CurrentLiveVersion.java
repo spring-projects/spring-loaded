@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Field;
@@ -45,24 +46,31 @@ public class CurrentLiveVersion {
 	public final IncrementalTypeDescriptor incrementalTypeDescriptor;
 
 	String dispatcherName;
+
 	byte[] dispatcher;
+
 	Class<?> dispatcherClass;
+
 	Object dispatcherInstance;
 
 	String executorName;
+
 	byte[] executor;
+
 	Class<?> executorClass;
 
 	TypeDelta typeDelta;
 
 	private Method staticInitializer;
+
 	private boolean haveLookedForStaticInitializer;
 
 	public boolean staticInitializedNeedsRerunningOnDefine = false;
 
 	public CurrentLiveVersion(ReloadableType reloadableType, String versionstamp, byte[] newbytedata) {
 		if (GlobalConfiguration.logging && log.isLoggable(Level.FINER)) {
-			log.entering("CurrentLiveVersion", "<init>", " new version of " + reloadableType.getName() + " loaded, version stamp '"
+			log.entering("CurrentLiveVersion", "<init>", " new version of " + reloadableType.getName()
+					+ " loaded, version stamp '"
 					+ versionstamp + "'");
 		}
 		this.reloadableType = reloadableType;
@@ -71,19 +79,22 @@ public class CurrentLiveVersion {
 
 		if (GlobalConfiguration.assertsMode) {
 			if (!this.typeDescriptor.getName().equals(reloadableType.typedescriptor.getName())) {
-				throw new IllegalStateException("New version has wrong name.  Expected " + reloadableType.typedescriptor.getName()
+				throw new IllegalStateException("New version has wrong name.  Expected "
+						+ reloadableType.typedescriptor.getName()
 						+ " but was " + typeDescriptor.getName());
 			}
 		}
 
-		newbytedata = GlobalConfiguration.callsideRewritingOn ? MethodInvokerRewriter.rewrite(reloadableType.typeRegistry,
+		newbytedata = GlobalConfiguration.callsideRewritingOn ? MethodInvokerRewriter.rewrite(
+				reloadableType.typeRegistry,
 				newbytedata) : newbytedata;
 
 		this.incrementalTypeDescriptor = new IncrementalTypeDescriptor(reloadableType.typedescriptor);
 		this.incrementalTypeDescriptor.setLatestTypeDescriptor(this.typeDescriptor);
 
 		// Executors for interfaces simply hold annotations
-		this.executor = reloadableType.getTypeRegistry().executorBuilder.createFor(reloadableType, versionstamp, typeDescriptor,
+		this.executor = reloadableType.getTypeRegistry().executorBuilder.createFor(reloadableType, versionstamp,
+				typeDescriptor,
 				newbytedata);
 
 		if (GlobalConfiguration.classesToDump != null
@@ -100,8 +111,8 @@ public class CurrentLiveVersion {
 	}
 
 	/**
-	 * Defines this version. Called up front but can also be called later if the ChildClassLoader in a type registry is discarded
-	 * and recreated.
+	 * Defines this version. Called up front but can also be called later if the ChildClassLoader in a type registry is
+	 * discarded and recreated.
 	 */
 	public void define() {
 		staticInitializer = null;
@@ -109,31 +120,37 @@ public class CurrentLiveVersion {
 		if (!typeDescriptor.isInterface()) {
 			try {
 				dispatcherClass = reloadableType.typeRegistry.defineClass(dispatcherName, dispatcher, false);
-			} catch (RuntimeException t) {
+			}
+			catch (RuntimeException t) {
 				// TODO check for something strange.  something to do with the file detection misbehaving, see the same file attempted to be reloaded twice...
 				if (t.getMessage().indexOf("duplicate class definition") == -1) {
 					throw t;
-				} else {
+				}
+				else {
 					t.printStackTrace();
 				}
 			}
 		}
 		try {
 			executorClass = reloadableType.typeRegistry.defineClass(executorName, executor, false);
-		} catch (RuntimeException t) {
+		}
+		catch (RuntimeException t) {
 			// TODO check for something strange.  something to do with the file detection misbehaving, see the same file attempted to be reloaded twice...
 			if (t.getMessage().indexOf("duplicate class definition") == -1) {
 				throw t;
-			} else {
+			}
+			else {
 				t.printStackTrace();
 			}
 		}
 		if (!typeDescriptor.isInterface()) {
 			try {
 				dispatcherInstance = dispatcherClass.newInstance();
-			} catch (InstantiationException e) {
+			}
+			catch (InstantiationException e) {
 				throw new RuntimeException("Unable to build dispatcher class instance", e);
-			} catch (IllegalAccessException e) {
+			}
+			catch (IllegalAccessException e) {
 				throw new RuntimeException("Unable to build dispatcher class instance", e);
 			}
 		}
@@ -160,7 +177,8 @@ public class CurrentLiveVersion {
 		//What to search for:
 		if (methodMember.isConstructor()) {
 			name = Constants.mInitializerName;
-		} else {
+		}
+		else {
 			name = methodMember.getName();
 		}
 		executorDescriptor = getExecutorDescriptor(methodMember);
@@ -185,13 +203,15 @@ public class CurrentLiveVersion {
 			System.arraycopy(params, 0, newParametersArray, 1, params.length);
 			newParametersArray[0] = Type.getType(reloadableType.getClazz());
 		}
-		String executorDescriptor = Type.getMethodDescriptor(Type.getReturnType(methodMember.getDescriptor()), newParametersArray);
+		String executorDescriptor = Type.getMethodDescriptor(Type.getReturnType(methodMember.getDescriptor()),
+				newParametersArray);
 		return executorDescriptor;
 	}
 
 	@Override
 	public String toString() {
-		return "CurrentLiveVersion [reloadableType=" + reloadableType + ", typeDescriptor=" + typeDescriptor + ", versionstamp="
+		return "CurrentLiveVersion [reloadableType=" + reloadableType + ", typeDescriptor=" + typeDescriptor
+				+ ", versionstamp="
 				+ versionstamp + ", dispatcherName=" + dispatcherName + ", executorName=" + executorName + "]";
 	}
 
@@ -277,7 +297,8 @@ public class CurrentLiveVersion {
 		if (!haveLookedForStaticInitializer) {
 			try {
 				staticInitializer = this.getExecutorClass().getDeclaredMethod(Constants.mStaticInitializerName);
-			} catch (NoSuchMethodException e) {
+			}
+			catch (NoSuchMethodException e) {
 				// some types don't have a static initializer, that is OK
 			}
 			haveLookedForStaticInitializer = true;
@@ -285,8 +306,10 @@ public class CurrentLiveVersion {
 		if (staticInitializer != null) {
 			try {
 				staticInitializer.invoke(null);
-			} catch (Exception e) {
-				log.severe("Unexpected exception whilst trying to call the static initializer on " + this.reloadableType.getName());
+			}
+			catch (Exception e) {
+				log.severe("Unexpected exception whilst trying to call the static initializer on "
+						+ this.reloadableType.getName());
 				e.printStackTrace(); // TODO remove when happy
 			}
 		}

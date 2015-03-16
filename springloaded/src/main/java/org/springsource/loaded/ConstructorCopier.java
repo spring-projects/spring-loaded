@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import org.objectweb.asm.Label;
@@ -25,6 +26,7 @@ import org.objectweb.asm.MethodVisitor;
 class ConstructorCopier extends MethodVisitor implements Constants {
 
 	private final static int preInvokeSpecial = 0;
+
 	private final static int postInvokeSpecial = 1;
 
 	// It is important to know when an INVOKESPECIAL is hit, whether it is our actual one that delegates to the super or just
@@ -32,13 +34,17 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 	// how many unitialized objects there are (count the NEWs) and how many INVOKESPECIALs have occurred, it is possible
 	// to identify the right one.
 	private int state = preInvokeSpecial;
+
 	private int unitializedObjectsCount = 0;
+
 	private TypeDescriptor typeDescriptor;
+
 	private String suffix;
+
 	private String classname;
 
 	public ConstructorCopier(MethodVisitor mv, TypeDescriptor typeDescriptor, String suffix, String classname) {
-		super(ASM5,mv);
+		super(ASM5, mv);
 		this.typeDescriptor = typeDescriptor;
 		this.suffix = suffix;
 		this.classname = classname;
@@ -49,7 +55,8 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 		// Rename 'this' to 'thiz' in executor otherwise Eclipse debugger will fail (static method with 'this')
 		if (index == 0 && name.equals("this")) {
 			super.visitLocalVariable("thiz", desc, signature, start, end, index);
-		} else {
+		}
+		else {
 			super.visitLocalVariable(name, desc, signature, start, end, index);
 		}
 	}
@@ -74,13 +81,15 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 		if (opcode == INVOKESPECIAL && name.charAt(0) == '<') {
 			if (unitializedObjectsCount != 0) {
 				unitializedObjectsCount--;
-			} else {
+			}
+			else {
 				// This looks like our INVOKESPECIAL
 				if (state == preInvokeSpecial) {
 					// special case for calling jlObject, do nothing!
 					if (owner.equals("java/lang/Object")) {
 						mv.visitInsn(POP);
-					} else {
+					}
+					else {
 						// Need to replace this INVOKESPECIAL call.
 						String supertypename = typeDescriptor.getSupertypeName();
 						ReloadableType superRtype = typeDescriptor.getReloadableType().getTypeRegistry()
@@ -101,10 +110,12 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 							}
 							Utils.insertPopsForAllParameters(mv, desc);
 							mv.visitInsn(POP); // pop 'this'
-						} else {
+						}
+						else {
 							// Check the original form of the supertype for a constructor to call
-							MethodMember existingCtor = (superRtype == null ? null : superRtype.getTypeDescriptor().getConstructor(
-									desc));
+							MethodMember existingCtor = (superRtype == null ? null
+									: superRtype.getTypeDescriptor().getConstructor(
+											desc));
 							if (existingCtor == null) {
 								// It did not exist in the original supertype version, need to use dynamic dispatch method
 								// collapse the arguments on the stack
@@ -114,12 +125,15 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 								mv.visitInsn(DUP_X1);
 								// no stack is instance then params then instance
 								mv.visitLdcInsn("<init>" + desc);
-								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(), mDynamicDispatchName,
+								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(),
+										mDynamicDispatchName,
 										mDynamicDispatchDescriptor, false);
 								mv.visitInsn(POP);
-							} else {
+							}
+							else {
 								// it did exist in the original, so there will be parallel constructor
-								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(), mInitializerName, desc, false);
+								mv.visitMethodInsn(INVOKESPECIAL, typeDescriptor.getSupertypeName(), mInitializerName,
+										desc, false);
 							}
 						}
 					}
@@ -136,7 +150,8 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 			// leaving the invokespecial alone will cause a verify error
 			String descriptor = Utils.insertExtraParameter(owner, desc);
 			super.visitMethodInsn(INVOKESTATIC, Utils.getExecutorName(classname, suffix), name, descriptor, false);
-		} else {
+		}
+		else {
 			boolean done = false;
 			// TODO dup of code in method copier - can we refactor?
 			if (opcode == INVOKESTATIC) {

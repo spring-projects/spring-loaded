@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 /**
@@ -24,6 +25,7 @@ package org.springsource.loaded;
 public class FieldMember extends AbstractMember {
 
 	final static FieldMember[] NONE = new FieldMember[0];
+
 	String typename;
 
 	protected FieldMember(String typename, int modifiers, String name, String descriptor, String signature) {

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Field;
@@ -23,8 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Able to read or write a particular field in a type. Knows nothing about the instance upon which the read/write may be getting
- * done.
+ * Able to read or write a particular field in a type. Knows nothing about the instance upon which the read/write may be
+ * getting done.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -50,12 +51,13 @@ public class FieldReaderWriter {
 	}
 
 	/**
-	 * Set the value of an instance field on the specified instance to the specified value. If a state manager is passed in things
-	 * can be done in a more optimal way, otherwise the state manager has to be discovered from the instance.
+	 * Set the value of an instance field on the specified instance to the specified value. If a state manager is passed
+	 * in things can be done in a more optimal way, otherwise the state manager has to be discovered from the instance.
 	 * 
 	 * @param instance the object instance upon which to set the field
 	 * @param newValue the new value for that field
-	 * @param stateManager the optional state manager for this instance, which will be looked up (expensive) if not passed in
+	 * @param stateManager the optional state manager for this instance, which will be looked up (expensive) if not
+	 *            passed in
 	 * @throws IllegalAccessException if the field value cannot be set
 	 */
 	public void setValue(Object instance, Object newValue, ISMgr stateManager) throws IllegalAccessException {
@@ -72,13 +74,16 @@ public class FieldReaderWriter {
 				stateManager.getMap().put(declaringTypeName, typeLevelValues);
 			}
 			typeLevelValues.put(theField.getName(), newValue);
-		} else { // the type is not reloadable, must use reflection to access the value
+		}
+		else { // the type is not reloadable, must use reflection to access the value
 			// TODO generate get/set in the topmost reloader for these kinds of field and use them?
 			if (typeDescriptor.isInterface()) {
 				// field resolution has left us with an interface field, those can't be set like this
-				throw new IncompatibleClassChangeError("Expected non-static field " + instance.getClass().getName() + "."
+				throw new IncompatibleClassChangeError("Expected non-static field " + instance.getClass().getName()
+						+ "."
 						+ theField.getName());
-			} else {
+			}
+			else {
 				findAndSetFieldValueInHierarchy(instance, newValue);
 			}
 		}
@@ -102,23 +107,26 @@ public class FieldReaderWriter {
 				stateManager.getMap().put(declaringTypeName, typeLevelValues);
 			}
 			typeLevelValues.put(theField.getName(), newValue);
-		} else { // the type is not reloadable, must use reflection to access the value
+		}
+		else { // the type is not reloadable, must use reflection to access the value
 			try {
 				Field f = locateFieldByReflection(clazz, typeDescriptor.getDottedName(), typeDescriptor.isInterface(),
 						theField.getName());
 				f.setAccessible(true);
 				f.set(null, newValue);
 				// cant cache result - we dont control the sets so won't know it is happening anyway
-			} catch (Exception e) {
-				throw new IllegalStateException("Unexpectedly unable to reflectively set the field " + theField.getName()
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("Unexpectedly unable to reflectively set the field "
+						+ theField.getName()
 						+ " on the type " + clazz.getName());
 			}
 		}
 	}
 
 	/**
-	 * Return the value of the field for which is reader-writer exists. To improve performance a fieldAccessor can be supplied but
-	 * if it is missing the code will go and discover it.
+	 * Return the value of the field for which is reader-writer exists. To improve performance a fieldAccessor can be
+	 * supplied but if it is missing the code will go and discover it.
 	 * 
 	 * @param instance the instance for which the field should be fetched
 	 * @param stateManager an optional state manager containing the map of values (will be discovered if not supplied)
@@ -164,11 +172,14 @@ public class FieldReaderWriter {
 							stateManager.getMap().put(declaringTypeName, typeLevelValues);
 						}
 						typeLevelValues.put(fieldname, result);
-					} catch (Exception e) {
-						throw new IllegalStateException("Unexpectedly unable to access field " + fieldname + " on class "
+					}
+					catch (Exception e) {
+						throw new IllegalStateException("Unexpectedly unable to access field " + fieldname
+								+ " on class "
 								+ rt.getClazz(), e);
 					}
-				} else {
+				}
+				else {
 					// The field was not on the original type.  As not seen before, can default it
 					result = Utils.toResultCheckIfNull(null, theField.getDescriptor());
 					if (typeLevelValues == null) {
@@ -187,14 +198,17 @@ public class FieldReaderWriter {
 				}
 			}
 			result = Utils.toResultCheckIfNull(result, theField.getDescriptor());
-		} else {
+		}
+		else {
 			// the type is not reloadable, must use reflection to access the value.
 			// TODO measure how often we hit the reflection path, should never happen unless reflection is already on the frame
 
 			if (typeDescriptor.isInterface()) { // cant be an instance field if it is found to be on an interface
-				throw new IncompatibleClassChangeError("Expected non-static field " + instance.getClass().getName() + "."
+				throw new IncompatibleClassChangeError("Expected non-static field " + instance.getClass().getName()
+						+ "."
 						+ fieldname);
-			} else {
+			}
+			else {
 				result = findAndGetFieldValueInHierarchy(instance);
 			}
 		}
@@ -205,7 +219,8 @@ public class FieldReaderWriter {
 		return result;
 	}
 
-	public Object getStaticFieldValue(Class<?> clazz, SSMgr stateManager) throws IllegalAccessException, IllegalArgumentException {
+	public Object getStaticFieldValue(Class<?> clazz, SSMgr stateManager) throws IllegalAccessException,
+			IllegalArgumentException {
 		Object result = null;
 		if (clazz == null) {
 			throw new IllegalStateException();
@@ -265,11 +280,14 @@ public class FieldReaderWriter {
 							stateManager.getMap().put(declaringTypeName, typeLevelValues);
 						}
 						typeLevelValues.put(theField.getName(), result);
-					} catch (Exception e) {
-						throw new IllegalStateException("Unexpectedly unable to read field " + theField.getName() + " on type "
+					}
+					catch (Exception e) {
+						throw new IllegalStateException("Unexpectedly unable to read field " + theField.getName()
+								+ " on type "
 								+ rt.getClazz(), e);
 					}
-				} else {
+				}
+				else {
 					// The field was not on the original type.  As not seen before, can default it
 					result = Utils.toResultCheckIfNull(null, theField.getDescriptor());
 					if (typeLevelValues == null) {
@@ -290,7 +308,8 @@ public class FieldReaderWriter {
 				}
 			}
 			result = Utils.toResultCheckIfNull(result, theField.getDescriptor());
-		} else { // the type is not reloadable, must use reflection to access the value
+		}
+		else { // the type is not reloadable, must use reflection to access the value
 			// TODO measure how often this code gets hit - ensure it does not in the common (non reflective) case
 			try {
 				Field f = locateFieldByReflection(clazz, typeDescriptor.getDottedName(), typeDescriptor.isInterface(),
@@ -298,8 +317,10 @@ public class FieldReaderWriter {
 				f.setAccessible(true);
 				result = f.get(null);
 				// cant cache result - we dont control the sets so won't know it is happening anyway
-			} catch (Exception e) {
-				throw new IllegalStateException("Unexpectedly unable to set static field " + theField.getName() + " on type "
+			}
+			catch (Exception e) {
+				throw new IllegalStateException("Unexpectedly unable to set static field " + theField.getName()
+						+ " on type "
 						+ typeDescriptor.getDottedName());
 			}
 
@@ -346,13 +367,15 @@ public class FieldReaderWriter {
 		Class<?> superclass = clazz.getSuperclass();
 		if (superclass == null) {
 			return null;
-		} else {
+		}
+		else {
 			return locateFieldByReflection(superclass, typeWanted, isInterface, name);
 		}
 	}
 
 	/**
-	 * Discover the instance state manager for the specific object instance. Will fail by exception rather than returning null.
+	 * Discover the instance state manager for the specific object instance. Will fail by exception rather than
+	 * returning null.
 	 * 
 	 * @param instance the object instance on which to look
 	 * @return the discovered state manager
@@ -369,7 +392,7 @@ public class FieldReaderWriter {
 				// Looks to not have been initialized yet, this can happen if a non standard ctor was used.
 				// We could push this step into the generated ctors...
 				ISMgr instanceStateManager = new ISMgr(instance, typeDescriptor.getReloadableType());
-				fieldAccessorField.set(instance,instanceStateManager);
+				fieldAccessorField.set(instance, instanceStateManager);
 				stateManager = (ISMgr) fieldAccessorField.get(instance);
 				// For some reason it didn't stick!
 				if (stateManager == null) {
@@ -378,13 +401,16 @@ public class FieldReaderWriter {
 				}
 			}
 			return stateManager;
-		} catch (Exception e) {
-			throw new IllegalStateException("Unexpectedly unable to find instance state manager on class " + clazz.getName(), e);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Unexpectedly unable to find instance state manager on class "
+					+ clazz.getName(), e);
 		}
 	}
 
 	/**
-	 * Discover the static state manager on the specified class and return it. Will fail by exception rather than returning null.
+	 * Discover the static state manager on the specified class and return it. Will fail by exception rather than
+	 * returning null.
 	 * 
 	 * @param clazz the class on which to look
 	 * @return the discovered state manager
@@ -393,7 +419,8 @@ public class FieldReaderWriter {
 		try {
 			Field stateManagerField = clazz.getField(Constants.fStaticFieldsName);
 			if (stateManagerField == null) {
-				throw new IllegalStateException("Cant find field accessor for type " + typeDescriptor.getReloadableType().getName());
+				throw new IllegalStateException("Cant find field accessor for type "
+						+ typeDescriptor.getReloadableType().getName());
 			}
 			SSMgr stateManager = (SSMgr) stateManagerField.get(null);
 			// Field should always have been initialized - it is done at the start of the top most reloadable type <clinit>
@@ -401,8 +428,10 @@ public class FieldReaderWriter {
 				throw new IllegalStateException("Instance of this class has no state manager: " + clazz.getName());
 			}
 			return stateManager;
-		} catch (Exception e) {
-			throw new IllegalStateException("Unexpectedly unable to find static state manager on class " + clazz.getName(), e);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Unexpectedly unable to find static state manager on class "
+					+ clazz.getName(), e);
 		}
 	}
 
@@ -411,8 +440,8 @@ public class FieldReaderWriter {
 	}
 
 	/**
-	 * Walk up the instance hierarchy looking for the field, and when it is found access it and return the result. Will exit via
-	 * exception if it cannot find the field or something goes wrong when accessing it.
+	 * Walk up the instance hierarchy looking for the field, and when it is found access it and return the result. Will
+	 * exit via exception if it cannot find the field or something goes wrong when accessing it.
 	 * 
 	 * @param instance the object instance upon which the field is being accessed
 	 * @return the value of the field
@@ -431,15 +460,16 @@ public class FieldReaderWriter {
 			Field f = clazz.getDeclaredField(fieldname);
 			f.setAccessible(true);
 			return f.get(instance);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new IllegalStateException("Unexpectedly could not access field named " + fieldname + " on class "
 					+ clazz.getName());
 		}
 	}
 
 	/**
-	 * Walk up the instance hierarchy looking for the field, and when it is found set it. Will exit via exception if it cannot find
-	 * the field or something goes wrong when accessing it.
+	 * Walk up the instance hierarchy looking for the field, and when it is found set it. Will exit via exception if it
+	 * cannot find the field or something goes wrong when accessing it.
 	 * 
 	 * @param instance the object instance upon which the field is being set
 	 * @param newValue the new value for the field
@@ -458,7 +488,8 @@ public class FieldReaderWriter {
 			Field f = clazz.getDeclaredField(fieldname);
 			f.setAccessible(true);
 			f.set(instance, newValue);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new IllegalStateException("Unexpectedly could not access field named " + fieldname + " on class "
 					+ clazz.getName());
 		}

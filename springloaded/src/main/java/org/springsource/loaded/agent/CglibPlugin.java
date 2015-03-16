@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.security.ProtectionDomain;
@@ -34,8 +35,9 @@ public class CglibPlugin implements LoadtimeInstrumentationPlugin {
 	private static Logger log = Logger.getLogger(CglibPlugin.class.getName());
 
 	// implementing LoadtimeInstrumentationPlugin
-	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
-		if (slashedTypeName==null) {
+	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain,
+			byte[] bytes) {
+		if (slashedTypeName == null) {
 			return false;
 		}
 		// Sometimes the package prefix for cglib types is changed, for example:
@@ -48,11 +50,11 @@ public class CglibPlugin implements LoadtimeInstrumentationPlugin {
 
 	public byte[] modify(String slashedClassName, ClassLoader classLoader, byte[] bytes) {
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-			log.info("Modifying "+slashedClassName);
+			log.info("Modifying " + slashedClassName);
 		}
 		// if (slashedClassName.equals("net/sf/cglib/core/AbstractClassGenerator")) {
 		return CglibPluginCapturing.catchGenerate(bytes);
-		
+
 		// Not currently worrying about FastClass:
 		// } else {
 		// net/sf/cglib/reflect/FastClass

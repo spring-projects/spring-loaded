@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 /**
- * Top level interface for Spring-Loaded plugins. Plugins are allowed to participate in class loading and modify code as it is
- * loaded and can be notified as types are reloaded.
+ * Top level interface for Spring-Loaded plugins. Plugins are allowed to participate in class loading and modify code as
+ * it is loaded and can be notified as types are reloaded.
  * <p>
- * Implementations should be registered by creating a META-INF/services/org.springsource.reloading.agent.Plugins file that lists
- * (one per line) the plugin classes, for example: org.springsource.loaded.ReloadEventProcessorPluginImpl
+ * Implementations should be registered by creating a META-INF/services/org.springsource.reloading.agent.Plugins file
+ * that lists (one per line) the plugin classes, for example: org.springsource.loaded.ReloadEventProcessorPluginImpl
  * 
  * @author Andy Clement
  * @since 0.5.0

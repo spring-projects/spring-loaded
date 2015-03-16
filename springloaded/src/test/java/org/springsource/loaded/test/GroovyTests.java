@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -54,7 +55,8 @@ public class GroovyTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(rtypea.getClazz(), "run2");
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			// success - var2 doesn't exist yet
 		}
 
@@ -114,7 +116,8 @@ public class GroovyTests extends SpringLoadedTests {
 		try {
 			result = runOnInstance(rtypea.getClazz(), instance, "run2");
 			fail();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			// success - var2 doesn't exist yet
 		}
 		// rtypea.fixupGroovyType();
@@ -317,7 +320,8 @@ public class GroovyTests extends SpringLoadedTests {
 		try {
 			runUnguarded(rtype.getClazz(), "run");
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			// success
 		}
 
@@ -335,7 +339,8 @@ public class GroovyTests extends SpringLoadedTests {
 
 	}
 
-	@Ignore // test has intermittent problems
+	@Ignore
+	// test has intermittent problems
 	// checking call site caching in the caller - do we need to clear it out?
 	// Are we just not having to because isCompilable is off?
 	@Test
@@ -352,7 +357,8 @@ public class GroovyTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(rtype.getClazz(), "run");
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			ite.printStackTrace();
 			assertCause(ite, "MissingMethodException");
 		}
@@ -369,7 +375,8 @@ public class GroovyTests extends SpringLoadedTests {
 		try {
 			result = runUnguarded(rtype.getClazz(), "run");
 			fail();
-		} catch (InvocationTargetException ite) {
+		}
+		catch (InvocationTargetException ite) {
 			ite.printStackTrace();
 			assertCause(ite, "MissingMethodException");
 		}
@@ -492,7 +499,8 @@ public class GroovyTests extends SpringLoadedTests {
 
 	}
 
-	@Ignore // something has changed in closure structure and the tests need debugging to get to the bottom of it
+	@Ignore
+	// something has changed in closure structure and the tests need debugging to get to the bottom of it
 	/**
 	 * Reloading code that is using a closure within a method body - no real changes, just checking it hangs together!
 	 */
@@ -507,8 +515,10 @@ public class GroovyTests extends SpringLoadedTests {
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("Executing:hello!", result.stdout);
 
-		rtype.loadNewVersion("2",
-				retrieveRename(t, t + "2", "simple.BasicWithClosure2$_run_closure1:simple.BasicWithClosure$_run_closure1"));
+		rtype.loadNewVersion(
+				"2",
+				retrieveRename(t, t + "2",
+						"simple.BasicWithClosure2$_run_closure1:simple.BasicWithClosure$_run_closure1"));
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("Executing:hello!", result.stdout);
 
@@ -518,13 +528,16 @@ public class GroovyTests extends SpringLoadedTests {
 		assertEquals("Executing:goodbye!", result.stdout);
 
 		// reload an unchanged version - should behave as before
-		rtype.loadNewVersion("3",
-				retrieveRename(t, t + "3", "simple.BasicWithClosure3$_run_closure1:simple.BasicWithClosure$_run_closure1"));
+		rtype.loadNewVersion(
+				"3",
+				retrieveRename(t, t + "3",
+						"simple.BasicWithClosure3$_run_closure1:simple.BasicWithClosure$_run_closure1"));
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("Executing:goodbye!", result.stdout);
 	}
 
-	@Ignore // something has changed in closure structure and the tests need debugging to get to the bottom of it
+	@Ignore
+	// something has changed in closure structure and the tests need debugging to get to the bottom of it
 	/**
 	 * Now closure is initialized as a field (so in ctor) rather than inside a method
 	 */
@@ -549,7 +562,8 @@ public class GroovyTests extends SpringLoadedTests {
 		assertEquals("Executing:goodbye!", result.stdout);
 	}
 
-	@Ignore // something has changed in closure structure and the tests need debugging to get to the bottom of it
+	@Ignore
+	// something has changed in closure structure and the tests need debugging to get to the bottom of it
 	/**
 	 * Double nested closure - a method that is invoked on the owners owner.
 	 */
@@ -567,7 +581,8 @@ public class GroovyTests extends SpringLoadedTests {
 
 		rtype.loadNewVersion(
 				"2",
-				retrieveRename(t, t + "2", "simple.BasicWithClosureC2$_run_closure1:simple.BasicWithClosureC$_run_closure1",
+				retrieveRename(t, t + "2",
+						"simple.BasicWithClosureC2$_run_closure1:simple.BasicWithClosureC$_run_closure1",
 						"simple.BasicWithClosureC2:simple.BasicWithClosureC"));
 
 		c2type.loadNewVersion(
@@ -578,7 +593,9 @@ public class GroovyTests extends SpringLoadedTests {
 
 		ctype.loadNewVersion(
 				"2",
-				retrieveRename(c, "simple.BasicWithClosureC2$_run_closure1",
+				retrieveRename(
+						c,
+						"simple.BasicWithClosureC2$_run_closure1",
 						"simple.BasicWithClosureC2$_run_closure1_closure2:simple.BasicWithClosureC$_run_closure1_closure2",
 						"simple.BasicWithClosureC2:simple.BasicWithClosureC"));
 
@@ -592,7 +609,8 @@ public class GroovyTests extends SpringLoadedTests {
 		// assertEquals("Executing:goodbye!", result.stdout);
 	}
 
-	@Ignore // something has changed in closure structure and the tests need debugging to get to the bottom of it
+	@Ignore
+	// something has changed in closure structure and the tests need debugging to get to the bottom of it
 	/**
 	 * Closures with references.
 	 * 
@@ -624,12 +642,15 @@ public class GroovyTests extends SpringLoadedTests {
 
 		rtype.loadNewVersion(
 				"2",
-				retrieveRename(t, t + "2", "simple.BasicWithClosureD2$_run_closure1:simple.BasicWithClosureD$_run_closure1",
+				retrieveRename(t, t + "2",
+						"simple.BasicWithClosureD2$_run_closure1:simple.BasicWithClosureD$_run_closure1",
 						"simple.BasicWithClosureD2:simple.BasicWithClosureD"));
 
 		ctype.loadNewVersion(
 				"2",
-				retrieveRename(c, "simple.BasicWithClosureD2$_run_closure1",
+				retrieveRename(
+						c,
+						"simple.BasicWithClosureD2$_run_closure1",
 						"simple.BasicWithClosureD2$_run_closure1_closure2:simple.BasicWithClosureD$_run_closure1_closure2",
 						"simple.BasicWithClosureD2:simple.BasicWithClosureD"));
 
@@ -637,7 +658,8 @@ public class GroovyTests extends SpringLoadedTests {
 		assertEquals("foo() running\nstring is def\nowner is not null", result.stdout);
 	}
 
-	@Ignore // something has changed in closure structure and the tests need debugging to get to the bottom of it
+	@Ignore
+	// something has changed in closure structure and the tests need debugging to get to the bottom of it
 	/**
 	 * Variation of testcase above, but now we move between 1/2/3 references on reload (to exercise new/old constructors
 	 * 
@@ -654,22 +676,28 @@ public class GroovyTests extends SpringLoadedTests {
 
 		rtype.loadNewVersion(
 				"2",
-				retrieveRename(t, t + "2", "simple.BasicWithClosureE2$_run_closure1:simple.BasicWithClosureE$_run_closure1",
+				retrieveRename(t, t + "2",
+						"simple.BasicWithClosureE2$_run_closure1:simple.BasicWithClosureE$_run_closure1",
 						"simple.BasicWithClosureE2:simple.BasicWithClosureE"));
 
-		ctype.loadNewVersion("2",
-				retrieveRename(c, "simple.BasicWithClosureE2$_run_closure1", "simple.BasicWithClosureE2:simple.BasicWithClosureE"));
+		ctype.loadNewVersion(
+				"2",
+				retrieveRename(c, "simple.BasicWithClosureE2$_run_closure1",
+						"simple.BasicWithClosureE2:simple.BasicWithClosureE"));
 
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("foo() running\nstring is abc def\nowner is not null", result.stdout);
 
 		rtype.loadNewVersion(
 				"3",
-				retrieveRename(t, t + "3", "simple.BasicWithClosureE3$_run_closure1:simple.BasicWithClosureE$_run_closure1",
+				retrieveRename(t, t + "3",
+						"simple.BasicWithClosureE3$_run_closure1:simple.BasicWithClosureE$_run_closure1",
 						"simple.BasicWithClosureE3:simple.BasicWithClosureE"));
 
-		ctype.loadNewVersion("3",
-				retrieveRename(c, "simple.BasicWithClosureE3$_run_closure1", "simple.BasicWithClosureE3:simple.BasicWithClosureE"));
+		ctype.loadNewVersion(
+				"3",
+				retrieveRename(c, "simple.BasicWithClosureE3$_run_closure1",
+						"simple.BasicWithClosureE3:simple.BasicWithClosureE"));
 
 		result = runUnguarded(rtype.getClazz(), "run");
 		assertEquals("foo() running\nstring is xyz\nowner is not null", result.stdout);
@@ -682,7 +710,8 @@ public class GroovyTests extends SpringLoadedTests {
 	// TODO run these tests without -noverify, why are they failing
 	// verification?
 
-	@Ignore // something has changed in closure structure and the tests need debugging to get to the bottom of it
+	@Ignore
+	// something has changed in closure structure and the tests need debugging to get to the bottom of it
 	/**
 	 * Testing the grails controller usage of closure fields.
 	 * 
@@ -752,8 +781,8 @@ public class GroovyTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Dealing with final fields. This test was passing until groovy started really inlining the final fields. After doing
-	 * so it isn't sufficient to run the static initializer to get them set to the new values.
+	 * Dealing with final fields. This test was passing until groovy started really inlining the final fields. After
+	 * doing so it isn't sufficient to run the static initializer to get them set to the new values.
 	 */
 	@Ignore
 	@Test
@@ -779,7 +808,7 @@ public class GroovyTests extends SpringLoadedTests {
 		String intface = "enums.ExtensibleEnum";
 		String runner = "enums.RunnerA";
 		TypeRegistry typeRegistry = getTypeRegistry(enumtype + "," + intface + "," + runner);
-//		ReloadableType rtypeIntface = 
+		//		ReloadableType rtypeIntface = 
 		typeRegistry.addType(intface, loadBytesForClass(intface));
 		ReloadableType rtypeEnum = typeRegistry.addType(enumtype, loadBytesForClass(enumtype));
 		ReloadableType rtypeRunner = typeRegistry.addType(runner, loadBytesForClass(runner));
@@ -818,7 +847,7 @@ public class GroovyTests extends SpringLoadedTests {
 		String runner = "enums.RunnerB";
 		String closure = "enums.WhatAnEnumB$__clinit__closure1";
 		TypeRegistry typeRegistry = getTypeRegistry(enumtype + "," + intface + "," + runner + "," + closure);
-//		ReloadableType rtypeIntface =
+		//		ReloadableType rtypeIntface =
 		typeRegistry.addType(intface, loadBytesForClass(intface));
 		ReloadableType rtypeClosure = typeRegistry.addType(closure, loadBytesForClass(closure));
 		ReloadableType rtypeEnum = typeRegistry.addType(enumtype, loadBytesForClass(enumtype));
@@ -828,11 +857,12 @@ public class GroovyTests extends SpringLoadedTests {
 				"[PETS_AT_THE_DISCO 1 JUMPING_INTO_A_HOOP 2 HAVING_A_NICE_TIME 3 LIVING_ON_A_LOG 4 WHAT_DID_YOU_DO 5 UNKNOWN 0]",
 				result.stdout);
 
-		byte[] cs = retrieveRename(closure, "enums.WhatAnEnumB2$__clinit__closure1", "enums.WhatAnEnumB2:enums.WhatAnEnumB");
+		byte[] cs = retrieveRename(closure, "enums.WhatAnEnumB2$__clinit__closure1",
+				"enums.WhatAnEnumB2:enums.WhatAnEnumB");
 		rtypeClosure.loadNewVersion(cs);
 		byte[] bs = retrieveRename(enumtype, enumtype + "2",
 				"enums.WhatAnEnumB2$__clinit__closure1:enums.WhatAnEnumB$__clinit__closure1",
-				"[Lenums/WhatAnEnumB2;:[Lenums/WhatAnEnumB;","enums/WhatAnEnumB2:enums/WhatAnEnumB");
+				"[Lenums/WhatAnEnumB2;:[Lenums/WhatAnEnumB;", "enums/WhatAnEnumB2:enums/WhatAnEnumB");
 		rtypeEnum.loadNewVersion(bs);
 		result = runUnguarded(rtypeRunner.getClazz(), "run");
 		System.out.println(result);
@@ -844,7 +874,8 @@ public class GroovyTests extends SpringLoadedTests {
 	/**
 	 * Type that doesn't really have a clinit
 	 */
-	@Ignore // Needs investigating...likely a change in groovy bytecode format tripping us up
+	@Ignore
+	// Needs investigating...likely a change in groovy bytecode format tripping us up
 	@Test
 	public void staticInitializerReloading4() throws Exception {
 		String t = "clinitg.Three";
@@ -870,13 +901,14 @@ public class GroovyTests extends SpringLoadedTests {
 	 * Loading a type and not immediately running the clinit.
 	 * 
 	 * <p>
-	 * This is to cover the problem where some type is loaded but not immediately initialized, it is then reloaded before
-	 * initialization (i.e. before the clinit has run). If it is a groovy type then we are going to poke at it during reloading (to
-	 * clear some caches). This poking may trigger the clinit to run. Now, the helper methods (like those that setup the
-	 * callsitecache) will be using the 'new version' but the clinit hasn't been redirected to the reloaded version and so it
-	 * indexes into the callsite cache using wrong indices.
+	 * This is to cover the problem where some type is loaded but not immediately initialized, it is then reloaded
+	 * before initialization (i.e. before the clinit has run). If it is a groovy type then we are going to poke at it
+	 * during reloading (to clear some caches). This poking may trigger the clinit to run. Now, the helper methods (like
+	 * those that setup the callsitecache) will be using the 'new version' but the clinit hasn't been redirected to the
+	 * reloaded version and so it indexes into the callsite cache using wrong indices.
 	 */
-	@Ignore // until I can find time
+	@Ignore
+	// until I can find time
 	@Test
 	public void staticInitializerReloading5() throws Exception {
 		binLoader = new TestClassloaderWithRewriting();

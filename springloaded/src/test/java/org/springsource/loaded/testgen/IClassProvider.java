@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 public interface IClassProvider {
@@ -20,14 +21,15 @@ public interface IClassProvider {
 	/**
 	 * Returns a class object representing the given type from the .class file with the given version number.
 	 * <p>
-	 * This method should only be called once, for a given typename, and should take care to ensure none of the types that may be
-	 * loaded implicitly (because they are referred from the loaded type, are later loaded again with 'loadClassVersion'.
+	 * This method should only be called once, for a given typename, and should take care to ensure none of the types
+	 * that may be loaded implicitly (because they are referred from the loaded type, are later loaded again with
+	 * 'loadClassVersion'.
 	 */
 	Class<?> loadClassVersion(String typeName, String version);
 
 	/**
-	 * More lightweight mechanism for retrieving already loaded classes or classes that are not reloadable. Works similar to
-	 * Class.forName
+	 * More lightweight mechanism for retrieving already loaded classes or classes that are not reloadable. Works
+	 * similar to Class.forName
 	 * 
 	 * @throws ClassNotFoundException
 	 */

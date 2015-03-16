@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -58,7 +59,8 @@ public class PluginTests extends SpringLoadedTests {
 	public void constructorAppender() throws Exception {
 		ClassReader cr = new ClassReader(loadBytesForClass("plugins.One"));
 		Target.reset();
-		ClassVisitingConstructorAppender ca = new ClassVisitingConstructorAppender(Target.class.getName().replace('.', '/'), "foo");
+		ClassVisitingConstructorAppender ca = new ClassVisitingConstructorAppender(Target.class.getName().replace('.',
+				'/'), "foo");
 		cr.accept(ca, 0);
 		byte[] newbytes = ca.getBytes();
 		Class<?> clazz = loadit("plugins.One", newbytes);
@@ -143,8 +145,10 @@ public class PluginTests extends SpringLoadedTests {
 		binLoader = new TestClassloaderWithRewriting("metaNotExist", true);
 		String t = "simple.Basic";
 		ReloadEventProcessorPlugin repp = new ReloadEventProcessorPlugin() {
+
 			public void reloadEvent(String typename, Class<?> clazz, String encodedTimestamp) {
-				System.out.println("Plugin: reloadEvent(" + typename + "," + clazz.getName() + "," + encodedTimestamp + ")");
+				System.out.println("Plugin: reloadEvent(" + typename + "," + clazz.getName() + "," + encodedTimestamp
+						+ ")");
 			}
 
 			public boolean shouldRerunStaticInitializer(String typename, Class<?> clazz, String encodedTimestamp) {
@@ -164,7 +168,8 @@ public class PluginTests extends SpringLoadedTests {
 			assertUniqueContains("Plugin: reloadEvent(simple.Basic,simple.Basic,2)", output);
 			result = runUnguarded(rtype.getClazz(), "run");
 			assertEquals("goodbye", result.returnValue);
-		} finally {
+		}
+		finally {
 			Plugins.unregisterGlobalPlugin(repp);
 		}
 	}
@@ -174,8 +179,10 @@ public class PluginTests extends SpringLoadedTests {
 		binLoader = new TestClassloaderWithRewriting("metaNotExist", true);
 		String t = "simple.Basic";
 		ReloadEventProcessorPlugin repp = new ReloadEventProcessorPlugin() {
+
 			public void reloadEvent(String typename, Class<?> clazz, String encodedTimestamp) {
-				System.out.println("Plugin: reloadEvent(" + typename + "," + clazz.getName() + "," + encodedTimestamp + ")");
+				System.out.println("Plugin: reloadEvent(" + typename + "," + clazz.getName() + "," + encodedTimestamp
+						+ ")");
 			}
 
 			public boolean shouldRerunStaticInitializer(String typename, Class<?> clazz, String encodedTimestamp) {
@@ -198,7 +205,8 @@ public class PluginTests extends SpringLoadedTests {
 			assertUniqueContains("Plugin: rerun request for simple.Basic", output);
 			result = runUnguarded(rtype.getClazz(), "run");
 			assertEquals("goodbye", result.returnValue);
-		} finally {
+		}
+		finally {
 			Plugins.unregisterGlobalPlugin(repp);
 		}
 	}
@@ -208,8 +216,10 @@ public class PluginTests extends SpringLoadedTests {
 		binLoader = new TestClassloaderWithRewriting("metaNotExist", true);
 		String t = "clinit.One";
 		ReloadEventProcessorPlugin repp = new ReloadEventProcessorPlugin() {
+
 			public void reloadEvent(String typename, Class<?> clazz, String encodedTimestamp) {
-				System.out.println("Plugin: reloadEvent(" + typename + "," + clazz.getName() + "," + encodedTimestamp + ")");
+				System.out.println("Plugin: reloadEvent(" + typename + "," + clazz.getName() + "," + encodedTimestamp
+						+ ")");
 			}
 
 			public boolean shouldRerunStaticInitializer(String typename, Class<?> clazz, String encodedTimestamp) {
@@ -232,7 +242,8 @@ public class PluginTests extends SpringLoadedTests {
 			assertUniqueContains("Plugin: rerun request for clinit.One", output);
 			result = runUnguarded(rtype.getClazz(), "run");
 			assertEquals("7", result.returnValue);
-		} finally {
+		}
+		finally {
 			Plugins.unregisterGlobalPlugin(repp);
 		}
 	}

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.ReflectiveInterceptor.jlClassGetField;
@@ -35,12 +36,16 @@ import org.springsource.loaded.test.infra.ResultException;
 public class FieldAdHocTest extends AbstractReflectionTests {
 
 	private static final String INVOKER_CLASS_NAME = "reflection.FieldInvoker";
+
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	private ReloadableType targetClass; //One class chosen to focus test on
 
 	/**
-	 * When a Field is "regotten" the newly gotten Field will have to be a "fresh" object with its accessibility flag NOT set.
+	 * When a Field is "regotten" the newly gotten Field will have to be a "fresh" object with its accessibility flag
+	 * NOT set.
 	 */
 	private void doTestAccessibleFlagIsRefreshed(String scope) throws Exception {
 		registry = getTypeRegistry("reflection.fields..*");
@@ -50,18 +55,22 @@ public class FieldAdHocTest extends AbstractReflectionTests {
 		callerInstance = newInstance(callerClazz);
 
 		String fieldToAccess = scope + "Field";
-		String expectMsg = "Class " + INVOKER_CLASS_NAME + " " + "can not access a member of class " + targetClass.dottedtypename
+		String expectMsg = "Class " + INVOKER_CLASS_NAME + " " + "can not access a member of class "
+				+ targetClass.dottedtypename
 				+ " " + "with modifiers \"" + (scope.equals("default") ? "" : scope) + "\"";
 
 		//First... we do set the Access flag, it should work!
-		Result r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(), fieldToAccess, true);
+		Result r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(),
+				fieldToAccess, true);
 		Assert.assertEquals(r.returnValue, fieldToAccess + " value");
 
 		//Then... we do not set the Access flag, it should fail!
 		try {
-			r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(), fieldToAccess, false);
+			r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(), fieldToAccess,
+					false);
 			Assert.fail("Without setting access flag shouldn't be allowed!");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertIllegalAccess(expectMsg, e);
 		}
 
@@ -69,14 +78,17 @@ public class FieldAdHocTest extends AbstractReflectionTests {
 		reloadType(targetClass, "002");
 
 		//First... we do set the Access flag, it should work!
-		r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(), fieldToAccess, true);
+		r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(), fieldToAccess,
+				true);
 		Assert.assertEquals("new " + fieldToAccess + " value", r.returnValue);
 
 		//Then... we do not set the Access flag, it should not be allowed!
 		try {
-			r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(), fieldToAccess, false);
+			r = runOnInstance(callerClazz, callerInstance, "getFieldWithAccess", targetClass.getClazz(), fieldToAccess,
+					false);
 			Assert.fail("Without setting access flag shouldn't be allowed!");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertIllegalAccess(expectMsg, e);
 		}
 	}
@@ -117,7 +129,8 @@ public class FieldAdHocTest extends AbstractReflectionTests {
 		try {
 			r = runOnInstance(callerClazz, callerInstance, "callGet", f, targetInstance);
 			Assert.fail("Expected an error");
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			Throwable e = re.getCause();
 			//			e.printStackTrace();
 			Assert.assertEquals(InvocationTargetException.class, e.getClass());

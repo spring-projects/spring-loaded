@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.util.List;
@@ -26,10 +27,12 @@ import java.util.List;
 public class StaticLookup {
 
 	private String name;
+
 	private String methodDescriptor;
 
 	/**
 	 * Create an object capable of performing a dynamic method lookup in some MethodProvider
+	 * 
 	 * @param name the method name
 	 * @param methodDescriptor the method descriptor (e.g. (Ljava/lang/String;)I)
 	 */

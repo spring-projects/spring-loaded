@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 import java.io.PrintWriter;
@@ -29,8 +30,11 @@ import org.springsource.loaded.testgen.GenerativeSpringLoadedTest;
  */
 @SuppressWarnings("serial")
 public class ResultException extends Exception implements IResult {
+
 	public final Throwable exception;
+
 	public final String stdout;
+
 	public final String stderr;
 
 	public ResultException(Throwable exception, String stdout, String stderr) {
@@ -83,8 +87,8 @@ public class ResultException extends Exception implements IResult {
 	}
 
 	/**
-	 * This equals method is used by {@link GenerativeSpringLoadedTest}s to determine whether the behavior observed on regular Java
-	 * and SpringLoaded are accepted as sufficiently equivalent to pass the test.
+	 * This equals method is used by {@link GenerativeSpringLoadedTest}s to determine whether the behavior observed on
+	 * regular Java and SpringLoaded are accepted as sufficiently equivalent to pass the test.
 	 * 
 	 */
 	@Override

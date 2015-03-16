@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.lang.reflect.Constructor;
@@ -35,44 +36,46 @@ import org.springsource.loaded.test.infra.Result;
  * To create a generative test two things come together:
  * 
  * <ul>
- * <li>A mechanism to create different test configurations based on 'random' choices. These random choices are made by the test's
- * 'setup' method calling the provided 'choice' methods.
+ * <li>A mechanism to create different test configurations based on 'random' choices. These random choices are made by
+ * the test's 'setup' method calling the provided 'choice' methods.
  * 
- * <li>A mechanism to run the same test twice in two different execution contexts. It is the responsibility of the test subclass.
- * One context uses an ordinary Java classloader to obtain Class objects by loading a the 'final' version of the class. The other
- * uses SpringLoaded infrastructure, and reloads a class's successive version up to the 'final' version.
+ * <li>A mechanism to run the same test twice in two different execution contexts. It is the responsibility of the test
+ * subclass. One context uses an ordinary Java classloader to obtain Class objects by loading a the 'final' version of
+ * the class. The other uses SpringLoaded infrastructure, and reloads a class's successive version up to the 'final'
+ * version.
  * </ul>
  * 
- * On a first run, the test runner will provide a 'recording' random choices generator and an 'ordinary Java context'. The test is
- * run multiple times until all possible choices have been explored. for each test run the choices are recorded together with the
- * observed test result. This used to populate the test tree.
+ * On a first run, the test runner will provide a 'recording' random choices generator and an 'ordinary Java context'.
+ * The test is run multiple times until all possible choices have been explored. for each test run the choices are
+ * recorded together with the observed test result. This used to populate the test tree.
  * <p>
- * Then the tests are run again replaying the recorded choices, in a SpringLoaded context. The result is compared with the result
- * from the first run. The test fails if the results are not 'equals'.
+ * Then the tests are run again replaying the recorded choices, in a SpringLoaded context. The result is compared with
+ * the result from the first run. The test fails if the results are not 'equals'.
  * 
  * @author kdvolder
  */
 public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 
 	/**
-	 * Provides the execution context where we can load class versions, so that we can then uses these classes to execute reflective
-	 * calls on them.
+	 * Provides the execution context where we can load class versions, so that we can then uses these classes to
+	 * execute reflective calls on them.
 	 * <p>
-	 * During 'generative' setup, an execution context with a standard java class loader is used to 'predict' the expected test
-	 * result. During 'replay' a SpringLoaded based implementation is used instead.
+	 * During 'generative' setup, an execution context with a standard java class loader is used to 'predict' the
+	 * expected test result. During 'replay' a SpringLoaded based implementation is used instead.
 	 */
 	protected IClassProvider classProvider = null;
 
 	/**
-	 * To have 'nice' toString value and display name. While generating test parameters, add some text to this buffer to describe
-	 * the selected parameter. Method in this class that are called 'targetXXX' generally will add some text to this buffer.
+	 * To have 'nice' toString value and display name. While generating test parameters, add some text to this buffer to
+	 * describe the selected parameter. Method in this class that are called 'targetXXX' generally will add some text to
+	 * this buffer.
 	 */
 	protected StringBuffer toStringValue = new StringBuffer();
 
 	/**
-	 * Typically, each test has a particular 'target package' which is a package in the test data project that contains the
-	 * reloadable classes that this test is operating on. This method must be implemented by the subclass to provide a suitable
-	 * value.
+	 * Typically, each test has a particular 'target package' which is a package in the test data project that contains
+	 * the reloadable classes that this test is operating on. This method must be implemented by the subclass to provide
+	 * a suitable value.
 	 */
 	protected abstract String getTargetPackage();
 
@@ -81,13 +84,13 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	 * <p>
 	 * In 'JustJava' mode a standard Java classloader is used to immediately load the stipulated version.
 	 * <p>
-	 * In 'SpringLoaded' mode the original version of the type is loaded first. Then successive version are reloaded until the
-	 * stipulated version number is reached.
+	 * In 'SpringLoaded' mode the original version of the type is loaded first. Then successive version are reloaded
+	 * until the stipulated version number is reached.
 	 * <p>
 	 * This method should only be called to load a class that has not been loaded yet or an error will occur.
 	 * <p>
-	 * Since loading a class may trigger loading of dependent classes, it is important to call this method on classes in the correct
-	 * order.
+	 * Since loading a class may trigger loading of dependent classes, it is important to call this method on classes in
+	 * the correct order.
 	 * 
 	 * @param typeName Dotted name of the type to load.
 	 * @param version One of "", "002", "003", ...
@@ -97,8 +100,8 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	}
 
 	/**
-	 * Get a type from the classloader. Use this to get references to already loaded classes, or to get classes that fall outside
-	 * the reloadable types universe.
+	 * Get a type from the classloader. Use this to get references to already loaded classes, or to get classes that
+	 * fall outside the reloadable types universe.
 	 */
 	public Class<?> classForName(String className) throws ClassNotFoundException {
 		return classProvider.classForName(className);
@@ -109,16 +112,17 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 		super.setup();
 		if (generative) {
 			classProvider = new JustJavaClassProvider();
-		} else {
+		}
+		else {
 			classProvider = new SpringLoadedClassProvider(getReloableTypeConfig());
 		}
 		chooseTestParameters();
 	}
 
 	/**
-	 * This method should be overridden in order for a test to choose its test parameters. If a test throws RejectedChoice
-	 * exception, this test configuration will be silently ignored. Any other exceptions raised will result in an error initialising
-	 * the test suite.
+	 * This method should be overridden in order for a test to choose its test parameters. If a test throws
+	 * RejectedChoice exception, this test configuration will be silently ignored. Any other exceptions raised will
+	 * result in an error initialising the test suite.
 	 * 
 	 * @throws RejectedChoice
 	 * @throws Exception
@@ -160,31 +164,32 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	protected Field targetFieldFrom(Class<?> clazz, FieldGetMethod howToGet) throws RejectedChoice {
 		Field[] fields = null;
 		switch (howToGet) {
-		case GET_DECLARED_FIELD:
-		case GET_DECLARED_FIELDS:
-			fields = ReflectiveInterceptor.jlClassGetDeclaredFields(clazz);
-			break;
-		case GET_FIELD:
-		case GET_FIELDS:
-			fields = ReflectiveInterceptor.jlClassGetFields(clazz);
-			break;
+			case GET_DECLARED_FIELD:
+			case GET_DECLARED_FIELDS:
+				fields = ReflectiveInterceptor.jlClassGetDeclaredFields(clazz);
+				break;
+			case GET_FIELD:
+			case GET_FIELDS:
+				fields = ReflectiveInterceptor.jlClassGetFields(clazz);
+				break;
 		}
 		//To be deterministic we must sort these in a predictable fashion! 
-//		Arrays.sort(fields, new ToStringComparator());
+		//		Arrays.sort(fields, new ToStringComparator());
 		sort(fields);
 		Field f = choice(fields);
 		toStringValue.append(f.getName());
 		try {
 			switch (howToGet) {
-			case GET_DECLARED_FIELDS:
-			case GET_FIELDS:
-				return f;
-			case GET_DECLARED_FIELD:
-				return ReflectiveInterceptor.jlClassGetDeclaredField(clazz, f.getName());
-			case GET_FIELD:
-				return ReflectiveInterceptor.jlClassGetField(clazz, f.getName());
+				case GET_DECLARED_FIELDS:
+				case GET_FIELDS:
+					return f;
+				case GET_DECLARED_FIELD:
+					return ReflectiveInterceptor.jlClassGetDeclaredField(clazz, f.getName());
+				case GET_FIELD:
+					return ReflectiveInterceptor.jlClassGetField(clazz, f.getName());
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new Error(e);
 		}
 		return f;
@@ -206,8 +211,8 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	}
 
 	/**
-	 * Load and selected a target type for testing. This adds the name of the class to the 'toStringValue' making it part of the
-	 * test description.
+	 * Load and selected a target type for testing. This adds the name of the class to the 'toStringValue' making it
+	 * part of the test description.
 	 */
 	protected Class<?> targetClass(String typeName, String version) {
 		toStringValue.append(typeName + version + " ");
@@ -217,14 +222,15 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	/**
 	 * Similar to other targetClass method, but for getting an unversioned, non-reloadable type.
 	 * <p>
-	 * Typically this class will <b>not</b> be in the target package (since it is non-reloadable) so you must explicitly include the
-	 * package name in the type name.
+	 * Typically this class will <b>not</b> be in the target package (since it is non-reloadable) so you must explicitly
+	 * include the package name in the type name.
 	 */
 	protected Class<?> targetClass(String fullyQuallifiedName) throws ClassNotFoundException {
 		if (fullyQuallifiedName == null) {
 			toStringValue.append("null");
 			return null;
-		} else {
+		}
+		else {
 			Class<?> clazz = classForName(fullyQuallifiedName);
 			toStringValue.append(clazz.getSimpleName() + " ");
 			return clazz;
@@ -242,8 +248,9 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	}
 
 	/**
-	 * Most of the stuff we are interested in (Methods, Classes, Annotations, will not be 'equals') when they are executed in a
-	 * different classloader. So we approximate this by just calling 'toString' on returned objects and comparing those.
+	 * Most of the stuff we are interested in (Methods, Classes, Annotations, will not be 'equals') when they are
+	 * executed in a different classloader. So we approximate this by just calling 'toString' on returned objects and
+	 * comparing those.
 	 */
 	@Override
 	protected void assertEqualResults(Result expected, Result actual) {
@@ -256,8 +263,8 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 	 * <li>objects come from different classloaders and are not equals
 	 * <li>the order of the objects may vary
 	 * </ul>
-	 * Then, assuming the objects have a reasonable toString implementation, you can use this method as an implementation of
-	 * assertEqualResults. Simply call this method from your assertEqualResults method.
+	 * Then, assuming the objects have a reasonable toString implementation, you can use this method as an
+	 * implementation of assertEqualResults. Simply call this method from your assertEqualResults method.
 	 */
 	protected void assertEqualUnorderedToStringLists(Result _expected, Result _actual) {
 		List<String> expected = toStringList((List<?>) _expected.returnValue);
@@ -299,15 +306,15 @@ public abstract class GenerativeSpringLoadedTest extends GenerativeTest {
 
 	protected void sort(Object[] os) {
 		for (int i = 0; i < os.length; i++) {
-		    for (int x = 1; x < os.length - i; x++) {
-		        if (os[x - 1].toString().compareTo(os[x].toString())>0) {
-		            Object temp = os[x - 1];
-		            os[x - 1] = os[x];
-		            os[x] = temp;
+			for (int x = 1; x < os.length - i; x++) {
+				if (os[x - 1].toString().compareTo(os[x].toString()) > 0) {
+					Object temp = os[x - 1];
+					os[x - 1] = os[x];
+					os[x] = temp;
 
-		        }
-		    }
-		  }
+				}
+			}
+		}
 	}
 
 }

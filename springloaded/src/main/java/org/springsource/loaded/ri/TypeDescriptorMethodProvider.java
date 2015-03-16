@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.util.ArrayList;
@@ -60,11 +61,13 @@ public abstract class TypeDescriptorMethodProvider extends MethodProvider {
 		if (superName == null) {
 			//This happens only for type Object... Code unreachable unless Object is reloadable
 			return null;
-		} else {
+		}
+		else {
 			ReloadableType rsuper = registry.getReloadableType(superName);
 			if (rsuper != null) {
 				return MethodProvider.create(rsuper);
-			} else {
+			}
+			else {
 				TypeDescriptor dsuper = registry.getDescriptorFor(superName);
 				return MethodProvider.create(registry, dsuper);
 			}

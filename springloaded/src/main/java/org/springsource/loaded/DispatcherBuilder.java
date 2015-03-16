@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.util.ArrayList;
@@ -31,8 +32,8 @@ import org.springsource.loaded.Utils.ReturnType;
 
 
 /**
- * Builder that creates the dispatcher. The dispatcher is the implementation of the interface extracted for a type which then
- * delegates to the executor. A new dispatcher (and executor) is built for each class reload.
+ * Builder that creates the dispatcher. The dispatcher is the implementation of the interface extracted for a type which
+ * then delegates to the executor. A new dispatcher (and executor) is built for each class reload.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -43,13 +44,16 @@ public class DispatcherBuilder {
 	 * Factory method that builds the dispatcher for a specified reloadabletype.
 	 * 
 	 * @param rtype the reloadable type
-	 * @param newVersionTypeDescriptor the descriptor of the new version (the executor will be generated according to this)
+	 * @param newVersionTypeDescriptor the descriptor of the new version (the executor will be generated according to
+	 *            this)
 	 * @param versionstamp the suffix that should be appended to the generated dispatcher
 	 * @return the bytecode for the new dispatcher
 	 */
-	public static byte[] createFor(ReloadableType rtype, IncrementalTypeDescriptor newVersionTypeDescriptor, String versionstamp) {
+	public static byte[] createFor(ReloadableType rtype, IncrementalTypeDescriptor newVersionTypeDescriptor,
+			String versionstamp) {
 		ClassReader fileReader = new ClassReader(rtype.interfaceBytes);
-		DispatcherBuilderVisitor dispatcherVisitor = new DispatcherBuilderVisitor(rtype, newVersionTypeDescriptor, versionstamp);
+		DispatcherBuilderVisitor dispatcherVisitor = new DispatcherBuilderVisitor(rtype, newVersionTypeDescriptor,
+				versionstamp);
 		fileReader.accept(dispatcherVisitor, 0);
 		return dispatcherVisitor.getBytes();
 	}
@@ -62,9 +66,13 @@ public class DispatcherBuilder {
 		private ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 
 		private String classname;
+
 		private String executorClassName;
+
 		private String suffix;
+
 		private ReloadableType rtype;
+
 		private IncrementalTypeDescriptor typeDescriptor;
 
 		public DispatcherBuilderVisitor(ReloadableType rtype, IncrementalTypeDescriptor typeDescriptor, String suffix) {
@@ -80,10 +88,12 @@ public class DispatcherBuilder {
 			return cw.toByteArray();
 		}
 
-		public void visit(int version, int flags, String name, String signature, String superclassName, String[] interfaceNames) {
+		public void visit(int version, int flags, String name, String signature, String superclassName,
+				String[] interfaceNames) {
 			String dispatcherName = Utils.getDispatcherName(classname, suffix);
 			cw.visit(version, Opcodes.ACC_PUBLIC, dispatcherName, null, "java/lang/Object",
-					new String[] { Utils.getInterfaceName(classname), "org/springsource/loaded/__DynamicallyDispatchable" });
+					new String[] { Utils.getInterfaceName(classname),
+						"org/springsource/loaded/__DynamicallyDispatchable" });
 			generateDefaultConstructor();
 		}
 
@@ -123,18 +133,20 @@ public class DispatcherBuilder {
 		public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) {
 		}
 
-		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
+		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature,
+				String[] exceptions) {
 			if (name.equals(mDynamicDispatchName)) {
 				generateDynamicDispatchMethod(name, descriptor, signature, exceptions);
-			} else if (!name.equals("<init>")) {
+			}
+			else if (!name.equals("<init>")) {
 				generateRegularMethod(name, descriptor, signature, exceptions);
 			}
 			return null;
 		}
 
 		/**
-		 * Generate the body of the dynamic dispatcher method. This method is responsible for calling all the methods that are added
-		 * to a type after the first time it is defined.
+		 * Generate the body of the dynamic dispatcher method. This method is responsible for calling all the methods
+		 * that are added to a type after the first time it is defined.
 		 */
 		private void generateDynamicDispatchMethod(String name, String descriptor, String signature, String[] exceptions) {
 			final int indexDispatcherInstance = 0;
@@ -144,7 +156,7 @@ public class DispatcherBuilder {
 
 			// Should be generating the code for each additional method in
 			// the executor (new version) that wasn't in the original. 
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC , name, descriptor, signature, exceptions);
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC, name, descriptor, signature, exceptions);
 			mv.visitCode();
 
 			// Entries required here for all methods that exist in the new version but didn't exist in the original version
@@ -199,7 +211,8 @@ public class DispatcherBuilder {
 				mv.visitMethodInsn(Opcodes.INVOKESTATIC, executorClassName, method.name, callDescriptor, false);
 				if (returnType.isVoid()) {
 					mv.visitInsn(ACONST_NULL);
-				} else if (returnType.isPrimitive()) {
+				}
+				else if (returnType.isPrimitive()) {
 					Utils.insertBoxInsns(mv, returnType.descriptor);
 				}
 				mv.visitInsn(Opcodes.ARETURN);
@@ -262,7 +275,8 @@ public class DispatcherBuilder {
 			mv.visitVarInsn(ALOAD, indexArgs);
 			mv.visitVarInsn(ALOAD, indexTarget);
 			mv.visitVarInsn(ALOAD, indexNameAndDescriptor);
-			mv.visitMethodInsn(INVOKEINTERFACE, tDynamicallyDispatchable, mDynamicDispatchName, mDynamicDispatchDescriptor, false);
+			mv.visitMethodInsn(INVOKEINTERFACE, tDynamicallyDispatchable, mDynamicDispatchName,
+					mDynamicDispatchDescriptor, false);
 			mv.visitInsn(ARETURN);
 
 			//			mv.visitTypeInsn(NEW, "java/lang/IllegalStateException");
@@ -275,8 +289,8 @@ public class DispatcherBuilder {
 		}
 
 		/**
-		 * Called to generate the implementation of a normal method on the interface - a normal method is one that did exist when
-		 * the type was first defined. Might be a catcher.
+		 * Called to generate the implementation of a normal method on the interface - a normal method is one that did
+		 * exist when the type was first defined. Might be a catcher.
 		 */
 		private void generateRegularMethod(String name, String descriptor, String signature, String[] exceptions) {
 			// The original descriptor is how it was defined on the original type and how it is defined in the executor class.
@@ -289,23 +303,27 @@ public class DispatcherBuilder {
 			if (name.equals("___init___")) {
 				// it is a ctor
 				method = rtype.getConstructor(originalDescriptor);
-			} else {
+			}
+			else {
 				if (isClinit) {
 					generateClinitDispatcher();
 					return;
-				} else {
+				}
+				else {
 					// TODO need a better solution that these __
 					if (name.startsWith("__") && !name.equals("__$swapInit")) { // __$swapInit is the groovy reset method
 						// clash avoidance name
 						method = rtype.getMethod(name.substring(2), originalDescriptor);
-					} else {
+					}
+					else {
 						method = rtype.getMethod(name, originalDescriptor);
 					}
 				}
 			}
 			boolean isStatic = method.isStatic();
 
-			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, name, descriptor, signature, exceptions);
+			MethodVisitor mv = cw.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, name, descriptor, signature,
+					exceptions);
 			mv.visitCode();
 			// The input descriptor will include the extra initial parameter (the instance, or null for static methods)
 			ReturnType returnTypeDescriptor = Utils.getReturnTypeDescriptor(descriptor);

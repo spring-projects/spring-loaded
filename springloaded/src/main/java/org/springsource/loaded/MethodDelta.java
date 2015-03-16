@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -24,23 +25,34 @@ import org.objectweb.asm.tree.AbstractInsnNode;
  * @since 0.5.0
  */
 public class MethodDelta {
+
 	public int changed;
 
 	private final static int CHANGED_INSTRUCTIONS = 0x0001;
+
 	private final static int CHANGED_ACCESS = 0x0002;
+
 	private final static int CHANGED_ANNOTATIONS = 0x0004;
+
 	private final static int CHANGED_INVOKESPECIAL = 0x0008;
+
 	private final static int CHANGED_CODE = 0x0010;
 
-	private final static int CHANGED_MASK = CHANGED_INSTRUCTIONS | CHANGED_ACCESS | CHANGED_ANNOTATIONS | CHANGED_INVOKESPECIAL
+	private final static int CHANGED_MASK = CHANGED_INSTRUCTIONS | CHANGED_ACCESS | CHANGED_ANNOTATIONS
+			| CHANGED_INVOKESPECIAL
 			| CHANGED_CODE;
 
 	// o = original, n = new
 	public final String name;
+
 	public final String desc;
+
 	String annotationChanges;
+
 	int oAccess, nAccess;
+
 	String oInvokespecialDescriptor, nInvokespecialDescriptor;
+
 	AbstractInsnNode[] oInstructions, nInstructions;
 
 	public MethodDelta(String name, String desc) {

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.InvocationTargetException;
@@ -23,8 +24,8 @@ import org.springsource.loaded.jvm.JVM;
 
 
 /**
- * Implementation of Invoker that wraps a {@link Method} object. It is assumed that this Method object is from a non-reloadable
- * Class so it shouldn't need any kind of special handling.
+ * Implementation of Invoker that wraps a {@link Method} object. It is assumed that this Method object is from a
+ * non-reloadable Class so it shouldn't need any kind of special handling.
  * 
  * @author Kris De Volder
  * @since 0.5.0

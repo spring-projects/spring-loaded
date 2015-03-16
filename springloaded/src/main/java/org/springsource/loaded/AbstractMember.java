@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.reflect.Modifier;
@@ -26,12 +27,17 @@ import java.lang.reflect.Modifier;
 public abstract class AbstractMember implements Constants {
 
 	protected final int modifiers;
+
 	protected final String name;
+
 	protected final String descriptor; // this is the erased descriptor.  There is no generic descriptor.
+
 	// Members have a well known id within their type - ids are unique per kind of member (methods/fields/constructors)
 	protected int id = -1;
+
 	// For generic methods, contains generic signature
 	protected final String signature;
+
 	private final boolean isPrivate; // gets asked a lot so made into a flag
 
 	protected AbstractMember(int modifiers, String name, String descriptor, String signature) {

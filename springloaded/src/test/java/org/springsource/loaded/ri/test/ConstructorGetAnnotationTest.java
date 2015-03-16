@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -34,11 +35,11 @@ import org.springsource.loaded.testgen.RejectedChoice;
  * 
  * getAnnotation isAnnotationPresent
  * 
- * It is convenient to test both of these here, since they have the same kinds of argument types, which means generation of test
- * parameters is the same.
+ * It is convenient to test both of these here, since they have the same kinds of argument types, which means generation
+ * of test parameters is the same.
  * <p>
- * Note that these same methods are also tested by {@link MethodGetAnnotationTest} and {@link FieldGetAnnotationTest}. But that test
- * only passes Method/Field instances to tested method.
+ * Note that these same methods are also tested by {@link MethodGetAnnotationTest} and {@link FieldGetAnnotationTest}.
+ * But that test only passes Method/Field instances to tested method.
  * 
  * @author kdvolder
  */
@@ -48,11 +49,14 @@ public class ConstructorGetAnnotationTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	private Class<?> targetClass; //One class chosen to focus test on
 
 	// Parameters that change for different test runs
 	private AccessibleObject member; //A field or constructor declared on this class
+
 	private Class<Annotation> annotClass; //An annotation type to look for
 
 	private String testedMethodCaller;

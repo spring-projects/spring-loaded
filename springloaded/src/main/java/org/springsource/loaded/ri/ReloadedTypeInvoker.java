@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.InvocationTargetException;
@@ -37,6 +38,7 @@ import org.springsource.loaded.jvm.JVM;
 public abstract class ReloadedTypeInvoker extends Invoker {
 
 	ReloadableType rtype;
+
 	private MethodMember methodMember;
 
 	private ReloadedTypeInvoker(ReloadableTypeMethodProvider declaringType, MethodMember methodMember) {
@@ -49,7 +51,8 @@ public abstract class ReloadedTypeInvoker extends Invoker {
 	}
 
 	@Override
-	public abstract Object invoke(Object target, Object... params) throws IllegalArgumentException, IllegalAccessException,
+	public abstract Object invoke(Object target, Object... params) throws IllegalArgumentException,
+			IllegalAccessException,
 			InvocationTargetException;
 
 	/**
@@ -68,8 +71,10 @@ public abstract class ReloadedTypeInvoker extends Invoker {
 			Class<?>[] exceptions = Utils.slashedNamesToClasses(methodMember.getExceptions(), classLoader);
 			return JVM.newMethod(clazz, name, params, returnType, exceptions, methodMember.getModifiers(),
 					methodMember.getGenericSignature());
-		} catch (ClassNotFoundException e) {
-			throw new IllegalStateException("Couldn't create j.l.r.Method for " + clazz.getName() + "." + methodDescriptor, e);
+		}
+		catch (ClassNotFoundException e) {
+			throw new IllegalStateException("Couldn't create j.l.r.Method for " + clazz.getName() + "."
+					+ methodDescriptor, e);
 		}
 	}
 
@@ -97,25 +102,31 @@ public abstract class ReloadedTypeInvoker extends Invoker {
 		if (Modifier.isStatic(methodMember.getModifiers())) {
 			// Since static methods don't change parameter lists, they just invoke the executor
 			return new ReloadedTypeInvoker(declaringType, methodMember) {
+
 				@Override
-				public Object invoke(Object target, Object... params) throws IllegalArgumentException, IllegalAccessException,
+				public Object invoke(Object target, Object... params) throws IllegalArgumentException,
+						IllegalAccessException,
 						InvocationTargetException {
 					CurrentLiveVersion clv = rtype.getLiveVersion();
 					Method executor = clv.getExecutorMethod(methodMember);
 					return executor.invoke(target, params);
 				}
 			};
-		} else {
+		}
+		else {
 			// Non static method invokers need to add target as a first param
 			return new ReloadedTypeInvoker(declaringType, methodMember) {
+
 				@Override
-				public Object invoke(Object target, Object... params) throws IllegalArgumentException, IllegalAccessException,
+				public Object invoke(Object target, Object... params) throws IllegalArgumentException,
+						IllegalAccessException,
 						InvocationTargetException {
 					CurrentLiveVersion clv = rtype.getLiveVersion();
 					Method executor = clv.getExecutorMethod(methodMember);
 					if (params == null) {
 						return executor.invoke(null, target);
-					} else {
+					}
+					else {
 						Object[] ps = new Object[params.length + 1];
 						System.arraycopy(params, 0, ps, 1, params.length);
 						ps[0] = target;

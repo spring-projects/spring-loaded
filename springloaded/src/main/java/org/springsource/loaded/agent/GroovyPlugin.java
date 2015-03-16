@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.security.ProtectionDomain;
@@ -28,14 +29,14 @@ import org.springsource.loaded.ReloadEventProcessorPlugin;
  * So far the GroovyPlugin can do two different things - configurable through the 'allowCompilableCallSites' flag.
  * 
  * <p>
- * If the flag is false: The plugin intercepts two of the main system types in groovy and turns OFF call site compilation. Without
- * this compilation the compiler will not be generating classes, it will instead be using reflection all the time. This is simpler
- * to handle (as we intercept reflection) but performance == thesuck.
+ * If the flag is false: The plugin intercepts two of the main system types in groovy and turns OFF call site
+ * compilation. Without this compilation the compiler will not be generating classes, it will instead be using
+ * reflection all the time. This is simpler to handle (as we intercept reflection) but performance == thesuck.
  * <p>
- * If the flag is true: The plugin leaves groovy to compile call sites. We intercept the define method in the classloader used to
- * define these generated call site classes and ensure they are rewritten correctly. Note there is an alternative here of getting
- * the SpringLoadedPreProcessor to recognize these special classloaders and just instrument them that way. However, if we let the
- * plugin do it it is easier to test!
+ * If the flag is true: The plugin leaves groovy to compile call sites. We intercept the define method in the
+ * classloader used to define these generated call site classes and ensure they are rewritten correctly. Note there is
+ * an alternative here of getting the SpringLoadedPreProcessor to recognize these special classloaders and just
+ * instrument them that way. However, if we let the plugin do it it is easier to test!
  * <p>
  * To see the difference in these approaches, check the numbers in the Groovy Benchmark tests.
  * 
@@ -49,15 +50,17 @@ public class GroovyPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	// GroovySunClassLoader - can make the final field non final so it can be set to null (it is checked as part of the isCompilable methodin the callsitegenerator)
 	// CallSiteGenerator - make isCompilable return false, which means we will never generate a direct call to a method that may not yet be on the target
 	// implementing LoadtimeInstrumentationPlugin
-	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
+	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain,
+			byte[] bytes) {
 		// TODO take classloader into account?
-		if (slashedTypeName==null) {
+		if (slashedTypeName == null) {
 			return false;
 		}
 		if (!allowCompilableCallSites) {
 			return slashedTypeName.equals("org/codehaus/groovy/runtime/callsite/GroovySunClassLoader")
 					|| slashedTypeName.equals("org/codehaus/groovy/runtime/callsite/CallSiteGenerator");
-		} else {
+		}
+		else {
 			if (slashedTypeName.equals("org/codehaus/groovy/reflection/ClassLoaderForClassArtifacts")) {
 				return true;
 			}
@@ -68,7 +71,8 @@ public class GroovyPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	public byte[] modify(String slashedClassName, ClassLoader classLoader, byte[] bytes) {
 		if (allowCompilableCallSites) {
 			return modifyDefineInClassLoaderForClassArtifacts(bytes);
-		} else {
+		}
+		else {
 			// Deactivate compilation
 			if (slashedClassName.equals("org/codehaus/groovy/runtime/callsite/GroovySunClassLoader")) {
 				//		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
@@ -81,7 +85,8 @@ public class GroovyPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				cr.accept(ca, 0);
 				byte[] newbytes = ca.getBytes();
 				return newbytes;
-			} else {
+			}
+			else {
 				// must be the CallSiteGenerator
 				ClassReader cr = new ClassReader(bytes);
 				FalseReturner ca = new FalseReturner("isCompilable");

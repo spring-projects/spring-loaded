@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.InvocationTargetException;
@@ -22,9 +23,9 @@ import java.lang.reflect.Modifier;
 /**
  * An invoker represents the result of a method lookup operation in the type hierarchy.
  * <p>
- * It encapsulates a reference to a resolved method implementation in a reloadable or non-reloadable type and provides an 'invoke'
- * method suitable for invoking that method implementation, and a 'createJavaMethod' to create a Java {@link Method} instance that
- * can be used to represent the method in the Java reflection API.
+ * It encapsulates a reference to a resolved method implementation in a reloadable or non-reloadable type and provides
+ * an 'invoke' method suitable for invoking that method implementation, and a 'createJavaMethod' to create a Java
+ * {@link Method} instance that can be used to represent the method in the Java reflection API.
  * 
  * @author Kris De Volder
  * @since 0.5.0
@@ -33,7 +34,8 @@ public abstract class Invoker {
 
 	private Method cachedMethod; //Cached for cases where we get call getJavaMethod multiple times.
 
-	public abstract Object invoke(Object target, Object... params) throws IllegalArgumentException, IllegalAccessException,
+	public abstract Object invoke(Object target, Object... params) throws IllegalArgumentException,
+			IllegalAccessException,
 			InvocationTargetException;
 
 	public abstract int getModifiers();
@@ -43,7 +45,8 @@ public abstract class Invoker {
 	public abstract String getMethodDescriptor();
 
 	public String toString() {
-		return "Invoker(" + Modifier.toString(getModifiers()) + " " + getClassName() + "." + getName() + getMethodDescriptor()
+		return "Invoker(" + Modifier.toString(getModifiers()) + " " + getClassName() + "." + getName()
+				+ getMethodDescriptor()
 				+ ")";
 	}
 

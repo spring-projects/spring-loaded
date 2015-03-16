@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.lang.instrument.ClassFileTransformer;
@@ -48,7 +49,8 @@ public class ClassPreProcessorAgentAdapter implements ClassFileTransformer {
 		try {
 			preProcessor = new SpringLoadedPreProcessor();
 			preProcessor.initialize();
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new ExceptionInInitializerError("could not initialize JSR163 preprocessor due to: " + e.toString());
 		}
 	}
@@ -61,12 +63,15 @@ public class ClassPreProcessorAgentAdapter implements ClassFileTransformer {
 	 * @param bytes the bytecode before weaving
 	 * @return the weaved bytecode
 	 */
-	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
+	public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined,
+			ProtectionDomain protectionDomain,
 			byte[] bytes) throws IllegalClassFormatException {
 		try {
 			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-				log.info("> (loader=" + loader + " className=" + className + ", classBeingRedefined=" + classBeingRedefined
-						+ ", protectedDomain=" + (protectionDomain != null) + ", bytes= " + (bytes == null ? "null" : bytes.length));
+				log.info("> (loader=" + loader + " className=" + className + ", classBeingRedefined="
+						+ classBeingRedefined
+						+ ", protectedDomain=" + (protectionDomain != null) + ", bytes= "
+						+ (bytes == null ? "null" : bytes.length));
 			}
 
 			// TODO determine if this is the right behaviour for hot code replace:
@@ -100,7 +105,8 @@ public class ClassPreProcessorAgentAdapter implements ClassFileTransformer {
 			// System.err.println("transform(" + loader.getClass().getName() + ",classname=" + className +
 			// ",classBeingRedefined=" + classBeingRedefined + ",protectionDomain=" + protectionDomain + ")");
 			return preProcessor.preProcess(loader, className, protectionDomain, bytes);
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			new RuntimeException("Reloading agent exited via exception, please raise a jira", t).printStackTrace();
 			return bytes;
 		}

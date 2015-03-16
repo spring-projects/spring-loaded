@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.security.ProtectionDomain;
 
 /**
- * Plugins that implement this interface are allowed to modify types as they are loaded - this can be necessary sometimes to ensure,
- * for example, that a particular field is accessible later when a reload event occurs or that some factory method returns a wrapper
- * rather than the original object it intended to. For information on how to register plugins with the agent, see {@link Plugin}
+ * Plugins that implement this interface are allowed to modify types as they are loaded - this can be necessary
+ * sometimes to ensure, for example, that a particular field is accessible later when a reload event occurs or that some
+ * factory method returns a wrapper rather than the original object it intended to. For information on how to register
+ * plugins with the agent, see {@link Plugin}
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -29,9 +31,9 @@ public interface LoadtimeInstrumentationPlugin extends Plugin {
 
 	// TODO should probably be dotted names rather than slashed
 	/**
-	 * Called by the agent to determine if this plugin is interested in changing the specified type at load time. This is used when
-	 * the plugin wishes to do some kind of transformation itself before the type is loaded - for example modify it to record
-	 * something that will later be used on a reload event.
+	 * Called by the agent to determine if this plugin is interested in changing the specified type at load time. This
+	 * is used when the plugin wishes to do some kind of transformation itself before the type is loaded - for example
+	 * modify it to record something that will later be used on a reload event.
 	 * 
 	 * @param slashedTypeName the type name, slashed form (e.g. java/lang/String)
 	 * @param classLoader the classloader loading the type
@@ -42,7 +44,8 @@ public interface LoadtimeInstrumentationPlugin extends Plugin {
 	boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes);
 
 	/**
-	 * Once accept has returned true for a type, the modify method will be called to make the actual change to the classfile bytes.
+	 * Once accept has returned true for a type, the modify method will be called to make the actual change to the
+	 * classfile bytes.
 	 * 
 	 * @param slashedClassName the class name, slashed form (e.g. java/lang/String)
 	 * @param classLoader the classloader loading the type

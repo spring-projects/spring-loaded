@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -37,11 +38,14 @@ public class ClassGetDeclaredMethodsTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	//	private Set<String> signatures;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String targetMethodName;
 
 	@Override
@@ -55,19 +59,19 @@ public class ClassGetDeclaredMethodsTest extends GenerativeSpringLoadedTest {
 		toStringValue.append(targetMethodName + ": ");
 
 		switch (choice(4)) {
-		case 0: /* A non-reloadable class */
-			targetClass = targetClass("java.lang.String");
-			break;
-		case 1: /* A simple reloadable class */
-			targetClass = targetClass("ClassTarget", choice("", "002", "003"));
-			break;
-		case 2: /* A simple reloadable subclass */
-			targetClass("ClassTarget", choice("", "002"/*, "003"*/));
-			targetClass = targetClass("SubClassTarget", choice("", "002", "003"));
-			break;
-		case 3: /* A simple reloadable interface */
-			targetClass = targetClass("InterfaceTarget", choice("", "002"));
-			break;
+			case 0: /* A non-reloadable class */
+				targetClass = targetClass("java.lang.String");
+				break;
+			case 1: /* A simple reloadable class */
+				targetClass = targetClass("ClassTarget", choice("", "002", "003"));
+				break;
+			case 2: /* A simple reloadable subclass */
+				targetClass("ClassTarget", choice("", "002"/*, "003"*/));
+				targetClass = targetClass("SubClassTarget", choice("", "002", "003"));
+				break;
+			case 3: /* A simple reloadable interface */
+				targetClass = targetClass("InterfaceTarget", choice("", "002"));
+				break;
 		}
 
 		callerClazz = loadClassVersion("reflection.ClassInvoker", "");
@@ -79,7 +83,8 @@ public class ClassGetDeclaredMethodsTest extends GenerativeSpringLoadedTest {
 		try {
 			Result r = runOnInstance(callerClazz, callerInstance, targetMethodName, targetClass);
 			return r;
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			throw new Error(e);
 		}
 	}

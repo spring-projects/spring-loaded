@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.perf.test;
 
 import java.util.Enumeration;
@@ -33,18 +34,16 @@ import org.springsource.loaded.test.infra.TestClassLoader;
 public class WeavingPerformanceTests extends SpringLoadedTests {
 
 	protected String ExpressionsJar = "../testdata/lib/spring-expression-4.0.0.M3.jar";
-	
+
 	/**
 	 * Work in progress...
 	 * 
 	 * Process a jar file and pretend that everything in it is reloadable. How long does it take?
 	 * 
-	 * Possible approaches here:
-	 * - load all the types through a reloading classloader?
-	 *   This will not be testing the agent specifically, just the lower level infrastructure
-	 * - Run this test inside a JVM that has reloading turned on
-	 *   This would test the agent.
-	 *   
+	 * Possible approaches here: - load all the types through a reloading classloader? This will not be testing the
+	 * agent specifically, just the lower level infrastructure - Run this test inside a JVM that has reloading turned on
+	 * This would test the agent.
+	 * 
 	 * 
 	 */
 	@Ignore
@@ -59,24 +58,24 @@ public class WeavingPerformanceTests extends SpringLoadedTests {
 			System.out.println(ze.getName());
 			String name = ze.getName();
 			if (name.endsWith(".class")) {
-				name = name.substring(0,name.length()-6);
-				tcl.loadClass(name.replaceAll("/","."));
+				name = name.substring(0, name.length() - 6);
+				tcl.loadClass(name.replaceAll("/", "."));
 			}
 		}
-//		URL url = tcl.findResource("data/SimpleClass.class");
-//		Assert.assertNotNull(url);
-//		url = tcl.findResource("data/MissingClass.class");
-//		Assert.assertNull(url);
-	
-//		TypeRegistry typeRegistry = getTypeRegistry("data.SimpleClass");
-//		byte[] sc = loadBytesForClass("data.SimpleClass");
-//		ReloadableType rtype = new ReloadableType("data.SimpleClass", sc, 1, typeRegistry, null);
-//
-//		assertEquals(1, rtype.getId());
-//		assertEquals("data.SimpleClass", rtype.getName());
-//		assertEquals("data/SimpleClass", rtype.getSlashedName());
-//		assertNotNull(rtype.getTypeDescriptor());
-//		assertEquals(typeRegistry, rtype.getTypeRegistry());
-	
+		//		URL url = tcl.findResource("data/SimpleClass.class");
+		//		Assert.assertNotNull(url);
+		//		url = tcl.findResource("data/MissingClass.class");
+		//		Assert.assertNull(url);
+
+		//		TypeRegistry typeRegistry = getTypeRegistry("data.SimpleClass");
+		//		byte[] sc = loadBytesForClass("data.SimpleClass");
+		//		ReloadableType rtype = new ReloadableType("data.SimpleClass", sc, 1, typeRegistry, null);
+		//
+		//		assertEquals(1, rtype.getId());
+		//		assertEquals("data.SimpleClass", rtype.getName());
+		//		assertEquals("data/SimpleClass", rtype.getSlashedName());
+		//		assertNotNull(rtype.getTypeDescriptor());
+		//		assertEquals(typeRegistry, rtype.getTypeRegistry());
+
 	}
 }

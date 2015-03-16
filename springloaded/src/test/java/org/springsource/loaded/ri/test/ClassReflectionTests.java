@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.junit.Assert.assertEquals;
@@ -79,13 +80,18 @@ import org.springsource.loaded.test.infra.ResultException;
 public class ClassReflectionTests extends AbstractReflectionTests {
 
 	public static final String TARGET_PACKAGE = "reflection.targets";
+
 	private static final String TARGET_CLASS_NAME = TARGET_PACKAGE + ".ClassTarget";
+
 	private static final String INVOKER_CLASS_NAME = "reflection.AdHocClassInvoker";
 
 	private ReloadableType target = null;
+
 	private Object callerInstance = null;
+
 	private Class<?> callerClazz = null;
 
+	@Override
 	@Before
 	public void setup() throws Exception {
 		super.setup();
@@ -116,7 +122,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * NoSuchMethodError is different from NoSuchMethodException! It should be thrown when trying to *call* a non-existent method.
+	 * NoSuchMethodError is different from NoSuchMethodException! It should be thrown when trying to *call* a
+	 * non-existent method.
 	 */
 	private void assertNoSuchMethodError(String expectedSignature, ResultException e) {
 		Throwable cause = e.getDeepestCause();
@@ -152,7 +159,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			getDeclaredMethod("lateMethod");
 			Assert.fail("lateMethod shouldn't exist yet");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".lateMethod()", e);
 		}
 
@@ -192,7 +200,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 		reloadType("002");
 
-		// now call it again, first using the one we still have, 
+		// now call it again, first using the one we still have,
 		// then retrieving and using a new one
 		r = invokeConstructor(ctor);
 		assertNotNull(r.returnValue);
@@ -210,7 +218,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		// Access a constructor that isn't there
 		try {
 			r = getDeclaredConstructor(String.class);
-		} catch (ResultException re) {
+		}
+		catch (ResultException re) {
 			assertTrue(re.getCause() instanceof InvocationTargetException);
 			assertTrue(re.getCause().getCause().toString(), re.getCause().getCause() instanceof NoSuchMethodException);
 		}
@@ -240,9 +249,11 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		for (Constructor<?> ctor : ctors) {
 			if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Integer.TYPE) {
 				r = invokeConstructor(ctor, 4);
-			} else if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Float.TYPE) {
+			}
+			else if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Float.TYPE) {
 				r = invokeConstructor(ctor, 4f);
-			} else {
+			}
+			else {
 				r = invokeConstructor(ctor);
 			}
 			assertNotNull(r.returnValue);
@@ -250,14 +261,16 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 		reloadType("002");
 
-		// now call it again, first using the one we still have, 
+		// now call it again, first using the one we still have,
 		// then retrieving and using a new one
 		for (Constructor<?> ctor : ctors) {
 			if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Integer.TYPE) {
 				r = invokeConstructor(ctor, 4);
-			} else if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Float.TYPE) {
+			}
+			else if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Float.TYPE) {
 				r = invokeConstructor(ctor, 4f);
-			} else {
+			}
+			else {
 				r = invokeConstructor(ctor);
 			}
 			assertNotNull(r.returnValue);
@@ -270,9 +283,11 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		for (Constructor<?> ctor : ctors) {
 			if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Integer.TYPE) {
 				r = invokeConstructor(ctor, 4);
-			} else if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Float.TYPE) {
+			}
+			else if (ctor.getParameterTypes().length == 1 && ctor.getParameterTypes()[0] == Float.TYPE) {
 				r = invokeConstructor(ctor, 4f);
-			} else {
+			}
+			else {
 				r = invokeConstructor(ctor);
 			}
 			assertNotNull(r.returnValue);
@@ -281,8 +296,9 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Testing Class.getDeclaredMethod() - the method exists from the start, but its implementation changed (really this test is not
-	 * different from test_getDeclaredMethodStays unless we do something special when method isn't changed...)
+	 * Testing Class.getDeclaredMethod() - the method exists from the start, but its implementation changed (really this
+	 * test is not different from test_getDeclaredMethodStays unless we do something special when method isn't
+	 * changed...)
 	 */
 	@Test
 	public void test_getDeclaredMethodChanged() throws Exception {
@@ -310,7 +326,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = getDeclaredMethod("methodDeleted");
 			Assert.fail("The method shouldn't exist anymore!");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".methodDeleted()", e);
 		}
 	}
@@ -323,14 +340,16 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			getDeclaredMethod("doubleIt", String.class);
 			Assert.fail("Method shouldn't exist yet");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".doubleIt(java.lang.String)", e);
 		}
 
 		try {
 			getDeclaredMethod("custard", String.class, int[].class, int.class);
 			Assert.fail("Method shouldn't exist");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".custard(java.lang.String, [I, int)", e);
 		}
 
@@ -359,6 +378,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		Assert.assertEquals(m1, m2);
 	}
 
+	// Believe now failing due to quick fix to copy method/field for grails (~build 113)
 	/**
 	 * Test to see if Method objects for 'protected' methods are correct (w.r.t. to modifier flags)
 	 */
@@ -379,10 +399,11 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	@Test
 	public void test_NoSuchMethodException() throws Exception {
 		try {
-			//			Result r = 
+			//			Result r =
 			getDeclaredMethod("bogus", String.class, int.class);
 			fail("getting bogus method should fail");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".bogus(java.lang.String, int)", e);
 		}
 		Result r = getDeclaredMethod("deleteThem", String.class, int.class);
@@ -393,7 +414,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = getDeclaredMethod("deleteThem", String.class, int.class);
 			fail("getting deleted method should fail");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".deleteThem(java.lang.String, int)", e);
 		}
 	}
@@ -420,7 +442,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * Can we retrieve and invoke a method that was added in a reloaded type?
 	 */
 	@Test
@@ -428,7 +450,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			getDeclaredMethodAndInvoke("lateMethod");
 			fail("getting/invoking a method that hs not yet been defined should fail");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".lateMethod()", e);
 		}
 
@@ -440,7 +463,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * Can we retrieve and invoke a method that existed before we reloaded the type?
 	 */
 	@Test
@@ -456,7 +479,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * Can we retrieve and invoke a method that existed before we reloaded the type, and was deleted later.
 	 */
 	@Test
@@ -469,14 +492,15 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			getDeclaredMethodAndInvoke("methodDeleted");
 			fail("getting/invoking a deleted method should fail");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".methodDeleted()", e);
 		}
 	}
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * What happens if we invoke a cached Method object when the method it refers to was deleted?
 	 */
 	@Test
@@ -490,14 +514,15 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			invoke(m);
 			fail("Invoking a deleted method should fail");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodError(TARGET_CLASS_NAME + ".methodDeleted()I", e);
 		}
 	}
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * Can we retrieve and invoke a method that existed before we reloaded the type, and was changed later.
 	 */
 	@Test
@@ -513,7 +538,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * A method with a parameter - first it didn't exist - then is was added
 	 */
 	@Test
@@ -521,7 +546,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			getDeclaredMethod("doubleIt", String.class);
 			Assert.fail("Method shouldn't have existed");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + ".doubleIt(java.lang.String)", e);
 		}
 
@@ -536,7 +562,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * A method with a parameter - existed at first - then it was changed
 	 */
 	@Test
@@ -557,7 +583,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * A method with a parameter - existed at first - then it was changed: DIFFERENT RETURN TYPE
 	 */
 	@Test
@@ -578,11 +604,11 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * A method with a parameter - existed at first - then it was changed: DIFFERENT RETURN TYPE
-	 * 
-	 * If we held on to the original method object, we should NOT be able to invoke it anymore (different return type should be
-	 * treated as different method!
+	 *
+	 * If we held on to the original method object, we should NOT be able to invoke it anymore (different return type
+	 * should be treated as different method!
 	 */
 	@Test
 	public void test_getDeclaredMethodCachedChangedReturnType() throws Exception {
@@ -598,14 +624,15 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = invoke(m, "hoho");
 			Assert.fail("Method return type changed, shouldn't be able to call it anymore");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodError(TARGET_CLASS_NAME + ".changeReturn(Ljava/lang/String;)Ljava/lang/String;", e);
 		}
 	}
 
 	/**
 	 * Testing Class.getDeclaredMethod and Method.invoke
-	 * 
+	 *
 	 * A method with two paramters - existed at first - then it was changed
 	 */
 	@Test
@@ -624,7 +651,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Invoking a private method by means of "invoke" call, from within the class containing the target method should be allowed.
+	 * Invoking a private method by means of "invoke" call, from within the class containing the target method should be
+	 * allowed.
 	 */
 	@Test
 	public void test_invokePrivateMethodAllowed() throws Exception {
@@ -638,8 +666,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Invoking a public method inside a default class by means of "invoke" call, from within a class in the same package as the
-	 * target class should be allowed.
+	 * Invoking a public method inside a default class by means of "invoke" call, from within a class in the same
+	 * package as the target class should be allowed.
 	 */
 	@Test
 	public void test_invokePublicMethodInDefaultClassAllowed() throws Exception {
@@ -655,12 +683,12 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Invoking a public method inside a default class by means of "invoke" call, from within a class in the same package as the
-	 * target class should be allowed.
+	 * Invoking a public method inside a default class by means of "invoke" call, from within a class in the same
+	 * package as the target class should be allowed.
 	 */
 	@Test
 	public void test_invokePublicMethodInNonReloadableDefaultClassAllowed() throws Exception {
-		//		Class<?> defaultClass = 
+		//		Class<?> defaultClass =
 		nonReloadableClass(TARGET_PACKAGE + "." + "DefaultClass");
 
 		Result r = getDeclaredMethodAndInvoke("callPublicMethodOnDefaultClass");
@@ -668,13 +696,15 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * When a Method is "regotten" the newly gotten Method will have to be a "fresh" method object with its accessibility flag NOT
-	 * set. (This is the behaviour on Sun JVM, I'm not sure if this specified or accidental though, but some comments in the Method
-	 * class source code suggest that it is required... see code of the 'copy' method and its comments)
+	 * When a Method is "regotten" the newly gotten Method will have to be a "fresh" method object with its
+	 * accessibility flag NOT set. (This is the behaviour on Sun JVM, I'm not sure if this specified or accidental
+	 * though, but some comments in the Method class source code suggest that it is required... see code of the 'copy'
+	 * method and its comments)
 	 */
 	private void doTestAccessibleFlagIsRefreshed(String scope) throws ResultException {
 		String methodToCall = scope + "Method";
-		String expectMsg = "Class " + INVOKER_CLASS_NAME + " " + "can not access a member of class " + TARGET_CLASS_NAME + " "
+		String expectMsg = "Class " + INVOKER_CLASS_NAME + " " + "can not access a member of class "
+				+ TARGET_CLASS_NAME + " "
 				+ "with modifiers \"" + (scope.equals("default") ? "" : scope) + "\"";
 
 		//First... we do set the Access flag, it should work!
@@ -685,7 +715,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = runOnInstance(callerClazz, callerInstance, "callMethodWithAccess", methodToCall, false);
 			Assert.fail("Without setting access flag shouldn't be allowed!");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertIllegalAccess(expectMsg, e);
 		}
 
@@ -700,7 +731,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = runOnInstance(callerClazz, callerInstance, "callMethodWithAccess", methodToCall, false);
 			Assert.fail("Without setting access flag shouldn't be allowed!");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertIllegalAccess(expectMsg, e);
 		}
 	}
@@ -712,11 +744,13 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		doTestAccessibleFlagIsRefreshed("private");
 	}
 
+	// Believe now failing due to quick fix to copy method/field for grails (~build 113)
 	@Test
 	public void test_accessibleFlagIsRefreshedForProtected() throws Exception {
 		doTestAccessibleFlagIsRefreshed("protected");
 	}
 
+	// Believe now failing due to quick fix to copy method/field for grails (~build 113)
 	@Test
 	public void test_accessibleFlagIsRefreshedForDefault() throws Exception {
 		doTestAccessibleFlagIsRefreshed("default");
@@ -734,7 +768,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			getDeclaredMethod(subTarget.getClazz(), "protectedMethod");
 			Assert.fail("A protected inherited method should not be considered 'declared' in the subclass");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(subClassName + ".protectedMethod()", e);
 		}
 
@@ -756,8 +791,10 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			invokeOn(subInstance, m);
 			Assert.fail("invoker class is in different package than target class shouldn't be allowed to invoke protected method!");
-		} catch (ResultException e) {
-			assertIllegalAccess("Class " + callerClazz.getName() + " can not access a member of class " + subTarget.dottedtypename
+		}
+		catch (ResultException e) {
+			assertIllegalAccess("Class " + callerClazz.getName() + " can not access a member of class "
+					+ subTarget.dottedtypename
 					+ " with modifiers \"protected\"", e);
 		}
 
@@ -767,11 +804,11 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Test for a suspected 'stale' executor map cache bug. Turns out there wasn't actually a 'staleness' bug in the cache... but
-	 * this test is useful nevertheless.
+	 * Test for a suspected 'stale' executor map cache bug. Turns out there wasn't actually a 'staleness' bug in the
+	 * cache... but this test is useful nevertheless.
 	 * <p>
-	 * Scenario: user keeps a method object from a reloaded type. Which will be associated to a cached executor. When the type is
-	 * subsequently reloaded again, is the correct method executed?
+	 * Scenario: user keeps a method object from a reloaded type. Which will be associated to a cached executor. When
+	 * the type is subsequently reloaded again, is the correct method executed?
 	 */
 	@Test
 	public void test_cacheReloadedMethod() throws Exception {
@@ -787,8 +824,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Test related to calling 'invoke' on a method declared in superclass and overridden in the subclass (via a method object
-	 * gotten from the superclass).
+	 * Test related to calling 'invoke' on a method declared in superclass and overridden in the subclass (via a method
+	 * object gotten from the superclass).
 	 */
 	@Test
 	public void test_callInheritedOverridenMethod() throws Exception {
@@ -818,11 +855,11 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Test related to calling 'invoke' on a method declared in superclass and overridden in the subclass (via a method object
-	 * gotten from the superclass).
+	 * Test related to calling 'invoke' on a method declared in superclass and overridden in the subclass (via a method
+	 * object gotten from the superclass).
 	 * <p>
-	 * Variant of the previous test, where the class containing the overridden method is reloaded. (This case is different because
-	 * it will use CLV to determine an executor method).
+	 * Variant of the previous test, where the class containing the overridden method is reloaded. (This case is
+	 * different because it will use CLV to determine an executor method).
 	 */
 	@Test
 	public void test_callInheritedOverridenMethod2() throws Exception {
@@ -857,8 +894,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Test related to calling 'invoke' on a method declared in superclass and overriden in the subclass (via a method object gotten
-	 * from the superclass).
+	 * Test related to calling 'invoke' on a method declared in superclass and overriden in the subclass (via a method
+	 * object gotten from the superclass).
 	 * <p>
 	 * What if the super method is deleted in v002?
 	 */
@@ -882,7 +919,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = invokeOn(subInstance, m);
 			fail("The method was deleted, should fail!");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodError("reflection.targets.ClassTarget.overrideMethodDeleted()Ljava/lang/String;", e);
 		}
 	}
@@ -916,7 +954,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = invokeOn(null, m); //pass in null, it shouldn't need an instance since it's static!
 			fail("The method was deleted, should not be able to call it");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodError(TARGET_CLASS_NAME + ".staticMethod()Ljava/lang/String;", e);
 		}
 	}
@@ -930,7 +969,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			Result r = getDeclaredMethod(methodName);
 			fail("Method shouldn't exist at first!\n" + r.toString());
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + "." + methodName + "()", e);
 		}
 
@@ -965,7 +1005,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			Result r = getDeclaredMethod(methodName);
 			fail("Method shouldn't exist at first!\n" + r.toString());
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + "." + methodName + "()", e);
 		}
 
@@ -1002,14 +1043,16 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			Result r = getDeclaredMethod(methodName, int.class, String.class);
 			fail("Method should not exist initially\n" + r.toString());
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + "." + methodName + "(int, java.lang.String)", e);
 		}
 
 		reloadType("002");
 
 		Result r = getDeclaredMethod(methodName, int.class, String.class);
-		assertMethod("public static java.lang.String " + TARGET_CLASS_NAME + "." + methodName + "(int,java.lang.String)", r);
+		assertMethod("public static java.lang.String " + TARGET_CLASS_NAME + "." + methodName
+				+ "(int,java.lang.String)", r);
 		Method m = (Method) r.returnValue;
 
 		// Calling the static method
@@ -1037,7 +1080,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			Result r = getDeclaredMethod(methodName);
 			fail("Method shouldn't exist at first!\n" + r.toString());
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(TARGET_CLASS_NAME + "." + methodName + "()", e);
 		}
 
@@ -1087,7 +1131,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		ReloadableType subTarget = registry.addType(subClassName, loadBytesForClass(subClassName));
 		Object subInstance = subTarget.getClazz().newInstance();
 
-		//Try invoking on instance of the reloadable class 
+		//Try invoking on instance of the reloadable class
 		Object instance = target.getClazz().newInstance();
 		r = invokeOn(instance, m);
 		assertEquals(instance.toString(), r.returnValue);
@@ -1097,11 +1141,11 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		r = invokeOn(subInstance, m);
 		assertEquals(subInstance.toString(), r.returnValue);
 
-		//Try all of this again after the types have been reloaded 
+		//Try all of this again after the types have been reloaded
 		reloadType("002");
 		reloadType(subTarget, "002");
 
-		//Try invoking on instance of the reloadable class 
+		//Try invoking on instance of the reloadable class
 		r = invokeOn(instance, m);
 		assertEquals(instance.toString(), r.returnValue);
 
@@ -1113,7 +1157,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		//In version 003, we added our own toString method that should capture the invocation
 		reloadType("003");
 
-		//Try invoking on instance of the reloadable class 
+		//Try invoking on instance of the reloadable class
 		r = invokeOn(instance, m);
 		assertEquals("ClassTarget003.toString", r.returnValue);
 
@@ -1124,9 +1168,9 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	}
 
 	/**
-	 * Scenario where method lookup spills over from the
-	 * reloadable world into the non-reloadable world. This can only happen if are looking for a method that is declared on a
-	 * reloadable type, but we need to find the implementation in a non-reloadable one.
+	 * Scenario where method lookup spills over from the reloadable world into the non-reloadable world. This can only
+	 * happen if are looking for a method that is declared on a reloadable type, but we need to find the implementation
+	 * in a non-reloadable one.
 	 */
 	@Test
 	public void test_callReloadableMethodWithNonReloadableImplementation() throws Exception {
@@ -1162,7 +1206,8 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		try {
 			r = getDeclaredMethod(subClass.getClazz(), interfaceMethodName);
 			fail("Assuming that interface implementation is inherited, not directly implemented");
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			assertNoSuchMethodException(subclassName + "." + interfaceMethodName + "()", e);
 		}
 
@@ -1262,11 +1307,12 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 		Assert.assertEquals(2, r.returnValue);
 	}
 
+	// Believe now failing due to quick fix to copy method/field for grails (~build 113)
 	/**
-	 * Test to see if we pick up the correct method if there are multiple methods differing only in return type. The typical case
-	 * would be when a class overrides a method while narrowing the return type. The compiler will in this case introdycue a bridge
-	 * method, giving the class two methods differing only in return type. The bridge method has the 'wider' return type type and is
-	 * a synthetic method.
+	 * Test to see if we pick up the correct method if there are multiple methods differing only in return type. The
+	 * typical case would be when a class overrides a method while narrowing the return type. The compiler will in this
+	 * case introdycue a bridge method, giving the class two methods differing only in return type. The bridge method
+	 * has the 'wider' return type type and is a synthetic method.
 	 */
 	@Test
 	public void test_GetMethodWithBridgeMethods() throws Exception {
@@ -1287,7 +1333,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 	// Testing Class.getMethod
 	//
 	// javap:
-	//     public java.lang.reflect.Method getMethod(java.lang.String, java.lang.Class[])       
+	//     public java.lang.reflect.Method getMethod(java.lang.String, java.lang.Class[])
 	//     throws java.lang.NoSuchMethodException, java.lang.SecurityException;
 
 	private Result getMethod(Class<?> clazz, String name, Class<?>... params) throws ResultException {
@@ -1296,7 +1342,7 @@ public class ClassReflectionTests extends AbstractReflectionTests {
 
 	/**
 	 * Try Class.getMethod first without reloading...
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	@Test

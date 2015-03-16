@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.io.ByteArrayInputStream;
@@ -25,8 +26,8 @@ import java.util.List;
 
 // http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
 /**
- * Quickly checks the constant pool for class references, it skips everything else as fast as it can. The class references are then
- * available for checking.
+ * Quickly checks the constant pool for class references, it skips everything else as fast as it can. The class
+ * references are then available for checking.
  * 
  * @author Andy Clement
  * @since 0.7.3
@@ -36,15 +37,25 @@ public class ConstantPoolChecker {
 	private static final boolean DEBUG = false;
 
 	private final static byte CONSTANT_Utf8 = 1;
+
 	private final static byte CONSTANT_Integer = 3;
+
 	private final static byte CONSTANT_Float = 4;
+
 	private final static byte CONSTANT_Long = 5;
+
 	private final static byte CONSTANT_Double = 6;
+
 	private final static byte CONSTANT_Class = 7;
+
 	private final static byte CONSTANT_String = 8;
+
 	private final static byte CONSTANT_Fieldref = 9;
+
 	private final static byte CONSTANT_Methodref = 10;
+
 	private final static byte CONSTANT_InterfaceMethodref = 11;
+
 	private final static byte CONSTANT_NameAndType = 12;
 
 	// Test entry point just goes through all the code in the bin folder
@@ -97,8 +108,11 @@ public class ConstantPoolChecker {
 
 	// Filled with strings and int[]
 	private Object[] cpdata;
+
 	private int cpsize;
+
 	private int[] type;
+
 	// Does not need to be a set as there are no dups in the ConstantPool (for a class from a decent compiler...)
 	private List<String> referencedClasses = new ArrayList<String>();
 
@@ -110,14 +124,14 @@ public class ConstantPoolChecker {
 	public void computeReferences() {
 		for (int i = 0; i < cpsize; i++) {
 			switch (type[i]) {
-			case CONSTANT_Class:
-				int classindex = ((Integer) cpdata[i]);
-				String classname = (String) cpdata[classindex];
-				if (classname == null) {
-					throw new IllegalStateException();
-				}
-				referencedClasses.add(classname);
-				break;
+				case CONSTANT_Class:
+					int classindex = ((Integer) cpdata[i]);
+					String classname = (String) cpdata[classindex];
+					if (classname == null) {
+						throw new IllegalStateException();
+					}
+					referencedClasses.add(classname);
+					break;
 			//			private final static byte CONSTANT_Utf8 = 1;
 			//			private final static byte CONSTANT_Integer = 3;
 			//			private final static byte CONSTANT_Float = 4;
@@ -157,7 +171,8 @@ public class ConstantPoolChecker {
 					cpentry++;
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new IllegalStateException("Unexpected problem processing bytes for class", e);
 		}
 	}
@@ -166,166 +181,178 @@ public class ConstantPoolChecker {
 		byte b = dis.readByte();
 		type[index] = b;
 		switch (b) {
-		case CONSTANT_Utf8:
-			//			CONSTANT_Utf8_info {
-			//		    	u1 tag;
-			//		    	u2 length;
-			//		    	u1 bytes[length];
-			//		    }
-			cpdata[index] = dis.readUTF();
-			if (DEBUG) {
-				System.out.println(index + ":UTF8[" + cpdata[index] + "]");
-			}
-			break;
-		case CONSTANT_Integer:
-			//			 CONSTANT_Integer_info {
-			//			    	u1 tag;
-			//			    	u4 bytes;
-			//			 }
-			if (DEBUG) {
-				int i = dis.readInt();
+			case CONSTANT_Utf8:
+				//			CONSTANT_Utf8_info {
+				//		    	u1 tag;
+				//		    	u2 length;
+				//		    	u1 bytes[length];
+				//		    }
+				cpdata[index] = dis.readUTF();
 				if (DEBUG) {
-					System.out.println(index + ":INTEGER[" + i + "]");
+					System.out.println(index + ":UTF8[" + cpdata[index] + "]");
 				}
-			} else {
-				dis.skip(4);
-			}
-			break;
-		case CONSTANT_Float:
-			//			 CONSTANT_Float_info {
-			//			    	u1 tag;
-			//			    	u4 bytes;
-			//			 }
-			if (DEBUG) {
-				float f = dis.readFloat();
+				break;
+			case CONSTANT_Integer:
+				//			 CONSTANT_Integer_info {
+				//			    	u1 tag;
+				//			    	u4 bytes;
+				//			 }
 				if (DEBUG) {
-					System.out.println(index + ":FLOAT[" + f + "]");
+					int i = dis.readInt();
+					if (DEBUG) {
+						System.out.println(index + ":INTEGER[" + i + "]");
+					}
 				}
-			} else {
-				dis.skip(4);
-			}
-			break;
-		case CONSTANT_Long:
-			//		CONSTANT_Long_info {
-			//	    	u1 tag;
-			//	    	u4 high_bytes;
-			//	    	u4 low_bytes;
-			//	    }
-			if (DEBUG) {
-				long l = dis.readLong();
+				else {
+					dis.skip(4);
+				}
+				break;
+			case CONSTANT_Float:
+				//			 CONSTANT_Float_info {
+				//			    	u1 tag;
+				//			    	u4 bytes;
+				//			 }
 				if (DEBUG) {
-					System.out.println(index + ":LONG[" + l + "]");
+					float f = dis.readFloat();
+					if (DEBUG) {
+						System.out.println(index + ":FLOAT[" + f + "]");
+					}
 				}
-			} else {
-				dis.skip(8);
-			}
-			return true;
-		case CONSTANT_Double:
-			//	    CONSTANT_Double_info {
-			//	    	u1 tag;
-			//	    	u4 high_bytes;
-			//	    	u4 low_bytes;
-			//	    }
-			if (DEBUG) {
-				double d = dis.readDouble();
+				else {
+					dis.skip(4);
+				}
+				break;
+			case CONSTANT_Long:
+				//		CONSTANT_Long_info {
+				//	    	u1 tag;
+				//	    	u4 high_bytes;
+				//	    	u4 low_bytes;
+				//	    }
 				if (DEBUG) {
-					System.out.println(index + ":DOUBLE[" + d + "]");
+					long l = dis.readLong();
+					if (DEBUG) {
+						System.out.println(index + ":LONG[" + l + "]");
+					}
 				}
-			} else {
-				dis.skip(8);
-			}
-			return true;
-		case CONSTANT_Class:
-			//			CONSTANT_Class_info {
-			//		    	u1 tag;
-			//		    	u2 name_index;
-			//		    }
-			cpdata[index] = (int) dis.readShort();
-			if (DEBUG) {
-				System.out.println(index + ":CLASS[name_index=" + cpdata[index] + "]");
-			}
-			break;
-		case CONSTANT_String:
-			//			CONSTANT_String_info {
-			//		    	u1 tag;
-			//		    	u2 string_index;
-			//		    }
-			if (DEBUG) {
+				else {
+					dis.skip(8);
+				}
+				return true;
+			case CONSTANT_Double:
+				//	    CONSTANT_Double_info {
+				//	    	u1 tag;
+				//	    	u4 high_bytes;
+				//	    	u4 low_bytes;
+				//	    }
+				if (DEBUG) {
+					double d = dis.readDouble();
+					if (DEBUG) {
+						System.out.println(index + ":DOUBLE[" + d + "]");
+					}
+				}
+				else {
+					dis.skip(8);
+				}
+				return true;
+			case CONSTANT_Class:
+				//			CONSTANT_Class_info {
+				//		    	u1 tag;
+				//		    	u2 name_index;
+				//		    }
 				cpdata[index] = (int) dis.readShort();
 				if (DEBUG) {
-					System.out.println(index + ":STRING[string_index=" + cpdata[index] + "]");
+					System.out.println(index + ":CLASS[name_index=" + cpdata[index] + "]");
 				}
-			} else {
-				dis.skip(2);
-			}
-			break;
-		case CONSTANT_Fieldref:
-			//			CONSTANT_Fieldref_info {
-			//		    	u1 tag;
-			//		    	u2 class_index;
-			//		    	u2 name_and_type_index;
-			//		    }
-			if (DEBUG) {
-				cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+				break;
+			case CONSTANT_String:
+				//			CONSTANT_String_info {
+				//		    	u1 tag;
+				//		    	u2 string_index;
+				//		    }
 				if (DEBUG) {
-					System.out.println(index + ":FIELDREF[class_index=" + ((int[]) cpdata[index])[0] + ",name_and_type_index="
-							+ ((int[]) cpdata[index])[1] + "]");
+					cpdata[index] = (int) dis.readShort();
+					if (DEBUG) {
+						System.out.println(index + ":STRING[string_index=" + cpdata[index] + "]");
+					}
 				}
-			} else {
-				dis.skip(4);
-			}
-			break;
-		case CONSTANT_Methodref:
-			//			 CONSTANT_Methodref_info {
-			//			    	u1 tag;
-			//			    	u2 class_index;
-			//			    	u2 name_and_type_index;
-			//			    }	
-			if (DEBUG) {
-				cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+				else {
+					dis.skip(2);
+				}
+				break;
+			case CONSTANT_Fieldref:
+				//			CONSTANT_Fieldref_info {
+				//		    	u1 tag;
+				//		    	u2 class_index;
+				//		    	u2 name_and_type_index;
+				//		    }
 				if (DEBUG) {
-					System.out.println(index + ":METHODREF[class_index=" + ((int[]) cpdata[index])[0] + ",name_and_type_index="
-							+ ((int[]) cpdata[index])[1] + "]");
+					cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+					if (DEBUG) {
+						System.out.println(index + ":FIELDREF[class_index=" + ((int[]) cpdata[index])[0]
+								+ ",name_and_type_index="
+								+ ((int[]) cpdata[index])[1] + "]");
+					}
 				}
-			} else {
-				dis.skip(4);
-			}
-			break;
-		case CONSTANT_InterfaceMethodref:
-			//			 CONSTANT_InterfaceMethodref_info {
-			//			    	u1 tag;
-			//			    	u2 class_index;
-			//			    	u2 name_and_type_index;
-			//			    }
-			if (DEBUG) {
-				cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+				else {
+					dis.skip(4);
+				}
+				break;
+			case CONSTANT_Methodref:
+				//			 CONSTANT_Methodref_info {
+				//			    	u1 tag;
+				//			    	u2 class_index;
+				//			    	u2 name_and_type_index;
+				//			    }	
 				if (DEBUG) {
-					System.out.println(index + ":INTERFACEMETHODREF[class_index=" + ((int[]) cpdata[index])[0]
-							+ ",name_and_type_index=" + ((int[]) cpdata[index])[1] + "]");
+					cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+					if (DEBUG) {
+						System.out.println(index + ":METHODREF[class_index=" + ((int[]) cpdata[index])[0]
+								+ ",name_and_type_index="
+								+ ((int[]) cpdata[index])[1] + "]");
+					}
 				}
-			} else {
-				dis.skip(4);
-			}
-			break;
-		case CONSTANT_NameAndType:
-			// The CONSTANT_NameAndType_info structure is used to represent a field or method, without indicating which class or interface type it belongs to:
-			//			    CONSTANT_NameAndType_info {
-			//			    	u1 tag;
-			//			    	u2 name_index;
-			//			    	u2 descriptor_index;
-			//			    }
-			if (DEBUG) {
-				cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+				else {
+					dis.skip(4);
+				}
+				break;
+			case CONSTANT_InterfaceMethodref:
+				//			 CONSTANT_InterfaceMethodref_info {
+				//			    	u1 tag;
+				//			    	u2 class_index;
+				//			    	u2 name_and_type_index;
+				//			    }
 				if (DEBUG) {
-					System.out.println(index + ":NAMEANDTYPE[name_index=" + ((int[]) cpdata[index])[0] + ",descriptor_index="
-							+ ((int[]) cpdata[index])[1] + "]");
+					cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+					if (DEBUG) {
+						System.out.println(index + ":INTERFACEMETHODREF[class_index=" + ((int[]) cpdata[index])[0]
+								+ ",name_and_type_index=" + ((int[]) cpdata[index])[1] + "]");
+					}
 				}
-			} else {
-				dis.skip(4);
-			}
-			break;
-		default:
-			throw new IllegalStateException("Entry: " + index + " " + Byte.toString(b));
+				else {
+					dis.skip(4);
+				}
+				break;
+			case CONSTANT_NameAndType:
+				// The CONSTANT_NameAndType_info structure is used to represent a field or method, without indicating which class or interface type it belongs to:
+				//			    CONSTANT_NameAndType_info {
+				//			    	u1 tag;
+				//			    	u2 name_index;
+				//			    	u2 descriptor_index;
+				//			    }
+				if (DEBUG) {
+					cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
+					if (DEBUG) {
+						System.out.println(index + ":NAMEANDTYPE[name_index=" + ((int[]) cpdata[index])[0]
+								+ ",descriptor_index="
+								+ ((int[]) cpdata[index])[1] + "]");
+					}
+				}
+				else {
+					dis.skip(4);
+				}
+				break;
+			default:
+				throw new IllegalStateException("Entry: " + index + " " + Byte.toString(b));
 		}
 		return false;
 	}

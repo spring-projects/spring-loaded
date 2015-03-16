@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import org.objectweb.asm.ClassReader;
 
 public class PluginUtils {
+
 	/**
-	 * If adding instance tracking, the classToCall must implement: <tt>public static void recordInstance(Object obj)</tt>.
+	 * If adding instance tracking, the classToCall must implement:
+	 * <tt>public static void recordInstance(Object obj)</tt>.
 	 * 
 	 * @param bytes the bytes for the class to which instance tracking is being added
 	 * @param classToCall the class to call when a new instance is created

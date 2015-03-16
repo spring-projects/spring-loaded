@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 import java.io.File;
@@ -35,10 +36,10 @@ import org.springsource.loaded.test.TestUtils;
 
 
 /**
- * The groovy infrastructure caches lots of stuff about classes during execution. Although we can actively clear our some of this,
- * we do need to modify the groovy infrastructure so that reflective calls are intercepted. Unlike TestClassLoader which is a simple
- * URLClassLoader, this classloader extends ClassLoader, allowing us to get in there and modify the bytes with an interception
- * rewrite.
+ * The groovy infrastructure caches lots of stuff about classes during execution. Although we can actively clear our
+ * some of this, we do need to modify the groovy infrastructure so that reflective calls are intercepted. Unlike
+ * TestClassLoader which is a simple URLClassLoader, this classloader extends ClassLoader, allowing us to get in there
+ * and modify the bytes with an interception rewrite.
  * 
  * @author Andy Clement
  */
@@ -47,12 +48,14 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 	private boolean useRegistry = false;
 
 	// @formatter:off
-	static String[] folders = new String[] { 
-		TestUtils.getPathToClasses("../testdata-groovy") 
-		};
-	static String[] jars = new String[] { 
+	static String[] folders = new String[] {
+		TestUtils.getPathToClasses("../testdata-groovy")
+	};
+
+	static String[] jars = new String[] {
 		"../testdata-groovy/groovy-all-1.8.6.jar"
-		};
+	};
+
 	// @formatter:on
 
 	public TestClassloaderWithRewriting() {
@@ -111,7 +114,8 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 							ReloadableType rt = tr.addType(name, data);
 							if (rt == null) {
 								System.out.println("Not made reloadable " + name);
-							} else {
+							}
+							else {
 								return rt.getClazz();
 							}
 						}
@@ -121,7 +125,8 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 					break;
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		Exception ex = null;
@@ -164,15 +169,16 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 					}
 				}
 				// zipfile.close();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				ex = e;
 				e.printStackTrace(System.err);
 			}
 		}
 
 		if (c == null) {
-			if (ex!=null) {
-				throw new ClassNotFoundException(name,ex);
+			if (ex != null) {
+				throw new ClassNotFoundException(name, ex);
 			}
 			else {
 				throw new ClassNotFoundException(name);
@@ -202,7 +208,8 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 				zipfile.close();
 			}
 			return null;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -243,7 +250,8 @@ public class TestClassloaderWithRewriting extends ClassLoader {
 				}
 
 			};
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}

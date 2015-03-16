@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 
 /**
- * Basic agent implementation. This agent is declared in the META-INF/MANIFEST.MF file - that is how
- * it is 'plugged in' to the JVM when '-javaagent:springloaded.jar' is used.
+ * Basic agent implementation. This agent is declared in the META-INF/MANIFEST.MF file - that is how it is 'plugged in'
+ * to the JVM when '-javaagent:springloaded.jar' is used.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -39,7 +40,7 @@ public class SpringLoadedAgent {
 		instrumentation = inst;
 		instrumentation.addTransformer(transformer);
 	}
-	
+
 	public static void agentmain(String options, Instrumentation inst) {
 		if (instrumentation != null) {
 			return;

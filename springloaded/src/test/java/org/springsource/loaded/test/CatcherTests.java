@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import org.junit.Assert;
@@ -66,10 +67,10 @@ public class CatcherTests extends SpringLoadedTests {
 
 		reload(rtype, "2");
 	}
-	
+
 	/**
-	 * Exercising the two codepaths for a catcher. The first 'run' will run the super version. The second 'run' will dispatch to our
-	 * new implementation.
+	 * Exercising the two codepaths for a catcher. The first 'run' will run the super version. The second 'run' will
+	 * dispatch to our new implementation.
 	 */
 	@Test
 	public void exerciseCatcher() throws Exception {
@@ -79,7 +80,8 @@ public class CatcherTests extends SpringLoadedTests {
 		ReloadableType rtypeA = registry.addType(a, loadBytesForClass(a));
 		ReloadableType rtypeB = registry.addType(b, loadBytesForClass(b));
 
-		Class<?> clazz = loadit("catchers.Runner", ClassRenamer.rename("catchers.Runner", loadBytesForClass("catchers.Runner")));
+		Class<?> clazz = loadit("catchers.Runner",
+				ClassRenamer.rename("catchers.Runner", loadBytesForClass("catchers.Runner")));
 
 		assertStartsWith("catchers.B@", runUnguarded(clazz, "runToString").returnValue);
 		Assert.assertEquals(65, runUnguarded(clazz, "runPublicMethod").returnValue);
@@ -112,7 +114,8 @@ public class CatcherTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Now we work with a mixed hierarchy. Type X declares the methods, type Y extends X does not, type Z extends Y does.
+	 * Now we work with a mixed hierarchy. Type X declares the methods, type Y extends X does not, type Z extends Y
+	 * does.
 	 */
 	@Test
 	public void exerciseCatcher2() throws Exception {

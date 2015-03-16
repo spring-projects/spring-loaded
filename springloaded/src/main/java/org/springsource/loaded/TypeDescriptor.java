@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Encapsulates the information about a type relevant to reloading. The TypeDescriptor for a type is sometimes extracted whilst
- * performing some other operation (eg. {@link InterfaceExtractor}) but can also be retrieved directly using
+ * Encapsulates the information about a type relevant to reloading. The TypeDescriptor for a type is sometimes extracted
+ * whilst performing some other operation (eg. {@link InterfaceExtractor}) but can also be retrieved directly using
  * {@link TypeDescriptorExtractor}.
  * 
  * @author Andy Clement
@@ -29,28 +30,43 @@ import java.util.List;
 public class TypeDescriptor implements Constants {
 
 	private final int modifiers;
+
 	final String typename; // slashed
+
 	final String supertypeName; // slashed
+
 	final String[] superinterfaceNames; // slashed // empty array if there are none
+
 	private final MethodMember[] constructors; // empty array if there are none (but this doesn't ever happen!)
+
 	private final MethodMember[] methods; // empty array if there are none
+
 	private final MethodMember[] nonprivateMethods; // empty array if there are none
+
 	private final FieldMember[] fields; // empty array if there are none
+
 	private final FieldMember[] fieldsRequiringAccessors; // empty array if there are none
+
 	private List<String> finalInHierarchy; // nameAndDescriptor strings for methods final in the hierarchy (e.g. ordinal()I for an enum)
+
 	private final TypeRegistry registry;
+
 	private final boolean isReloadable;
+
 	private final boolean hasClinit;
 
 	private final static int IS_GROOVY_TYPE = 0x0001;
+
 	private int bits = 0x0000;
 
 	private ReloadableType reloadableType;
+
 	private int nextId = 0;
 
 	public TypeDescriptor(String slashedTypeName, String supertypeName, String[] superinterfaceNames, int modifiers,
 			List<? extends MethodMember> constructors, List<MethodMember> methods, List<? extends FieldMember> fields,
-			List<? extends FieldMember> fieldsRequiringAccessors, boolean isReloadable, TypeRegistry registry, boolean hasClinit,
+			List<? extends FieldMember> fieldsRequiringAccessors, boolean isReloadable, TypeRegistry registry,
+			boolean hasClinit,
 			List<String> finalInHierarchy) {
 		this.typename = slashedTypeName;
 		this.supertypeName = supertypeName;
@@ -58,10 +74,12 @@ public class TypeDescriptor implements Constants {
 		this.finalInHierarchy = finalInHierarchy;
 		this.modifiers = modifiers;
 		this.fields = fields.size() == 0 ? FieldMember.NONE : fields.toArray(new FieldMember[fields.size()]);
-		this.fieldsRequiringAccessors = fieldsRequiringAccessors.size() == 0 ? FieldMember.NONE : fieldsRequiringAccessors
-				.toArray(new FieldMember[fieldsRequiringAccessors.size()]);
-		this.constructors = constructors.size() == 0 ? MethodMember.NONE : constructors.toArray(new MethodMember[constructors
-				.size()]);
+		this.fieldsRequiringAccessors = fieldsRequiringAccessors.size() == 0 ? FieldMember.NONE
+				: fieldsRequiringAccessors
+						.toArray(new FieldMember[fieldsRequiringAccessors.size()]);
+		this.constructors = constructors.size() == 0 ? MethodMember.NONE
+				: constructors.toArray(new MethodMember[constructors
+						.size()]);
 		this.methods = methods.size() == 0 ? MethodMember.NONE : methods.toArray(new MethodMember[methods.size()]);
 		this.nonprivateMethods = filterNonPrivateMethods(this.methods);
 		this.isReloadable = isReloadable;
@@ -82,7 +100,8 @@ public class TypeDescriptor implements Constants {
 		}
 		if (result == null) {
 			return MethodMember.NONE;
-		} else {
+		}
+		else {
 			return result.toArray(new MethodMember[result.size()]);
 		}
 	}
@@ -136,8 +155,8 @@ public class TypeDescriptor implements Constants {
 	}
 
 	/**
-	 * Check if this descriptor defines the specified method. A strict check on all aspects of the method - names/exceptions/flags,
-	 * etc.
+	 * Check if this descriptor defines the specified method. A strict check on all aspects of the method -
+	 * names/exceptions/flags, etc.
 	 * 
 	 * @param method the method to check the existence of in this type descriptor
 	 * @return true if this descriptor defines the specified method
@@ -153,8 +172,8 @@ public class TypeDescriptor implements Constants {
 	}
 
 	/**
-	 * Check if this descriptor defines a method with the specified name and descriptor. Return the method if it is found.
-	 * Modifiers, generic signature and exceptions are ignored in this search.
+	 * Check if this descriptor defines a method with the specified name and descriptor. Return the method if it is
+	 * found. Modifiers, generic signature and exceptions are ignored in this search.
 	 * 
 	 * @param name the member name
 	 * @param descriptor the member descriptor (e.g. (Ljava/lang/String;)I)
@@ -292,7 +311,8 @@ public class TypeDescriptor implements Constants {
 
 	public String toString() {
 		StringBuilder s = new StringBuilder();
-		s.append("TypeDescriptor: name=" + typename + "  superclass=" + supertypeName + "  superinterfaces=" + interfacesToString());
+		s.append("TypeDescriptor: name=" + typename + "  superclass=" + supertypeName + "  superinterfaces="
+				+ interfacesToString());
 		s.append(" flags=0x" + Integer.toHexString(modifiers).toUpperCase()).append("\n");
 		s.append("Fields: #" + fields.length + "\n" + fieldsToString());
 		s.append("Constructors:#" + constructors.length + "\n" + methodsToString(constructors));
@@ -312,7 +332,8 @@ public class TypeDescriptor implements Constants {
 	private String interfacesToString() {
 		if (superinterfaceNames == null) {
 			return "";
-		} else {
+		}
+		else {
 			StringBuilder s = new StringBuilder();
 			for (String superinterfaceName : superinterfaceNames) {
 				s.append(superinterfaceName);
@@ -326,7 +347,8 @@ public class TypeDescriptor implements Constants {
 		StringBuilder s = new StringBuilder();
 		int count = 0;
 		for (MethodMember method : methods) {
-			s.append(" method #" + Utils.toPaddedNumber((count++), 3)).append(' ').append(method.toString()).append("   ")
+			s.append(" method #" + Utils.toPaddedNumber((count++), 3)).append(' ').append(method.toString()).append(
+					"   ")
 					.append(method.bitsToString()).append('\n');
 		}
 		return s.toString();

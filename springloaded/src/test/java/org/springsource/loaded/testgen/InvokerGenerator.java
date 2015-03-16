@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.lang.reflect.Constructor;
@@ -22,9 +23,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * This class is not actually part of the test infrastructure itself. It is a quick and dirty Java application that prints out Java
- * source code for a 'Invoker' class. That is, a class that contains code invoking the different reflection methods of a given
- * Target type. We use the reflection API to get all the methods defined on a given type and create a method that call that method.
+ * This class is not actually part of the test infrastructure itself. It is a quick and dirty Java application that
+ * prints out Java source code for a 'Invoker' class. That is, a class that contains code invoking the different
+ * reflection methods of a given Target type. We use the reflection API to get all the methods defined on a given type
+ * and create a method that call that method.
  * 
  * @author kdvolder
  */
@@ -115,7 +117,8 @@ public class InvokerGenerator {
 
 	private void generateCallerMethod(Method method, StringBuffer code) {
 		code.append(INDENT_STR);
-		code.append("public static " + method.getReturnType().getSimpleName() + " " + "call" + capitalize(method.getName()) + "(");
+		code.append("public static " + method.getReturnType().getSimpleName() + " " + "call"
+				+ capitalize(method.getName()) + "(");
 		addImport(method.getReturnType());
 		generateFormalParams(method, code);
 		code.append(")\n");
@@ -145,7 +148,8 @@ public class InvokerGenerator {
 
 		if (Modifier.isStatic(method.getModifiers())) {
 			code.append(targetClass.getSimpleName() + ".");
-		} else {
+		}
+		else {
 			code.append("thiz.");
 		}
 
@@ -191,7 +195,8 @@ public class InvokerGenerator {
 	private String getHeader() {
 		return "package " + invokerPkg + ";\n" + "\n" + getImports() + "\n" + "/**\n"
 				+ " * Class containing one method for each method in the " + targetClass.getName() + "\n"
-				+ " * containing code calling that method.\n" + " */\n" + "@SuppressWarnings({\"unchecked\",\"rawtypes\"})"
+				+ " * containing code calling that method.\n" + " */\n"
+				+ "@SuppressWarnings({\"unchecked\",\"rawtypes\"})"
 				+ "public class " + invokerClassName + "{\n" + "\n";
 	}
 

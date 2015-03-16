@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
+
 import java.security.ProtectionDomain;
 
 import org.springsource.loaded.agent.ReloadDecision;
 
 
-
 /**
- * Plugins implementing this interface are allowed to participate in determining whether a type should be made reloadable.
+ * Plugins implementing this interface are allowed to participate in determining whether a type should be made
+ * reloadable.
  * 
  * @author Andy Clement
  * @since 0.7.1
@@ -35,6 +37,7 @@ public interface IsReloadableTypePlugin extends Plugin {
 	 * @param bytes the classfile data
 	 * @return a decision indicating whether the specified type should be made reloadable
 	 */
-	ReloadDecision shouldBeMadeReloadable(TypeRegistry typeRegistry, String typename, ProtectionDomain protectionDomain, byte[] bytes);
+	ReloadDecision shouldBeMadeReloadable(TypeRegistry typeRegistry, String typename,
+			ProtectionDomain protectionDomain, byte[] bytes);
 
 }

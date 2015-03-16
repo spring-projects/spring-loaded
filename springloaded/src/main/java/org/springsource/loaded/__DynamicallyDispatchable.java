@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 /**
- * Interface implemented by all dispatchers so code can be generated to call the dynamic executor regardless of the dispatcher
- * instance the code is actually working with. The method name here lines up with that defined in Constants - see
- * mDynamicDispatchName.
+ * Interface implemented by all dispatchers so code can be generated to call the dynamic executor regardless of the
+ * dispatcher instance the code is actually working with. The method name here lines up with that defined in Constants -
+ * see mDynamicDispatchName.
  * 
  * @author Andy Clement
  * @since 0.5.0

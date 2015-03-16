@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import org.springsource.loaded.agent.SpringLoadedPreProcessor;
@@ -27,6 +28,7 @@ import org.springsource.loaded.agent.SpringLoadedPreProcessor;
  * @since 0.7.2
  */
 public class Plugins {
+
 	public static void registerGlobalPlugin(Plugin instance) {
 		SpringLoadedPreProcessor.registerGlobalPlugin(instance);
 	}

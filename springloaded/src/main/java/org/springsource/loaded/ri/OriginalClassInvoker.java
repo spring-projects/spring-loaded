@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.InvocationTargetException;
@@ -30,7 +31,9 @@ import org.springsource.loaded.jvm.JVM;
 public class OriginalClassInvoker extends Invoker {
 
 	private Class<?> clazz;
+
 	private MethodMember method;
+
 	private JavaMethodCache methodCache;
 
 	public OriginalClassInvoker(Class<?> clazz, MethodMember methodMember, JavaMethodCache methodCache) {

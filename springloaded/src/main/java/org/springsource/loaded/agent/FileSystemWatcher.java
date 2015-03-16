@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.io.File;
@@ -27,9 +28,10 @@ import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.TypeRegistry;
 
 /**
- * A simple watcher for the file system. Uses a thread to keep an eye on a number of files and calls back registered interested
- * parties when a change is observed. The thread only starts when there is something to watch. The thread is given a name indicating
- * the classloader for which it is watching files. Once it starts to watch files the name will be enhanced to indicate how many.
+ * A simple watcher for the file system. Uses a thread to keep an eye on a number of files and calls back registered
+ * interested parties when a change is observed. The thread only starts when there is something to watch. The thread is
+ * given a name indicating the classloader for which it is watching files. Once it starts to watch files the name will
+ * be enhanced to indicate how many.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -73,8 +75,8 @@ public class FileSystemWatcher {
 	}
 
 	/**
-	 * Add a new file to the list of those being monitored. If the file is something that can be watched, then this method will
-	 * cause the thread to start (if it hasn't already been started).
+	 * Add a new file to the list of those being monitored. If the file is something that can be watched, then this
+	 * method will cause the thread to start (if it hasn't already been started).
 	 * 
 	 * @param fileToMonitor the file to start monitor
 	 */
@@ -95,23 +97,34 @@ public class FileSystemWatcher {
 	}
 }
 
+
 class Watcher implements Runnable {
 
 	private static Logger log = Logger.getLogger(Watcher.class.getName());
-	
+
 	long lastScanTime;
 
 	// TODO configurable scan interval?
 	private static long interval = 1100;// ms
+
 	List<File> watchListFiles = new ArrayList<File>();
+
 	List<Long> watchListLMTs = new ArrayList<Long>();
+
 	FileChangeListener listener;
+
 	private boolean timeToStop = false;
+
 	public boolean paused = false;
+
 	private Thread thread = null;
+
 	private int typeRegistryId;
+
 	private String classloadername;
+
 	private int registryLivenessCount = 0;
+
 	private static int registryLivenessCountInterval = 300;
 
 	public Watcher(FileChangeListener listener, int typeRegistryId, String classloadername) {
@@ -125,8 +138,8 @@ class Watcher implements Runnable {
 	}
 
 	/**
-	 * Add a new File that the thread should start watching. If the file does not exist nothing happens (this may be because a class
-	 * has been generated on the fly and really there is nothing to watch on disk).
+	 * Add a new File that the thread should start watching. If the file does not exist nothing happens (this may be
+	 * because a class has been generated on the fly and really there is nothing to watch on disk).
 	 * 
 	 * @param fileToWatch the new file to watch
 	 * @return true if the file is now being watched, false otherwise
@@ -137,13 +150,14 @@ class Watcher implements Runnable {
 		}
 		synchronized (this) {
 			if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-				log.info("Now watching "+fileToWatch);
+				log.info("Now watching " + fileToWatch);
 			}
 			int insertionPos = findPosition(fileToWatch);
 			if (insertionPos == -1) {
 				watchListFiles.add(fileToWatch);
 				watchListLMTs.add(fileToWatch.lastModified());
-			} else {
+			}
+			else {
 				watchListFiles.add(insertionPos, fileToWatch);
 				watchListLMTs.add(insertionPos, fileToWatch.lastModified());
 			}
@@ -174,7 +188,7 @@ class Watcher implements Runnable {
 			else if (GlobalConfiguration.assertsMode && cmp == 0) {
 				// Are we watching the same file twice, that is bad!
 				if (file2.getAbsoluteFile().toString().equals(file.getAbsoluteFile().toString())) {
-					log.severe("Watching the same file twice: "+file.getAbsoluteFile().toString());
+					log.severe("Watching the same file twice: " + file.getAbsoluteFile().toString());
 				}
 			}
 		}
@@ -196,7 +210,8 @@ class Watcher implements Runnable {
 			}
 			try {
 				Thread.sleep(interval);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 			}
 			if (!paused) {
 				List<File> changedFiles = new ArrayList<File>();
@@ -207,7 +222,8 @@ class Watcher implements Runnable {
 						long lastModTime = file.lastModified();
 						if (lastModTime > watchListLMTs.get(f)) {
 							if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-								log.info("Observed last modification time change for "+file+" (lastScanTime="+lastScanTime+")");
+								log.info("Observed last modification time change for " + file + " (lastScanTime="
+										+ lastScanTime + ")");
 							}
 							watchListLMTs.set(f, lastModTime);
 							changedFiles.add(file);
@@ -215,7 +231,7 @@ class Watcher implements Runnable {
 					}
 					lastScanTime = System.currentTimeMillis();
 				}
-				for (File changedFile: changedFiles) {
+				for (File changedFile : changedFiles) {
 					determineChangesSince(changedFile, lastScanTime);
 				}
 			}
@@ -230,7 +246,7 @@ class Watcher implements Runnable {
 	private void determineChangesSince(File file, long lastScanTime) {
 		try {
 			if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-				log.info("Firing file changed event "+file);
+				log.info("Firing file changed event " + file);
 			}
 			listener.fileChanged(file);
 			if (file.isDirectory()) {
@@ -238,18 +254,21 @@ class Watcher implements Runnable {
 				for (File f : filesOfInterest) {
 					if (f.isDirectory()) {
 						determineChangesSince(f, lastScanTime);
-					} else {
+					}
+					else {
 						if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-							log.info("Observed last modification time change for "+f+"  (lastScanTime="+lastScanTime+")");
-							log.info("Firing file changed event "+file);
+							log.info("Observed last modification time change for " + f + "  (lastScanTime="
+									+ lastScanTime + ")");
+							log.info("Firing file changed event " + file);
 						}
 						listener.fileChanged(f);
 					}
 				}
 			}
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			if (log.isLoggable(Level.SEVERE)) {
-				log.log(Level.SEVERE,"FileWatcher caught serious error, see cause",t);
+				log.log(Level.SEVERE, "FileWatcher caught serious error, see cause", t);
 			}
 		}
 	}

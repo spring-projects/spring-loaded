@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.util.HashSet;
@@ -60,14 +61,16 @@ public class SignatureFinder extends SpringLoadedTests {
 				try {
 					gatherSignatures(typeName, version, sigs);
 					oneSkipped = false;
-				} catch (UnableToLoadClassException e) {
+				}
+				catch (UnableToLoadClassException e) {
 					if (oneSkipped)
 						throw e;
 					else
 						oneSkipped = true;
 				}
 			}
-		} catch (UnableToLoadClassException e) {
+		}
+		catch (UnableToLoadClassException e) {
 			//No more versions
 		}
 	}
@@ -82,7 +85,8 @@ public class SignatureFinder extends SpringLoadedTests {
 		byte[] bytes = null;
 		if (version.equals("")) {
 			bytes = loadBytesForClass(typeName);
-		} else {
+		}
+		else {
 			bytes = retrieveRename(typeName, typeName + version);
 		}
 		TypeDescriptor typeDescriptor = new TypeDescriptorExtractor(tr).extract(bytes, true);
@@ -103,14 +107,16 @@ public class SignatureFinder extends SpringLoadedTests {
 				try {
 					gatherConstructorSignatures(typeName, version, sigs);
 					oneSkipped = false;
-				} catch (UnableToLoadClassException e) {
+				}
+				catch (UnableToLoadClassException e) {
 					if (oneSkipped)
 						throw e;
 					else
 						oneSkipped = true;
 				}
 			}
-		} catch (UnableToLoadClassException e) {
+		}
+		catch (UnableToLoadClassException e) {
 			//No more versions
 		}
 	}
@@ -120,7 +126,8 @@ public class SignatureFinder extends SpringLoadedTests {
 		byte[] bytes = null;
 		if (version.equals("")) {
 			bytes = loadBytesForClass(typeName);
-		} else {
+		}
+		else {
 			bytes = retrieveRename(typeName, typeName + version);
 		}
 		TypeDescriptor typeDescriptor = new TypeDescriptorExtractor(tr).extract(bytes, true);

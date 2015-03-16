@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -29,8 +30,8 @@ import org.springsource.loaded.testgen.RejectedChoice;
 
 
 /**
- * Tests 'Method.invoke' where the method is dispatched in different ways (static or dynamic) and where the receiver object's
- * dynamictype is varies w.r.t. to the declaring type of the invoked method.
+ * Tests 'Method.invoke' where the method is dispatched in different ways (static or dynamic) and where the receiver
+ * object's dynamictype is varies w.r.t. to the declaring type of the invoked method.
  * 
  * @author kdvolder
  */
@@ -39,12 +40,16 @@ public class MethodInvokeTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> declaringClass; // Class to get methods from
+
 	private Method method; // Method to invoke (taken from declaring class's declared methods)
+
 	private Class<?> instanceClass; // Class to create instance of and call the method on
+
 	private Object targetInstance; // Instance of the instanceClass
 
 	@Override

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 /**
@@ -22,8 +23,11 @@ package org.springsource.loaded.test.infra;
  * @since 1.0
  */
 public class Result implements IResult {
+
 	public Object returnValue;
+
 	public final String stdout;
+
 	public final String stderr;
 
 	public Result(Object returnValue, String stdout, String stderr) {
@@ -70,17 +74,20 @@ public class Result implements IResult {
 		if (returnValue == null) {
 			if (other.returnValue != null)
 				return false;
-		} else if (!returnValue.equals(other.returnValue))
+		}
+		else if (!returnValue.equals(other.returnValue))
 			return false;
 		if (stderr == null) {
 			if (other.stderr != null)
 				return false;
-		} else if (!stderr.equals(other.stderr))
+		}
+		else if (!stderr.equals(other.stderr))
 			return false;
 		if (stdout == null) {
 			if (other.stdout != null)
 				return false;
-		} else if (!stdout.equals(other.stdout))
+		}
+		else if (!stdout.equals(other.stdout))
 			return false;
 		return true;
 	}

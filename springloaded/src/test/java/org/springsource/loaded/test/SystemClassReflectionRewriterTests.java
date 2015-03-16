@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -40,10 +41,10 @@ import org.springsource.loaded.SystemClassReflectionRewriter.RewriteResult;
 public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 
 	/**
-	 * First test. Here we are simulating a System class that is making a call to Class.getDeclaredFields. The invocation is
-	 * rewritten to go via a helper method generated into the target which uses a field settable from outside. The aim is that when
-	 * SpringLoaded is initialized far enough it can set the fields in these types, effectively plugging in the reflective
-	 * interceptor system.
+	 * First test. Here we are simulating a System class that is making a call to Class.getDeclaredFields. The
+	 * invocation is rewritten to go via a helper method generated into the target which uses a field settable from
+	 * outside. The aim is that when SpringLoaded is initialized far enough it can set the fields in these types,
+	 * effectively plugging in the reflective interceptor system.
 	 */
 	@Test
 	public void jlClass_getDeclaredFields() throws Exception {
@@ -55,14 +56,14 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/One v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: One.java null\n"+
-				"FIELD 0x0009(public static) __sljlcgdfs Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n"+
-				"METHOD: 0x0001(public) fs()[Ljava/lang/reflect/Field;\n"+
-				"METHOD: 0x000a(private static) __sljlcgdfs(Ljava/lang/Class;)[Ljava/lang/reflect/Field;\n"+
-				"\n",
+				"CLASS: system/One v50 0x0021(public synchronized) super java/lang/Object\n" +
+						"SOURCE: One.java null\n" +
+						"FIELD 0x0009(public static) __sljlcgdfs Ljava/lang/reflect/Method;\n" +
+						"METHOD: 0x0001(public) <init>()V\n" +
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n" +
+						"METHOD: 0x0001(public) fs()[Ljava/lang/reflect/Field;\n" +
+						"METHOD: 0x000a(private static) __sljlcgdfs(Ljava/lang/Class;)[Ljava/lang/reflect/Field;\n" +
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -97,15 +98,23 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Two v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Two.java null\n"+
-				"FIELD 0x0000() s Ljava/lang/String;\n"+
-				"FIELD 0x0009(public static) __sljlcgdf Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) f(Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"+
-				"METHOD: 0x000a(private static) __sljlcgdf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"+
-				"\n",
+				"CLASS: system/Two v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Two.java null\n"
+						+
+						"FIELD 0x0000() s Ljava/lang/String;\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgdf Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0001(public) f(Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"
+						+
+						"METHOD: 0x000a(private static) __sljlcgdf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -143,15 +152,23 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Three v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Three.java null\n"+
-				"FIELD 0x0001(public) s Ljava/lang/String;\n"+
-				"FIELD 0x0009(public static) __sljlcgf Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) f(Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"+
-				"METHOD: 0x000a(private static) __sljlcgf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"+
-				"\n",
+				"CLASS: system/Three v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Three.java null\n"
+						+
+						"FIELD 0x0001(public) s Ljava/lang/String;\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgf Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0001(public) f(Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"
+						+
+						"METHOD: 0x000a(private static) __sljlcgf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -189,14 +206,14 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Four v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Four.java null\n"+
-				"FIELD 0x0009(public static) __sljlcgdms Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n"+
-				"METHOD: 0x0001(public) ms()[Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x000a(private static) __sljlcgdms(Ljava/lang/Class;)[Ljava/lang/reflect/Method;\n"+
-				"\n",
+				"CLASS: system/Four v50 0x0021(public synchronized) super java/lang/Object\n" +
+						"SOURCE: Four.java null\n" +
+						"FIELD 0x0009(public static) __sljlcgdms Ljava/lang/reflect/Method;\n" +
+						"METHOD: 0x0001(public) <init>()V\n" +
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n" +
+						"METHOD: 0x0001(public) ms()[Ljava/lang/reflect/Method;\n" +
+						"METHOD: 0x000a(private static) __sljlcgdms(Ljava/lang/Class;)[Ljava/lang/reflect/Method;\n" +
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -220,7 +237,7 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertEquals(1, callcount);
 		assertEquals("Class.getDeclaredMethods()", rr.summarize());
 	}
-	
+
 	@Test
 	public void jlClass_getDeclaredConstructors() throws Exception {
 		byte[] classbytes = loadBytesForClass("system.Ten");
@@ -231,14 +248,21 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Ten v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Ten.java null\n"+
-				"FIELD 0x0009(public static) __sljlcgdcs Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n"+
-				"METHOD: 0x0001(public) cs()[Ljava/lang/reflect/Constructor;\n"+
-				"METHOD: 0x000a(private static) __sljlcgdcs(Ljava/lang/Class;)[Ljava/lang/reflect/Constructor;\n"+
-				"\n",
+				"CLASS: system/Ten v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Ten.java null\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgdcs Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n"
+						+
+						"METHOD: 0x0001(public) cs()[Ljava/lang/reflect/Constructor;\n"
+						+
+						"METHOD: 0x000a(private static) __sljlcgdcs(Ljava/lang/Class;)[Ljava/lang/reflect/Constructor;\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -262,7 +286,7 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertEquals(1, callcount);
 		assertEquals("Class.getDeclaredConstructors()", rr.summarize());
 	}
-	
+
 	@Test
 	public void jlrMethod_Invoke() throws Exception {
 		byte[] classbytes = loadBytesForClass("system.Eleven");
@@ -273,17 +297,27 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Eleven v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Eleven.java null\n"+
-				"FIELD 0x0009(public static) __sljlcgdm Ljava/lang/reflect/Method;\n"+
-				"FIELD 0x0009(public static) __sljlrmi Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0089(public static) invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) foo(ILjava/lang/String;)Ljava/lang/String;\n"+
-				"METHOD: 0x008a(private static) __sljlcgdm(Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"+
-				"METHOD: 0x000a(private static) __sljlrmi(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object; java/lang/IllegalAccessException java/lang/reflect/InvocationTargetException\n"+
-				"\n",
+				"CLASS: system/Eleven v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Eleven.java null\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgdm Ljava/lang/reflect/Method;\n"
+						+
+						"FIELD 0x0009(public static) __sljlrmi Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0089(public static) invoke(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object; java/lang/Exception\n"
+						+
+						"METHOD: 0x0001(public) foo(ILjava/lang/String;)Ljava/lang/String;\n"
+						+
+						"METHOD: 0x008a(private static) __sljlcgdm(Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"
+						+
+						"METHOD: 0x000a(private static) __sljlrmi(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object; java/lang/IllegalAccessException java/lang/reflect/InvocationTargetException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -292,21 +326,23 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertEquals(0, callcount);
 
 		// Set the field
-		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRMI_0", Class.class, String.class, Class[].class);
+		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRMI_0", Class.class,
+				String.class, Class[].class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlcgdm).set(null, m);
 
-		m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRMI", Method.class, Object.class, Object[].class);
+		m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRMI", Method.class, Object.class,
+				Object[].class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlrmInvokeMember).set(null, m);
-		
+
 		// Now re-run, should be intercepted to call our helper
 		value = run(clazz, "runIt");
 		assertEquals("complete:obj=null", value);
 
 		// Check the correct amount of rewriting went on
-		assertTrue((rr.bits & (JLC_GETDECLAREDMETHOD|JLRM_INVOKE)) != 0);
-		assertTrue((rr.bits & ~(JLC_GETDECLAREDMETHOD|JLRM_INVOKE)) == 0);
+		assertTrue((rr.bits & (JLC_GETDECLAREDMETHOD | JLRM_INVOKE)) != 0);
+		assertTrue((rr.bits & ~(JLC_GETDECLAREDMETHOD | JLRM_INVOKE)) == 0);
 
 		assertEquals(1, callcount);
 		assertEquals("Class.getDeclaredMethod() Method.invoke()", rr.summarize());
@@ -322,24 +358,34 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Five v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Five.java null\n"+
-				"FIELD 0x0000() s Ljava/lang/String;\n"+
-				"FIELD 0x0009(public static) __sljlcgdm Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) m(Ljava/lang/String;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"+
-				"METHOD: 0x008a(private static) __sljlcgdm(Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"+
-				"\n",
+				"CLASS: system/Five v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Five.java null\n"
+						+
+						"FIELD 0x0000() s Ljava/lang/String;\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgdm Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0001(public) m(Ljava/lang/String;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"
+						+
+						"METHOD: 0x008a(private static) __sljlcgdm(Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
 		// Check that without the field initialized, things behave as expected
-		assertEquals("complete:method?public java.lang.String system.Five.runIt() throws java.lang.Exception nsme", value);
+		assertEquals("complete:method?public java.lang.String system.Five.runIt() throws java.lang.Exception nsme",
+				value);
 		assertEquals(0, callcount);
 
 		// Set the field
-		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helper4", Class.class, String.class, Class[].class);
+		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helper4", Class.class, String.class,
+				Class[].class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlcgdm).set(null, m);
 
@@ -368,24 +414,34 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Six v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Six.java null\n"+
-				"FIELD 0x0001(public) s Ljava/lang/String;\n"+
-				"FIELD 0x0009(public static) __sljlcgm Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) m(Ljava/lang/String;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"+
-				"METHOD: 0x008a(private static) __sljlcgm(Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"+
-				"\n",
+				"CLASS: system/Six v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Six.java null\n"
+						+
+						"FIELD 0x0001(public) s Ljava/lang/String;\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgm Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0001(public) m(Ljava/lang/String;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"
+						+
+						"METHOD: 0x008a(private static) __sljlcgm(Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method; java/lang/NoSuchMethodException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
 		// Check that without the field initialized, things behave as expected
-		assertEquals("complete:method?public java.lang.String system.Six.runIt() throws java.lang.Exception nsme", value);
+		assertEquals("complete:method?public java.lang.String system.Six.runIt() throws java.lang.Exception nsme",
+				value);
 		assertEquals(0, callcount);
 
 		// Set the field
-		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helper4", Class.class, String.class, Class[].class);
+		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helper4", Class.class, String.class,
+				Class[].class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlcgm).set(null, m);
 
@@ -414,20 +470,30 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Seven v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Seven.java null\n"+
-				"FIELD 0x0009(public static) __sljlcgdc Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) <init>(Ljava/lang/String;)V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0081(public) m([Ljava/lang/Class;)Ljava/lang/reflect/Constructor; java/lang/NoSuchMethodException\n"+
-				"METHOD: 0x008a(private static) __sljlcgdc(Ljava/lang/Class;[Ljava/lang/Class;)Ljava/lang/reflect/Constructor; java/lang/NoSuchMethodException\n"+
-				"\n",
+				"CLASS: system/Seven v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Seven.java null\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgdc Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) <init>(Ljava/lang/String;)V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0081(public) m([Ljava/lang/Class;)Ljava/lang/reflect/Constructor; java/lang/NoSuchMethodException\n"
+						+
+						"METHOD: 0x008a(private static) __sljlcgdc(Ljava/lang/Class;[Ljava/lang/Class;)Ljava/lang/reflect/Constructor; java/lang/NoSuchMethodException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
 		// Check that without the field initialized, things behave as expected
-		assertEquals("complete:defaultctor?public system.Seven() stringctor?public system.Seven(java.lang.String) nsme", value);
+		assertEquals(
+				"complete:defaultctor?public system.Seven() stringctor?public system.Seven(java.lang.String) nsme",
+				value);
 		assertEquals(0, callcount);
 
 		// Set the field
@@ -462,17 +528,27 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Thirteen v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Thirteen.java null\n"+
-				"FIELD 0x0001(public) foo J\n"+
-				"FIELD 0x0009(public static) __sljlcgf Ljava/lang/reflect/Method;\n"+
-				"FIELD 0x0009(public static) __sljlrfgl Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) gf()Ljava/lang/Long; java/lang/Exception\n"+
-				"METHOD: 0x000a(private static) __sljlcgf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"+
-				"METHOD: 0x000a(private static) __sljlrfgl(Ljava/lang/reflect/Field;Ljava/lang/Object;)J java/lang/IllegalAccessException java/lang/IllegalArgumentException\n"+
-				"\n",
+				"CLASS: system/Thirteen v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Thirteen.java null\n"
+						+
+						"FIELD 0x0001(public) foo J\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgf Ljava/lang/reflect/Method;\n"
+						+
+						"FIELD 0x0009(public static) __sljlrfgl Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0001(public) gf()Ljava/lang/Long; java/lang/Exception\n"
+						+
+						"METHOD: 0x000a(private static) __sljlcgf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"
+						+
+						"METHOD: 0x000a(private static) __sljlrfgl(Ljava/lang/reflect/Field;Ljava/lang/Object;)J java/lang/IllegalAccessException java/lang/IllegalArgumentException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -481,14 +557,15 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertEquals(0, callcount);
 
 		// Set the field
-		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRFGL_0", Class.class, String.class);
+		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRFGL_0", Class.class,
+				String.class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlcgf).set(null, m);
-		
+
 		m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRFGL", Field.class, Object.class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlrfGetLongMember).set(null, m);
-		
+
 		// Now re-run, should be intercepted to call our helper
 		value = run(clazz, "runIt");
 		assertEquals("complete:value=0", value);
@@ -500,7 +577,7 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertEquals(1, callcount);
 		assertEquals("Class.getField() Field.getLong()", rr.summarize());
 	}
-	
+
 	@Test
 	public void jlrField_get() throws Exception {
 		byte[] classbytes = loadBytesForClass("system.Twelve");
@@ -511,17 +588,27 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Twelve v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Twelve.java null\n"+
-				"FIELD 0x0001(public) foo Ljava/lang/String;\n"+
-				"FIELD 0x0009(public static) __sljlcgf Ljava/lang/reflect/Method;\n"+
-				"FIELD 0x0009(public static) __sljlrfg Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) gf()Ljava/lang/Object; java/lang/Exception\n"+
-				"METHOD: 0x000a(private static) __sljlcgf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"+
-				"METHOD: 0x000a(private static) __sljlrfg(Ljava/lang/reflect/Field;Ljava/lang/Object;)Ljava/lang/Object; java/lang/IllegalAccessException java/lang/IllegalArgumentException\n"+
-				"\n",
+				"CLASS: system/Twelve v50 0x0021(public synchronized) super java/lang/Object\n"
+						+
+						"SOURCE: Twelve.java null\n"
+						+
+						"FIELD 0x0001(public) foo Ljava/lang/String;\n"
+						+
+						"FIELD 0x0009(public static) __sljlcgf Ljava/lang/reflect/Method;\n"
+						+
+						"FIELD 0x0009(public static) __sljlrfg Ljava/lang/reflect/Method;\n"
+						+
+						"METHOD: 0x0001(public) <init>()V\n"
+						+
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"
+						+
+						"METHOD: 0x0001(public) gf()Ljava/lang/Object; java/lang/Exception\n"
+						+
+						"METHOD: 0x000a(private static) __sljlcgf(Ljava/lang/Class;Ljava/lang/String;)Ljava/lang/reflect/Field; java/lang/NoSuchFieldException\n"
+						+
+						"METHOD: 0x000a(private static) __sljlrfg(Ljava/lang/reflect/Field;Ljava/lang/Object;)Ljava/lang/Object; java/lang/IllegalAccessException java/lang/IllegalArgumentException\n"
+						+
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -530,14 +617,15 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertEquals(0, callcount);
 
 		// Set the field
-		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRFG_0", Class.class, String.class);
+		Method m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRFG_0", Class.class,
+				String.class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlcgf).set(null, m);
-		
+
 		m = SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRFG", Field.class, Object.class);
 		assertNotNull(m);
 		clazz.getDeclaredField(jlrfGetMember).set(null, m);
-		
+
 		// Now re-run, should be intercepted to call our helper
 		value = run(clazz, "runIt");
 		assertEquals("complete:value=null", value);
@@ -549,7 +637,7 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertEquals(1, callcount);
 		assertEquals("Class.getField() Field.get()", rr.summarize());
 	}
-	
+
 	@Test
 	public void jlClass_getModifiers() throws Exception {
 		byte[] classbytes = loadBytesForClass("system.Eight");
@@ -560,16 +648,16 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Eight v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Eight.java null\n"+
-				"INNERCLASS: system/Eight$Inner system/Eight Inner 2\n"+
-				"FIELD 0x0009(public static) __sljlcgmods Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) <init>(Ljava/lang/String;)V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n"+
-				"METHOD: 0x0001(public) m(Ljava/lang/Class;)I\n"+
-				"METHOD: 0x000a(private static) __sljlcgmods(Ljava/lang/Class;)I\n"+
-				"\n",
+				"CLASS: system/Eight v50 0x0021(public synchronized) super java/lang/Object\n" +
+						"SOURCE: Eight.java null\n" +
+						"INNERCLASS: system/Eight$Inner system/Eight Inner 2\n" +
+						"FIELD 0x0009(public static) __sljlcgmods Ljava/lang/reflect/Method;\n" +
+						"METHOD: 0x0001(public) <init>()V\n" +
+						"METHOD: 0x0001(public) <init>(Ljava/lang/String;)V\n" +
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String; java/lang/Exception\n" +
+						"METHOD: 0x0001(public) m(Ljava/lang/Class;)I\n" +
+						"METHOD: 0x000a(private static) __sljlcgmods(Ljava/lang/Class;)I\n" +
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -609,14 +697,14 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		// Check the new field and method are in the type:
 		//@formatter:off
 		assertEquals(
-				"CLASS: system/Nine v50 0x0021(public synchronized) super java/lang/Object\n"+
-				"SOURCE: Nine.java null\n"+
-				"FIELD 0x0009(public static) __sljlcgms Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x0001(public) <init>()V\n"+
-				"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n"+
-				"METHOD: 0x0001(public) ms()[Ljava/lang/reflect/Method;\n"+
-				"METHOD: 0x000a(private static) __sljlcgms(Ljava/lang/Class;)[Ljava/lang/reflect/Method;\n"+
-				"\n",
+				"CLASS: system/Nine v50 0x0021(public synchronized) super java/lang/Object\n" +
+						"SOURCE: Nine.java null\n" +
+						"FIELD 0x0009(public static) __sljlcgms Ljava/lang/reflect/Method;\n" +
+						"METHOD: 0x0001(public) <init>()V\n" +
+						"METHOD: 0x0001(public) runIt()Ljava/lang/String;\n" +
+						"METHOD: 0x0001(public) ms()[Ljava/lang/reflect/Method;\n" +
+						"METHOD: 0x000a(private static) __sljlcgms(Ljava/lang/Class;)[Ljava/lang/reflect/Method;\n" +
+						"\n",
 				toStringClass(newbytes));
 		//@formatter:on
 		Object value = run(clazz, "runIt");
@@ -633,7 +721,7 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		assertNotNull(m);
 		clazz.getDeclaredField(jlcgms).set(null, m);
 
-			
+
 		// Now re-run, should be intercepted to call our helper
 		value = run(clazz, "runIt");
 		assertEquals("complete:methods:null?true", value);
@@ -649,6 +737,7 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 	// ---
 
 	static int callcount;
+
 	static List<String> events = new ArrayList<String>();
 
 	// helper method - standin for Class.getDeclaredFields()
@@ -662,7 +751,7 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		callcount++;
 		return null;
 	}
-	
+
 	// helper method - standin for Class.getDeclaredConstructors()
 	@SuppressWarnings("rawtypes")
 	public static Constructor[] helper4(Class<?> clazz) {
@@ -678,32 +767,35 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 
 	// The testcase for JLRMI uses GDM to find the Method object, so that is why this helper exists
 	public static Method helperJLRMI_0(Class<?> clazz, String name, Class<?>[] argTypes) throws Exception {
-		return SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRMI",Method.class,Object.class,Object[].class);
+		return SystemClassReflectionRewriterTests.class.getDeclaredMethod("helperJLRMI", Method.class, Object.class,
+				Object[].class);
 	}
-	
+
 	public static Object helperJLRMI(Method m, Object instance, Object[] arguments) {
 		callcount++;
 		return null;
 	}
 
 	public String string = "wibble";
-	
+
 	public static Field helperJLRFG_0(Class<?> clazz, String name) throws Exception {
 		return SystemClassReflectionRewriterTests.class.getDeclaredField("string");
-		
+
 	}
+
 	public static Object helperJLRFG(Field f, Object instance) {
 		callcount++;
 		return null;
 	}
-	
+
 
 	public long lll = 99L;
-	
+
 	public static Field helperJLRFGL_0(Class<?> clazz, String name) throws Exception {
 		return SystemClassReflectionRewriterTests.class.getDeclaredField("lll");
-		
+
 	}
+
 	public static Long helperJLRFGL(Field f, Object instance) {
 		callcount++;
 		return 0L;
@@ -736,7 +828,8 @@ public class SystemClassReflectionRewriterTests extends SpringLoadedTests {
 		events.add("helper5(" + clazz.getName() + ")");
 		if (params == null || params.length == 0) {
 			return null;
-		} else if (params[0] == String.class) {
+		}
+		else if (params[0] == String.class) {
 			return null;
 		}
 		throw new NoSuchMethodException("" + params[0]);

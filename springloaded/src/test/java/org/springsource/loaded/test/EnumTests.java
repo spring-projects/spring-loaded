@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertNotNull;
@@ -84,8 +85,8 @@ public class EnumTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * More elaborate reloading. The enum implements an interface, the interface is changed (method added) on reload and the enum
-	 * reloaded to implement the new method.
+	 * More elaborate reloading. The enum implements an interface, the interface is changed (method added) on reload and
+	 * the enum reloaded to implement the new method.
 	 */
 	@Test
 	public void testEnums2() throws Exception {
@@ -102,9 +103,11 @@ public class EnumTests extends SpringLoadedTests {
 		// Check we loaded it as reloadable
 		ReloadableType rtypeEnum = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(t), false);
 		assertNotNull(rtypeEnum);
-		ReloadableType rtypeRunner = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(runner), false);
+		ReloadableType rtypeRunner = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(runner),
+				false);
 		assertNotNull(rtypeRunner);
-		ReloadableType rtypeIntface = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(intface), false);
+		ReloadableType rtypeIntface = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(intface),
+				false);
 		assertNotNull(rtypeIntface);
 
 		rtypeEnum.loadNewVersion(retrieveRename(t, t + "2"));
@@ -113,7 +116,8 @@ public class EnumTests extends SpringLoadedTests {
 		assertContains("value count = 4", output);
 
 		// Load a new version of the interface and the runner and the enum (which implements the interface)
-		String[] renames = new String[] { "enumtests.ColoursB3:enumtests.ColoursB", "enumtests.Intface3:enumtests.Intface" };
+		String[] renames = new String[] { "enumtests.ColoursB3:enumtests.ColoursB",
+			"enumtests.Intface3:enumtests.Intface" };
 		rtypeIntface.loadNewVersion("3", retrieveRename(intface, intface + "3"));
 		rtypeEnum.loadNewVersion("3", retrieveRename(t, t + "3", renames));
 		rtypeRunner.loadNewVersion("3", retrieveRename(runner, runner + "3", renames));
@@ -146,8 +150,8 @@ public class EnumTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * There is no need to intercept Class.getEnumConstants() - that method uses a cached enumConstants array that is cleared when
-	 * an enum type is reloaded
+	 * There is no need to intercept Class.getEnumConstants() - that method uses a cached enumConstants array that is
+	 * cleared when an enum type is reloaded
 	 */
 	@Test
 	public void testEnumsReflection() throws Exception {
@@ -173,8 +177,8 @@ public class EnumTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Test the valueOf(String) method added to enum types, which delegates to the valueOf(EnumClass,String) on Enum. Need to clear
-	 * enumConstantDirectory in Class.class.
+	 * Test the valueOf(String) method added to enum types, which delegates to the valueOf(EnumClass,String) on Enum.
+	 * Need to clear enumConstantDirectory in Class.class.
 	 */
 	@Test
 	public void testEnumsValueOf1() throws Exception {
@@ -226,7 +230,8 @@ public class EnumTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Old constructor deleted, new one added. This checks that the rewritten clinit that initializes the set of values is working.
+	 * Old constructor deleted, new one added. This checks that the rewritten clinit that initializes the set of values
+	 * is working.
 	 */
 	@Test
 	public void testEnumsConstructor() throws Exception {
@@ -242,7 +247,8 @@ public class EnumTests extends SpringLoadedTests {
 		// Check we loaded it as reloadable
 		ReloadableType rtype = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(t), false);
 		assertNotNull(rtype);
-		ReloadableType rtypeRunner = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(runner), false);
+		ReloadableType rtypeRunner = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(runner),
+				false);
 		assertNotNull(rtypeRunner);
 
 		// Changes from ints to chars
@@ -272,7 +278,8 @@ public class EnumTests extends SpringLoadedTests {
 		ReloadableType rtype = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(t), false);
 		// Utils.dump(rtype.getSlashedName(), rtype.bytesLoaded);
 		assertNotNull(rtype);
-		ReloadableType rtypeRunner = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(runner), false);
+		ReloadableType rtypeRunner = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash(runner),
+				false);
 		assertNotNull(rtypeRunner);
 
 		assertTrue(rtype.loadNewVersion("1", rtype.bytesInitial));

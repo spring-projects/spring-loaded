@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.agent;
 
 import java.lang.ref.Reference;
@@ -48,7 +49,8 @@ public class GrailsPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	/**
 	 * @return true for types this plugin would like to change on startup
 	 */
-	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain, byte[] bytes) {
+	public boolean accept(String slashedTypeName, ClassLoader classLoader, ProtectionDomain protectionDomain,
+			byte[] bytes) {
 		// TODO take classloader into account?
 		return false;//DefaultClassPropertyFetcher.equals(slashedTypeName);
 	}
@@ -66,6 +68,7 @@ public class GrailsPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	}
 
 	private Field classPropertyFetcher_clazz;
+
 	private Method classPropertyFetcher_init;
 
 	public void reloadEvent(String typename, Class<?> reloadedClazz, String versionsuffix) {
@@ -93,14 +96,16 @@ public class GrailsPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 						classPropertyFetcher_init.setAccessible(true);
 						classPropertyFetcher_init.invoke(instance);
 						if (GlobalConfiguration.debugplugins) {
-							System.err.println("GrailsPlugin: re-initing classPropertyFetcher instance for " + clazz.getName()
+							System.err.println("GrailsPlugin: re-initing classPropertyFetcher instance for "
+									+ clazz.getName()
 									+ " " + System.identityHashCode(instance));
 						}
 						//						System.out.println("re-initing " + reloadedClazz.getName());
 					}
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -39,25 +40,30 @@ public class ClassGetMethodTest extends GenerativeSpringLoadedTest {
 	private static final String TARGET_PACKAGE = "reflection.targets";
 
 	/**
-	 * Cached list of available method signatures. This doesn't need to be rediscovered for each test run since it is not expected
-	 * to change.
+	 * Cached list of available method signatures. This doesn't need to be rediscovered for each test run since it is
+	 * not expected to change.
 	 */
 	private static String[] methodSignatureCache = null;
 
 	/**
 	 * List of target type names used by signature finder
 	 */
-	private static String[] targetTypeNames = { TARGET_PACKAGE + "." + "ClassTarget", TARGET_PACKAGE + "." + "SubClassTarget",
-			TARGET_PACKAGE + "." + "SubClassImplementsInterface", TARGET_PACKAGE + "." + "InterfaceTarget", };
+	private static String[] targetTypeNames = { TARGET_PACKAGE + "." + "ClassTarget",
+		TARGET_PACKAGE + "." + "SubClassTarget",
+		TARGET_PACKAGE + "." + "SubClassImplementsInterface", TARGET_PACKAGE + "." + "InterfaceTarget", };
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private String methodName;
+
 	private Class<?>[] params;
+
 	private String methodSignature;
 
 	@Override
@@ -70,14 +76,17 @@ public class ClassGetMethodTest extends GenerativeSpringLoadedTest {
 		if (choice()) {
 			//Try a non reloadable class
 			targetClass = targetClass("java.lang.Object");
-		} else if (choice()) {
+		}
+		else if (choice()) {
 			//Will focus on the 'ClassTarget' only 'ClassTarget' needs to be loaded
 			targetClass = targetClass("ClassTarget", choice("", "002", "003"));
-		} else if (choice()) {
+		}
+		else if (choice()) {
 			//Focus on 'SubClassTarget' but also load different versions of ClassTarget
 			targetClass("ClassTarget", choice("", "002", "003"));
 			targetClass = targetClass("SubClassTarget", choice("", "002", "003"));
-		} else {
+		}
+		else {
 			//For coverage of method lookup in super interfaces with getMethod
 			targetClass = targetClass("InterfaceTarget", choice("", "002"));
 			if (choice()) {

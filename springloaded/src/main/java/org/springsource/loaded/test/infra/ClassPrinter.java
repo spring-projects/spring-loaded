@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test.infra;
 
 import java.io.File;
@@ -35,9 +36,13 @@ import org.springsource.loaded.Utils;
 public class ClassPrinter extends ClassVisitor implements Opcodes {
 
 	private PrintStream destination;
+
 	private boolean includeBytecode;
+
 	private int includeFlags = 0x0000;
+
 	public final static int INCLUDE_BYTECODE = 0x0001;
+
 	public final static int INCLUDE_LINE_NUMBERS = 0x0002;
 
 	public static void main(String[] argv) throws Exception {
@@ -63,20 +68,20 @@ public class ClassPrinter extends ClassVisitor implements Opcodes {
 	public static void print(byte[] bytes) {
 		print(bytes, true);
 	}
-	
+
 	public static void print(byte[] bytes, int includeFlags) {
 		ClassReader reader = new ClassReader(bytes);
 		reader.accept(new ClassPrinter(System.out, includeFlags), 0);
 	}
-		
+
 	public static void print(byte[] bytes, boolean includeBytecode) {
 		ClassReader reader = new ClassReader(bytes);
-		reader.accept(new ClassPrinter(System.out, includeBytecode?INCLUDE_BYTECODE:0), 0);
+		reader.accept(new ClassPrinter(System.out, includeBytecode ? INCLUDE_BYTECODE : 0), 0);
 	}
 
 	public static void print(PrintStream printStream, byte[] bytes, boolean includeBytecode) {
 		ClassReader reader = new ClassReader(bytes);
-		reader.accept(new ClassPrinter(printStream, includeBytecode?INCLUDE_BYTECODE:0), 0);
+		reader.accept(new ClassPrinter(printStream, includeBytecode ? INCLUDE_BYTECODE : 0), 0);
 	}
 
 	public static void print(String message, byte[] bytes, boolean includeBytecode) {
@@ -248,9 +253,10 @@ public class ClassPrinter extends ClassVisitor implements Opcodes {
 
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		StringBuilder s = new StringBuilder();
-		s.append("METHOD: " + toHex(access, 4) + "(" + toAccessForMember(access) + ") " + name + desc + " " + fromArray(exceptions));
+		s.append("METHOD: " + toHex(access, 4) + "(" + toAccessForMember(access) + ") " + name + desc + " "
+				+ fromArray(exceptions));
 		destination.println(s.toString().trim());
-		return (includeFlags&INCLUDE_BYTECODE)!=0 ? new MethodPrinter(destination,includeFlags) : null;
+		return (includeFlags & INCLUDE_BYTECODE) != 0 ? new MethodPrinter(destination, includeFlags) : null;
 	}
 
 	private String fromArray(Object[] os) {

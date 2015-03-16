@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.reflect.Modifier;
@@ -29,6 +30,7 @@ import org.springsource.loaded.Utils;
 public class GetMethodLookup {
 
 	private String name;
+
 	private String paramsDescriptor;
 
 	/*

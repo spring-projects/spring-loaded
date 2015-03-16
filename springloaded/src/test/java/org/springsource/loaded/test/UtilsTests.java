@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -84,11 +85,13 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		FakeMethodVisitor fmv = new FakeMethodVisitor();
 		// First variant checks passing string rather than just one char
 		Utils.insertUnboxInsnsIfNecessary(fmv, "F", true);
-		assertEquals("visitTypeInsn(CHECKCAST,java/lang/Float) visitMethodInsn(INVOKEVIRTUAL,java/lang/Float,floatValue,()F)",
+		assertEquals(
+				"visitTypeInsn(CHECKCAST,java/lang/Float) visitMethodInsn(INVOKEVIRTUAL,java/lang/Float,floatValue,()F)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'F', true);
-		assertEquals("visitTypeInsn(CHECKCAST,java/lang/Float) visitMethodInsn(INVOKEVIRTUAL,java/lang/Float,floatValue,()F)",
+		assertEquals(
+				"visitTypeInsn(CHECKCAST,java/lang/Float) visitMethodInsn(INVOKEVIRTUAL,java/lang/Float,floatValue,()F)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'Z', true);
@@ -97,15 +100,18 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'S', true);
-		assertEquals("visitTypeInsn(CHECKCAST,java/lang/Short) visitMethodInsn(INVOKEVIRTUAL,java/lang/Short,shortValue,()S)",
+		assertEquals(
+				"visitTypeInsn(CHECKCAST,java/lang/Short) visitMethodInsn(INVOKEVIRTUAL,java/lang/Short,shortValue,()S)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'J', true);
-		assertEquals("visitTypeInsn(CHECKCAST,java/lang/Long) visitMethodInsn(INVOKEVIRTUAL,java/lang/Long,longValue,()J)",
+		assertEquals(
+				"visitTypeInsn(CHECKCAST,java/lang/Long) visitMethodInsn(INVOKEVIRTUAL,java/lang/Long,longValue,()J)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'D', true);
-		assertEquals("visitTypeInsn(CHECKCAST,java/lang/Double) visitMethodInsn(INVOKEVIRTUAL,java/lang/Double,doubleValue,()D)",
+		assertEquals(
+				"visitTypeInsn(CHECKCAST,java/lang/Double) visitMethodInsn(INVOKEVIRTUAL,java/lang/Double,doubleValue,()D)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'C', true);
@@ -114,11 +120,13 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'B', true);
-		assertEquals("visitTypeInsn(CHECKCAST,java/lang/Byte) visitMethodInsn(INVOKEVIRTUAL,java/lang/Byte,byteValue,()B)",
+		assertEquals(
+				"visitTypeInsn(CHECKCAST,java/lang/Byte) visitMethodInsn(INVOKEVIRTUAL,java/lang/Byte,byteValue,()B)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertUnboxInsns(fmv, 'I', true);
-		assertEquals("visitTypeInsn(CHECKCAST,java/lang/Integer) visitMethodInsn(INVOKEVIRTUAL,java/lang/Integer,intValue,()I)",
+		assertEquals(
+				"visitTypeInsn(CHECKCAST,java/lang/Integer) visitMethodInsn(INVOKEVIRTUAL,java/lang/Integer,intValue,()I)",
 				fmv.getEvents());
 		fmv.clearEvents();
 
@@ -130,7 +138,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		try {
 			Utils.insertUnboxInsns(fmv, '[', true);
 			Assert.fail("Should have blown up due to invalid primitive being passed in");
-		} catch (IllegalArgumentException iae) {
+		}
+		catch (IllegalArgumentException iae) {
 			// success
 		}
 	}
@@ -189,7 +198,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		assertEquals("visitMethodInsn(INVOKESTATIC,java/lang/Double,valueOf,(D)Ljava/lang/Double;)", fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertBoxInsns(fmv, 'C');
-		assertEquals("visitMethodInsn(INVOKESTATIC,java/lang/Character,valueOf,(C)Ljava/lang/Character;)", fmv.getEvents());
+		assertEquals("visitMethodInsn(INVOKESTATIC,java/lang/Character,valueOf,(C)Ljava/lang/Character;)",
+				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.insertBoxInsns(fmv, 'B');
 		assertEquals("visitMethodInsn(INVOKESTATIC,java/lang/Byte,valueOf,(B)Ljava/lang/Byte;)", fmv.getEvents());
@@ -240,7 +250,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 	public void loads2() {
 		FakeMethodVisitor fmv = new FakeMethodVisitor();
 		Utils.createLoadsBasedOnDescriptor(fmv, "(BCDS)V", 0);
-		assertEquals("visitVarInsn(ILOAD,0) visitVarInsn(ILOAD,1) visitVarInsn(DLOAD,2) visitVarInsn(ILOAD,4)", fmv.getEvents());
+		assertEquals("visitVarInsn(ILOAD,0) visitVarInsn(ILOAD,1) visitVarInsn(DLOAD,2) visitVarInsn(ILOAD,4)",
+				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.createLoadsBasedOnDescriptor(fmv, "(Ljava/lang/String;J[I)V", 0);
 		assertEquals("visitVarInsn(ALOAD,0) visitVarInsn(LLOAD,1) visitVarInsn(ALOAD,3)", fmv.getEvents());
@@ -254,7 +265,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 	public void generateInstructionsToUnpackArrayAccordingToDescriptor() {
 		FakeMethodVisitor fmv = new FakeMethodVisitor();
 		Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(fmv, "(Ljava/lang/String;)V", 1);
-		assertEquals("visitVarInsn(ALOAD,1) visitLdcInsn(0) visitInsn(AALOAD) visitTypeInsn(CHECKCAST,java/lang/String)",
+		assertEquals(
+				"visitVarInsn(ALOAD,1) visitLdcInsn(0) visitInsn(AALOAD) visitTypeInsn(CHECKCAST,java/lang/String)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(fmv, "(I)V", 1);
@@ -268,16 +280,19 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(fmv, "([Ljava/lang/String;)V", 2);
-		assertEquals("visitVarInsn(ALOAD,2) visitLdcInsn(0) visitInsn(AALOAD) visitTypeInsn(CHECKCAST,[Ljava/lang/String;)",
+		assertEquals(
+				"visitVarInsn(ALOAD,2) visitLdcInsn(0) visitInsn(AALOAD) visitTypeInsn(CHECKCAST,[Ljava/lang/String;)",
 				fmv.getEvents());
 		fmv.clearEvents();
 		Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(fmv, "([[I)V", 2);
-		assertEquals("visitVarInsn(ALOAD,2) visitLdcInsn(0) visitInsn(AALOAD) visitTypeInsn(CHECKCAST,[[I)", fmv.getEvents());
+		assertEquals("visitVarInsn(ALOAD,2) visitLdcInsn(0) visitInsn(AALOAD) visitTypeInsn(CHECKCAST,[[I)",
+				fmv.getEvents());
 		fmv.clearEvents();
 		try {
 			Utils.generateInstructionsToUnpackArrayAccordingToDescriptor(fmv, "(Y)V", 1);
 			fail();
-		} catch (IllegalStateException ise) {
+		}
+		catch (IllegalStateException ise) {
 		}
 	}
 
@@ -314,13 +329,15 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		Utils.addCorrectReturnInstruction(fmv, ReturnType.ReturnTypeInt, true);
 		assertEquals("visitInsn(IRETURN)", fmv.getEvents());
 		fmv.clearEvents();
-		Utils.addCorrectReturnInstruction(fmv, ReturnType.getReturnType("java/lang/String", ReturnType.Kind.REFERENCE), true);
+		Utils.addCorrectReturnInstruction(fmv, ReturnType.getReturnType("java/lang/String", ReturnType.Kind.REFERENCE),
+				true);
 		assertEquals("visitTypeInsn(CHECKCAST,java/lang/String) visitInsn(ARETURN)", fmv.getEvents());
 		fmv.clearEvents();
 		Utils.addCorrectReturnInstruction(fmv, ReturnType.getReturnType("[[I", ReturnType.Kind.ARRAY), true);
 		assertEquals("visitTypeInsn(CHECKCAST,[[I) visitInsn(ARETURN)", fmv.getEvents());
 		fmv.clearEvents();
-		Utils.addCorrectReturnInstruction(fmv, ReturnType.getReturnType("[[Ljava/lang/String;", ReturnType.Kind.ARRAY), true);
+		Utils.addCorrectReturnInstruction(fmv, ReturnType.getReturnType("[[Ljava/lang/String;", ReturnType.Kind.ARRAY),
+				true);
 		assertEquals("visitTypeInsn(CHECKCAST,[[Ljava/lang/String;) visitInsn(ARETURN)", fmv.getEvents());
 		fmv.clearEvents();
 	}
@@ -343,7 +360,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		try {
 			assertEquals(5, Utils.getSize("(Y)V"));
 			fail();
-		} catch (IllegalStateException ise) {
+		}
+		catch (IllegalStateException ise) {
 		}
 	}
 
@@ -426,7 +444,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		try {
 			assertEquals("()Ljava/lang/String;", Utils.toMethodDescriptor(toStringMethod, true));
 			fail();
-		} catch (IllegalStateException ise) {
+		}
+		catch (IllegalStateException ise) {
 		}
 		Method numberOfLeadingZerosMethod = Integer.class.getDeclaredMethod("numberOfLeadingZeros", Integer.TYPE);
 		assertEquals("(I)I", Utils.toMethodDescriptor(numberOfLeadingZerosMethod, false));
@@ -587,7 +606,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		try {
 			assertEquals((long) 0, Utils.toResultCheckIfNull(null, "L"));
 			fail();
-		} catch (IllegalStateException ise) {
+		}
+		catch (IllegalStateException ise) {
 			// success
 		}
 
@@ -621,7 +641,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 		try {
 			assertTrue(Utils.isObjectIsUnboxableTo(Boolean.class, 'V'));
 			fail("Should not know about 'V'");
-		} catch (IllegalStateException ise) {
+		}
+		catch (IllegalStateException ise) {
 			// success
 		}
 	}
@@ -638,7 +659,8 @@ public class UtilsTests extends SpringLoadedTests implements Constants {
 			try {
 				Utils.stripFirstParameter("()V");
 				fail();
-			} catch (IllegalStateException ise) {
+			}
+			catch (IllegalStateException ise) {
 				// success
 			}
 		}

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -33,8 +34,9 @@ import org.springsource.loaded.test.infra.TestClassloaderWithRewriting;
 
 
 /**
- * Test dealing with CGLIB proxies and auto-regenerating them. This covers the EnhancerByCGLIB types and the FastClassByCGLIB types.
- * 
+ * Test dealing with CGLIB proxies and auto-regenerating them. This covers the EnhancerByCGLIB types and the
+ * FastClassByCGLIB types.
+ *
  * @author Andy Clement
  * @since 0.8.3
  */
@@ -70,12 +72,13 @@ public class CglibProxyTests extends SpringLoadedTests {
 		assertEquals("example.Simple$$EnhancerByCGLIB$$........$$FastClassByCGLIB$$........", s2);
 	}
 
+	// Possibly now failing due to quick fix to copy method/field for grails (~build 113)
 	/**
-	 * This test is quite basic. It is testing interactions with classes through CGLIB generated proxies. The ProxyTestcase creates
-	 * a proxy for a type (@see ProxyBuilder). A proxy knows about the type which it is standing in for and knows about a method
-	 * interceptor that will be called when methods on the proxy are invoked. It is up to the interceptor whether the 'original'
-	 * method runs (by calling super or the MethodProxy passed into the interceptor). This first test does *not* call the super
-	 * methods. No FastClass objects involved in this test.
+	 * This test is quite basic. It is testing interactions with classes through CGLIB generated proxies. The
+	 * ProxyTestcase creates a proxy for a type (@see ProxyBuilder). A proxy knows about the type which it is standing
+	 * in for and knows about a method interceptor that will be called when methods on the proxy are invoked. It is up
+	 * to the interceptor whether the 'original' method runs (by calling super or the MethodProxy passed into the
+	 * interceptor). This first test does *not* call the super methods. No FastClass objects involved in this test.
 	 */
 	@Test
 	public void testSimpleProxyNoSuperCallsNoFastClass() throws Exception {
@@ -96,7 +99,8 @@ public class CglibProxyTests extends SpringLoadedTests {
 		assertNotNull(rtype);
 
 		// Check the incidental types were loaded as reloadable
-		ReloadableType rtype2 = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash("example.Simple"), false);
+		ReloadableType rtype2 = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash("example.Simple"),
+				false);
 		assertNotNull(rtype2);
 
 		rtype.loadNewVersion(retrieveRename(t, t + "2", "example.Simple2:example.Simple"));
@@ -109,9 +113,10 @@ public class CglibProxyTests extends SpringLoadedTests {
 		assertDoesNotContain("Simple2.boo running()", output);
 	}
 
+	// Possibly now failing due to quick fix to copy method/field for grails (~build 113)
 	/**
-	 * Variation of the test above, but now the super calls are allowed to occur. This means FastClass objects will be created by
-	 * CGLIB, these also need auto regenerating and reloading.
+	 * Variation of the test above, but now the super calls are allowed to occur. This means FastClass objects will be
+	 * created by CGLIB, these also need auto regenerating and reloading.
 	 */
 	@Test
 	public void testSimpleProxyWithSuperCallsWithFastClass() throws Exception {
@@ -133,10 +138,12 @@ public class CglibProxyTests extends SpringLoadedTests {
 		Set<String> rtypesForFastClass = getFastClasses(TypeRegistry.getTypeRegistryFor(binLoader).getReloadableTypes());
 		assertEquals(2, rtypesForFastClass.size());
 		assertContains("example.Simple$$FastClassByCGLIB$$........", rtypesForFastClass.toString());
-		assertContains("example.Simple$$EnhancerByCGLIB$$........$$FastClassByCGLIB$$........", rtypesForFastClass.toString());
+		assertContains("example.Simple$$EnhancerByCGLIB$$........$$FastClassByCGLIB$$........",
+				rtypesForFastClass.toString());
 
 		// Check the incidental types were loaded as reloadable
-		ReloadableType rtype2 = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash("example.Simple"), false);
+		ReloadableType rtype2 = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash("example.Simple"),
+				false);
 		assertNotNull(rtype2);
 
 		rtype.loadNewVersion(retrieveRename(t, t + "2", "example.Simple2:example.Simple"));
@@ -157,6 +164,7 @@ public class CglibProxyTests extends SpringLoadedTests {
 		assertContains("[public void example.Simple.bar(int,java.lang.String,long)]", output);
 	}
 
+	// Possibly now failing due to quick fix to copy method/field for grails (~build 113)
 	@Test
 	public void testSimpleProxyWithSuperCallsWithFastClass2() throws Exception {
 		//		binLoader = new TestClassloaderWithRewriting(true, true, true);
@@ -177,10 +185,12 @@ public class CglibProxyTests extends SpringLoadedTests {
 		Set<String> rtypesForFastClass = getFastClasses(TypeRegistry.getTypeRegistryFor(binLoader).getReloadableTypes());
 		assertEquals(2, rtypesForFastClass.size());
 		assertContains("example.Simple$$FastClassByCGLIB$$........", rtypesForFastClass.toString());
-		assertContains("example.Simple$$EnhancerByCGLIB$$........$$FastClassByCGLIB$$........", rtypesForFastClass.toString());
+		assertContains("example.Simple$$EnhancerByCGLIB$$........$$FastClassByCGLIB$$........",
+				rtypesForFastClass.toString());
 
 		// Check the incidental types were loaded as reloadable
-		ReloadableType rtype2 = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash("example.Simple"), false);
+		ReloadableType rtype2 = TypeRegistry.getTypeRegistryFor(binLoader).getReloadableType(toSlash("example.Simple"),
+				false);
 		assertNotNull(rtype2);
 
 		rtype.loadNewVersion(retrieveRename(t, t + "2", "example.Simple2:example.Simple"));
@@ -213,9 +223,9 @@ public class CglibProxyTests extends SpringLoadedTests {
 	// --- helper code
 
 	/**
-	 * Find the reloadabletypes that are for FastClass classes, then replace any $$b2473734 with $$........ so we can write robust
-	 * testcases that check for them.
-	 * 
+	 * Find the reloadabletypes that are for FastClass classes, then replace any $$b2473734 with $$........ so we can
+	 * write robust testcases that check for them.
+	 *
 	 * @param reloadableTypes the complete set of reloadabletypes (sparse array)
 	 * @return the names (dotted) of the FastClass reloadabletypes
 	 */
@@ -239,7 +249,8 @@ public class CglibProxyTests extends SpringLoadedTests {
 			if (ch != 'E' && ch != 'F') { // not 'EnhancerByCGLIB' or 'FastClassByCGLIB'
 				if ((idx + 9) >= sb.length() || sb.charAt(idx + 9) == '$') { // only a 7 digit hex?
 					sb.replace(idx + 2, idx + 9, "........");
-				} else {
+				}
+				else {
 					sb.replace(idx + 2, idx + 10, "........");
 				}
 			}
@@ -251,6 +262,7 @@ public class CglibProxyTests extends SpringLoadedTests {
 	/**
 	 * Execute a specific method, returning all output that occurred during the run to the caller.
 	 */
+	@Override
 	public String runMethodAndCollectOutput(Class<?> clazz, String methodname) throws Exception {
 		captureOn();
 		clazz.getDeclaredMethod(methodname).invoke(null);

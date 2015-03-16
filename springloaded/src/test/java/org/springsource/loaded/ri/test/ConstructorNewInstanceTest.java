@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -40,12 +41,16 @@ public class ConstructorNewInstanceTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
+
 	private Class<?> targetClass; //One class chosen to focus test on
 
 	// Parameters that change for different test runs
 	private boolean doSetAccess; //Should we call 'setAccessible'?
+
 	private Constructor<?> member; //A constructor declared on this class
+
 	private Object[] args; //List of arguments that should be passed to constructor
 
 	private String testedMethodCaller;
@@ -74,7 +79,8 @@ public class ConstructorNewInstanceTest extends GenerativeSpringLoadedTest {
 		if (choice()) {
 			// A regular kind of invoker
 			callerClazz = loadClassVersion("reflection.ConstructorInvoker", "");
-		} else {
+		}
+		else {
 			// Also try an invoker that has special priviliges because...
 			callerClazz = targetClass; // The caller is the class itself
 
@@ -84,7 +90,8 @@ public class ConstructorNewInstanceTest extends GenerativeSpringLoadedTest {
 		if (generative) {
 			callerInstance = callerClazz.newInstance(); // makes it easier to debug specific test case
 														// because avoids driving "test generation" thorugh the ReflectiveInterceptor
-		} else {
+		}
+		else {
 			callerInstance = newInstance(callerClazz);
 		}
 
@@ -93,7 +100,8 @@ public class ConstructorNewInstanceTest extends GenerativeSpringLoadedTest {
 	}
 
 	/**
-	 * Choose a number of arguments, to be passed to the selected constructor, based on that constructor's formal parameters.
+	 * Choose a number of arguments, to be passed to the selected constructor, based on that constructor's formal
+	 * parameters.
 	 * 
 	 * @throws RejectedChoice
 	 */
@@ -119,15 +127,20 @@ public class ConstructorNewInstanceTest extends GenerativeSpringLoadedTest {
 	private Object chooseArg(Class<?> param) throws RejectedChoice {
 		if (int.class == param) {
 			return (int) (choice() ? 0 : 15);
-		} else if (boolean.class == param) {
+		}
+		else if (boolean.class == param) {
 			return choice();
-		} else if (String.class == param) {
+		}
+		else if (String.class == param) {
 			return choice(null, "someString");
-		} else if (double.class == param) {
+		}
+		else if (double.class == param) {
 			return (double) 3.14;
-		} else if (float.class == param) {
+		}
+		else if (float.class == param) {
 			return (float) 3.14;
-		} else if (char.class == param) {
+		}
+		else if (char.class == param) {
 			return (char) 'A';
 		}
 		throw new Error("Don't know how to provide parameter value for: " + param);

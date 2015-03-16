@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import org.springsource.loaded.test.SpringLoadedTests;
@@ -20,9 +21,9 @@ import org.springsource.loaded.test.infra.TestClassLoader;
 
 
 /**
- * Provides a test execution context that is 'just java'. It provides classes from new ClassLoader instance, so that each test run
- * can have its own fresh copy of the classes and not suffer from the fact that different tests may be loading different versions of
- * the same class.
+ * Provides a test execution context that is 'just java'. It provides classes from new ClassLoader instance, so that
+ * each test run can have its own fresh copy of the classes and not suffer from the fact that different tests may be
+ * loading different versions of the same class.
  * 
  * @author kdvolder
  */
@@ -35,7 +36,8 @@ public class JustJavaClassProvider extends SpringLoadedTests implements IClassPr
 	public Class<?> loadClassVersion(String typeName, String version) {
 		if (version == null || "".equals(version)) {
 			return loadClass(typeName);
-		} else {
+		}
+		else {
 			return loadit(typeName, retrieveRename(typeName, typeName + version));
 		}
 	}

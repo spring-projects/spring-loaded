@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri;
 
 import java.lang.annotation.Annotation;
@@ -55,8 +56,8 @@ import org.springsource.loaded.jvm.JVM;
 
 
 /**
- * The reflective interceptor is called to rewrite any reflective calls that are found in the bytecode. Intercepting the calls means
- * we can delegate to the SpringLoaded infrastructure.
+ * The reflective interceptor is called to rewrite any reflective calls that are found in the bytecode. Intercepting the
+ * calls means we can delegate to the SpringLoaded infrastructure.
  * 
  * @author Andy Clement
  * @author Kris De Volder
@@ -75,16 +76,18 @@ public class ReflectiveInterceptor {
 			if (prop.equalsIgnoreCase("true")) {
 				synchronize = true;
 			}
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			// likely security manager
 		}
 		if (synchronize) {
 			classToRType = Collections.synchronizedMap(new WeakHashMap<Class<?>, WeakReference<ReloadableType>>());
-		} else {
+		}
+		else {
 			classToRType = new WeakHashMap<Class<?>, WeakReference<ReloadableType>>();
 		}
 	}
-	
+
 	@UsedByGeneratedCode
 	public static boolean jlosHasStaticInitializer(Class<?> clazz) {
 		ReloadableType rtype = getRType(clazz);
@@ -99,19 +102,22 @@ public class ReflectiveInterceptor {
 	 * Implementation of java.lang.class.getDeclaredMethod(String name, Class... params).
 	 */
 	@UsedByGeneratedCode
-	public static Method jlClassGetDeclaredMethod(Class<?> clazz, String name, Class<?>... params) throws SecurityException,
+	public static Method jlClassGetDeclaredMethod(Class<?> clazz, String name, Class<?>... params)
+			throws SecurityException,
 			NoSuchMethodException {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Not reloadable...
 			return clazz.getDeclaredMethod(name, params);
-		} else {
+		}
+		else {
 			// Reloadable
 			MethodProvider methods = MethodProvider.create(rtype);
 			Invoker method = methods.getDeclaredMethod(name, params);
 			if (method == null) {
 				throw Exceptions.noSuchMethodException(clazz, name, params);
-			} else {
+			}
+			else {
 				return method.createJavaMethod();
 			}
 		}
@@ -127,12 +133,14 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			// Not reloadable...
 			return clazz.getMethod(name, params);
-		} else {
+		}
+		else {
 			MethodProvider methods = MethodProvider.create(rtype);
 			Invoker method = methods.getMethod(name, params);
 			if (method == null) {
 				throw Exceptions.noSuchMethodException(clazz, name, params);
-			} else {
+			}
+			else {
 				return method.createJavaMethod();
 			}
 		}
@@ -143,7 +151,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			// Not reloadable...
 			return clazz.getDeclaredMethods();
-		} else {
+		}
+		else {
 			MethodProvider methods = MethodProvider.create(rtype);
 			List<Invoker> invokers = methods.getDeclaredMethods();
 			Method[] javaMethods = new Method[invokers.size()];
@@ -159,7 +168,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			// Not reloadable...
 			return clazz.getMethods();
-		} else {
+		}
+		else {
 			MethodProvider methods = MethodProvider.create(rtype);
 			Collection<Invoker> invokers = methods.getMethods();
 			Method[] javaMethods = new Method[invokers.size()];
@@ -195,6 +205,7 @@ public class ReflectiveInterceptor {
 	}
 
 	private static int depth = 4;
+
 	/*
 	 * Get the Class that declares the method calling interceptor method that called this method.
 	 */
@@ -205,15 +216,15 @@ public class ReflectiveInterceptor {
 		//2 = caller of 'getCallerClass' = asAccesibleMethod
 		//3 = caller of 'asAccesibleMethod' = jlrInvoke
 		//4 = caller we are interested in...
-		
+
 		// In jdk17u25 there is an extra frame inserted:
 		// "This also fixes a regression introduced in 7u25 in which
 		// getCallerClass(int) is now a Java method that adds an additional frame
 		// that wasn't taken into account." in http://permalink.gmane.org/gmane.comp.java.openjdk.jdk7u.devel/6573
-		Class<?> caller = sun.reflect.Reflection.getCallerClass(depth); 
-		if (caller==ReflectiveInterceptor.class) {
+		Class<?> caller = sun.reflect.Reflection.getCallerClass(depth);
+		if (caller == ReflectiveInterceptor.class) {
 			// If this is true we have that extra frame on the stack
-			depth=5;
+			depth = 5;
 			caller = sun.reflect.Reflection.getCallerClass(depth);
 		}
 
@@ -227,7 +238,8 @@ public class ReflectiveInterceptor {
 			ClassLoader loader = caller.getClassLoader();
 			try {
 				return Class.forName(callerClassName.substring(0, matcher.start()), false, loader);
-			} catch (ClassNotFoundException e) {
+			}
+			catch (ClassNotFoundException e) {
 				//Supposedly it wasn't an executor class after all...
 				log.log(Level.INFO, "Potential trouble determining caller of reflective method", e);
 			}
@@ -335,7 +347,8 @@ public class ReflectiveInterceptor {
 			// Non reloadable type
 			Constructor<?>[] cs = clazz.getDeclaredConstructors();
 			return cs;
-		} else if (!rtype.hasBeenReloaded()) {
+		}
+		else if (!rtype.hasBeenReloaded()) {
 			// Reloadable but not yet reloaded
 			Constructor<?>[] cs = clazz.getDeclaredConstructors();
 			int i = 0;
@@ -349,7 +362,8 @@ public class ReflectiveInterceptor {
 				cs[i++] = c;
 			}
 			return Utils.arrayCopyOf(cs, i);
-		} else {
+		}
+		else {
 			CurrentLiveVersion liveVersion = rtype.getLiveVersion();
 			// Reloaded type
 			Constructor<?>[] clazzCs = null;
@@ -365,7 +379,8 @@ public class ReflectiveInterceptor {
 					cs[i] = findConstructor(clazzCs, m);
 					//					 SpringLoaded changes modifiers, so must fix them
 					fixModifier(rtype, cs[i]);
-				} else {
+				}
+				else {
 					cs[i] = newConstructor(rtype, m);
 				}
 			}
@@ -388,9 +403,11 @@ public class ReflectiveInterceptor {
 		Class<?>[] params = c.getParameterTypes();
 		if (clazz.isEnum()) {
 			return params.length > 2 && params[2].getName().equals(Constants.magicDescriptorForGeneratedCtors);
-		} else if (clazz.getSuperclass() != null && clazz.getSuperclass().getName().equals("groovy.lang.Closure")) {
+		}
+		else if (clazz.getSuperclass() != null && clazz.getSuperclass().getName().equals("groovy.lang.Closure")) {
 			return params.length > 2 && params[2].getName().equals(Constants.magicDescriptorForGeneratedCtors);
-		} else {
+		}
+		else {
 			return params.length > 0 && params[0].getName().equals(Constants.magicDescriptorForGeneratedCtors);
 		}
 	}
@@ -403,8 +420,9 @@ public class ReflectiveInterceptor {
 					Utils.slashedNamesToClasses(m.getExceptions(), classLoader), //exceptions
 					m.getModifiers(), //modifiers
 					m.getGenericSignature() //signature
-					);
-		} catch (ClassNotFoundException e) {
+			);
+		}
+		catch (ClassNotFoundException e) {
 			throw new IllegalStateException("Couldn't create j.l.Constructor for " + m, e);
 		}
 	}
@@ -435,7 +453,8 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			return clazz.getConstructors();
-		} else {
+		}
+		else {
 			Constructor<?>[] candidates = jlClassGetDeclaredConstructors(clazz);
 			//We need to throw away any non-public constructors.
 			List<Constructor<?>> keep = new ArrayList<Constructor<?>>(candidates.length);
@@ -448,14 +467,16 @@ public class ReflectiveInterceptor {
 		}
 	}
 
-	public static Constructor<?> jlClassGetDeclaredConstructor(Class<?> clazz, Class<?>... params) throws SecurityException,
+	public static Constructor<?> jlClassGetDeclaredConstructor(Class<?> clazz, Class<?>... params)
+			throws SecurityException,
 			NoSuchMethodException {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			// Non reloadable type
 			Constructor<?> c = clazz.getDeclaredConstructor(params);
 			return c;
-		} else if (!rtype.hasBeenReloaded()) {
+		}
+		else if (!rtype.hasBeenReloaded()) {
 			// Reloadable but not yet reloaded
 			Constructor<?> c = clazz.getDeclaredConstructor(params);
 			if (isMetaConstructor(clazz, c)) {
@@ -465,7 +486,8 @@ public class ReflectiveInterceptor {
 			// SpringLoaded changes modifiers, so must fix them
 			fixModifier(rtype, c);
 			return c;
-		} else {
+		}
+		else {
 
 			// This would be the right thing to do but makes getDeclaredConstructors() very messy
 			CurrentLiveVersion clv = rtype.getLiveVersion();
@@ -479,7 +501,8 @@ public class ReflectiveInterceptor {
 				// SpringLoaded changes modifiers, so must fix them
 				fixModifier(rtype, c);
 				return c;
-			} else {
+			}
+			else {
 				// Reloaded type
 				TypeDescriptor desc = rtype.getLatestTypeDescriptor();
 				MethodMember[] members = desc.getConstructors();
@@ -499,11 +522,13 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			return clazz.getConstructor(params);
-		} else {
+		}
+		else {
 			Constructor<?> c = jlClassGetDeclaredConstructor(clazz, params);
 			if (Modifier.isPublic(c.getModifiers())) {
 				return c;
-			} else {
+			}
+			else {
 				throw Exceptions.noSuchMethodException(clazz, "<init>", params);
 			}
 		}
@@ -514,14 +539,15 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * Performs access checks and returns a (potential) copy of the method with accessibility flag set if this necessary for the
-	 * invoke to succeed.
+	 * Performs access checks and returns a (potential) copy of the method with accessibility flag set if this necessary
+	 * for the invoke to succeed.
 	 * <p>
 	 * Also checks for deleted methods.
 	 * <p>
 	 * If any checks fail, an appropriate exception is raised.
 	 */
-	private static Method asAccessibleMethod(ReloadableType methodDeclaringTypeReloadableType, Method method, Object target,
+	private static Method asAccessibleMethod(ReloadableType methodDeclaringTypeReloadableType, Method method,
+			Object target,
 			boolean makeAccessibleCopy) throws IllegalAccessException {
 		if (methodDeclaringTypeReloadableType != null && isDeleted(methodDeclaringTypeReloadableType, method)) {
 			throw Exceptions.noSuchMethodError(method);
@@ -529,7 +555,8 @@ public class ReflectiveInterceptor {
 
 		if (method.isAccessible()) {
 			//More expensive check not required / copy not required
-		} else {
+		}
+		else {
 			Class<?> clazz = method.getDeclaringClass();
 			int mods = method.getModifiers();
 			int classmods;
@@ -537,14 +564,17 @@ public class ReflectiveInterceptor {
 			//		ReloadableType rtype = getReloadableTypeIfHasBeenReloaded(clazz);
 			if (methodDeclaringTypeReloadableType == null || !methodDeclaringTypeReloadableType.hasBeenReloaded()) {
 				classmods = clazz.getModifiers();
-			} else {
+			}
+			else {
 				//Note: the "super bit" may be set in class modifiers but we should block it out, it
 				//shouldn't be shown to users of the reflection API.
-				classmods = methodDeclaringTypeReloadableType.getLatestTypeDescriptor().getModifiers() & ~Opcodes.ACC_SUPER;
+				classmods = methodDeclaringTypeReloadableType.getLatestTypeDescriptor().getModifiers()
+						& ~Opcodes.ACC_SUPER;
 			}
 			if (Modifier.isPublic(mods & classmods/*jlClassGetModifiers(clazz)*/)) {
 				//More expensive check not required / copy not required
-			} else {
+			}
+			else {
 				//More expensive check required
 				Class<?> callerClass = getCallerClass();
 				JVM.ensureMemberAccess(callerClass, clazz, target, mods);
@@ -566,7 +596,8 @@ public class ReflectiveInterceptor {
 		int mods = c.getModifiers();
 		if (c.isAccessible() || Modifier.isPublic(mods & jlClassGetModifiers(clazz))) {
 			//More expensive check not required / copy not required
-		} else {
+		}
+		else {
 			//More expensive check required
 			Class<?> callerClass = getCallerClass();
 			JVM.ensureMemberAccess(callerClass, clazz, null, mods);
@@ -579,14 +610,16 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * Performs access checks and returns a (potential) copy of the field with accessibility flag set if this necessary for the
-	 * acces operation to succeed.
+	 * Performs access checks and returns a (potential) copy of the field with accessibility flag set if this necessary
+	 * for the acces operation to succeed.
 	 * <p>
 	 * If any checks fail, an appropriate exception is raised.
 	 * 
-	 * Warning this method is sensitive to stack depth! Should expects to be called DIRECTLY from a jlr redicriction method only!
+	 * Warning this method is sensitive to stack depth! Should expects to be called DIRECTLY from a jlr redicriction
+	 * method only!
 	 */
-	private static Field asAccessibleField(Field field, Object target, boolean makeAccessibleCopy) throws IllegalAccessException {
+	private static Field asAccessibleField(Field field, Object target, boolean makeAccessibleCopy)
+			throws IllegalAccessException {
 		if (isDeleted(field)) {
 			throw Exceptions.noSuchFieldError(field);
 		}
@@ -594,7 +627,8 @@ public class ReflectiveInterceptor {
 		int mods = field.getModifiers();
 		if (field.isAccessible() || Modifier.isPublic(mods & jlClassGetModifiers(clazz))) {
 			//More expensive check not required / copy not required
-		} else {
+		}
+		else {
 			//More expensive check required
 			Class<?> callerClass = getCallerClass();
 			JVM.ensureMemberAccess(callerClass, clazz, target, mods);
@@ -614,7 +648,8 @@ public class ReflectiveInterceptor {
 	 * 
 	 * @throws IllegalAccessException
 	 */
-	private static Field asSetableField(Field field, Object target, Class<?> valueType, Object value, boolean makeAccessibleCopy)
+	private static Field asSetableField(Field field, Object target, Class<?> valueType, Object value,
+			boolean makeAccessibleCopy)
 			throws IllegalAccessException {
 		// Must do the checks exactly in the same order as JVM if we want identical error messages.
 
@@ -627,7 +662,8 @@ public class ReflectiveInterceptor {
 		int mods = field.getModifiers();
 		if (field.isAccessible() || Modifier.isPublic(mods & jlClassGetModifiers(clazz))) {
 			//More expensive check not required / copy not required
-		} else {
+		}
+		else {
 			//More expensive check required
 			Class<?> callerClass = getCallerClass();
 			JVM.ensureMemberAccess(callerClass, clazz, target, mods);
@@ -645,7 +681,8 @@ public class ReflectiveInterceptor {
 			if (!field.isAccessible() && Modifier.isFinal(mods)) {
 				throw Exceptions.illegalSetFinalFieldException(field, field.getType(), coerce(value, field.getType()));
 			}
-		} else {
+		}
+		else {
 			if (!field.isAccessible() && Modifier.isFinal(mods)) {
 				throw Exceptions.illegalSetFinalFieldException(field, valueType, value);
 			}
@@ -663,38 +700,50 @@ public class ReflectiveInterceptor {
 		if (Integer.class.equals(fromType)) {
 			if (float.class.equals(toType)) {
 				return (float) (Integer) value;
-			} else if (double.class.equals(toType)) {
+			}
+			else if (double.class.equals(toType)) {
 				return (double) (Integer) value;
 			}
-		} else if (Byte.class.equals(fromType)) {
+		}
+		else if (Byte.class.equals(fromType)) {
 			if (float.class.equals(toType)) {
 				return (float) (Byte) value;
-			} else if (double.class.equals(toType)) {
+			}
+			else if (double.class.equals(toType)) {
 				return (double) (Byte) value;
 			}
-		} else if (Character.class.equals(fromType)) {
+		}
+		else if (Character.class.equals(fromType)) {
 			if (int.class.equals(toType)) {
 				return (int) (Character) value;
-			} else if (long.class.equals(toType)) {
+			}
+			else if (long.class.equals(toType)) {
 				return (long) (Character) value;
-			} else if (float.class.equals(toType)) {
+			}
+			else if (float.class.equals(toType)) {
 				return (float) (Character) value;
-			} else if (double.class.equals(toType)) {
+			}
+			else if (double.class.equals(toType)) {
 				return (double) (Character) value;
 			}
-		} else if (Short.class.equals(fromType)) {
+		}
+		else if (Short.class.equals(fromType)) {
 			if (float.class.equals(toType)) {
 				return (float) (Short) value;
-			} else if (double.class.equals(toType)) {
+			}
+			else if (double.class.equals(toType)) {
 				return (double) (Short) value;
 			}
-		} else if (Long.class.equals(fromType)) {
+		}
+		else if (Long.class.equals(fromType)) {
 			if (float.class.equals(toType)) {
 				return (float) (Long) value;
-			} else if (double.class.equals(toType)) {
+			}
+			else if (double.class.equals(toType)) {
 				return (double) (Long) value;
 			}
-		} else if (Float.class.equals(fromType)) {
+		}
+		else if (Float.class.equals(fromType)) {
 			if (double.class.equals(toType)) {
 				return (double) (Float) value;
 			}
@@ -703,9 +752,9 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * Perform a dynamic type check needed when setting a field value onto a field. Raises the appropriate exception when the check
-	 * fails and returns normally otherwise. This method should only be called for object types. For primitive types call the three
-	 * parameter variant instead.
+	 * Perform a dynamic type check needed when setting a field value onto a field. Raises the appropriate exception
+	 * when the check fails and returns normally otherwise. This method should only be called for object types. For
+	 * primitive types call the three parameter variant instead.
 	 * 
 	 * @throws IllegalAccessException
 	 */
@@ -715,7 +764,8 @@ public class ReflectiveInterceptor {
 			if (fieldType.isPrimitive()) {
 				throw Exceptions.illegalSetFieldTypeException(field, null, value);
 			}
-		} else {
+		}
+		else {
 			if (fieldType.isPrimitive()) {
 				fieldType = boxTypeFor(fieldType);
 			}
@@ -727,8 +777,8 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * Perform a dynamic type check needed when setting a field value onto a field. Raises the appropriate exception when the check
-	 * fails and returns normally otherwise.
+	 * Perform a dynamic type check needed when setting a field value onto a field. Raises the appropriate exception
+	 * when the check fails and returns normally otherwise.
 	 * 
 	 * @throws IllegalAccessException
 	 */
@@ -736,7 +786,8 @@ public class ReflectiveInterceptor {
 		if (!isPrimitive(valueType)) {
 			//Call the version of this method that considers autoboxing
 			typeCheckFieldSet(field, value);
-		} else {
+		}
+		else {
 			//Value type is primitive.
 			//  Note: In this case value was a primitive value that became boxed, so it can't be null.
 			Class<?> fieldType = field.getType();
@@ -747,8 +798,8 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * Checks whether given 'valueType' is a primitive type, considering that we use 'null' as the type for 'null' (to distinguish
-	 * it from the type 'Object' which is not the same!)
+	 * Checks whether given 'valueType' is a primitive type, considering that we use 'null' as the type for 'null' (to
+	 * distinguish it from the type 'Object' which is not the same!)
 	 */
 	private static boolean isPrimitive(Class<?> valueType) {
 		return valueType != null && valueType.isPrimitive();
@@ -756,15 +807,17 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Determine a "valueType" from a given value object. Note that this should really only be used for values that are
-	 * non-primitive, otherwise it will be impossible to distinguish between a primitive value and its boxed representation.
+	 * non-primitive, otherwise it will be impossible to distinguish between a primitive value and its boxed
+	 * representation.
 	 * <p>
-	 * In a context where you have a primitive value that gets boxed up, its valueType should be passed in explicitly as a class
-	 * like, for example, int.class.
+	 * In a context where you have a primitive value that gets boxed up, its valueType should be passed in explicitly as
+	 * a class like, for example, int.class.
 	 */
 	private static Class<?> valueType(Object value) {
 		if (value == null) {
 			return null;
-		} else {
+		}
+		else {
 			return value.getClass();
 		}
 	}
@@ -780,7 +833,8 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			return clazz.getModifiers();
-		} else {
+		}
+		else {
 			//Note: the "super bit" may be set in class modifiers but we should block it out, it
 			//shouldn't be shown to users of the reflection API.
 			return rtype.getLatestTypeDescriptor().getModifiers() & ~Opcodes.ACC_SUPER;
@@ -791,11 +845,13 @@ public class ReflectiveInterceptor {
 		//		ReloadableType rtype = getReloadableTypeIfHasBeenReloaded(method.getDeclaringClass());
 		if (rtype == null || !rtype.hasBeenReloaded()) {
 			return false;
-		} else {
+		}
+		else {
 			MethodMember currentMethod = rtype.getCurrentMethod(method.getName(), Type.getMethodDescriptor(method));
 			if (currentMethod == null) {
 				return true; // Method not there, consider it deleted
-			} else {
+			}
+			else {
 				return MethodMember.isDeleted(currentMethod); // Deleted bit is set consider deleted
 			}
 		}
@@ -805,13 +861,15 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getReloadableTypeIfHasBeenReloaded(c.getDeclaringClass());
 		if (rtype == null) {
 			return false;
-		} else {
+		}
+		else {
 			TypeDescriptor desc = rtype.getLatestTypeDescriptor();
 			MethodMember currentConstructor = desc.getConstructor(Type.getConstructorDescriptor(c));
 			if (currentConstructor == null) {
 				//TODO: test case with a deleted constructor
 				return true; // Method not there, consider it deleted
-			} else {
+			}
+			else {
 				return false;
 			}
 		}
@@ -821,12 +879,14 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getReloadableTypeIfHasBeenReloaded(field.getDeclaringClass());
 		if (rtype == null) {
 			return false;
-		} else {
+		}
+		else {
 			TypeDescriptor desc = rtype.getLatestTypeDescriptor();
 			FieldMember currentField = desc.getField(field.getName());
 			if (currentField == null) {
 				return true; // Method not there, consider it deleted
-			} else {
+			}
+			else {
 				return false;
 			}
 			// Fields don't have deleted bits now, but maybe they get them in the future?
@@ -837,8 +897,8 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * If clazz is reloadable <b>and</b> has been reloaded at least once then return the ReloadableType instance for it, otherwise
-	 * return null.
+	 * If clazz is reloadable <b>and</b> has been reloaded at least once then return the ReloadableType instance for it,
+	 * otherwise return null.
 	 * 
 	 * @param clazz the type which may or may not be reloadable
 	 * @return the reloadable type or null
@@ -850,7 +910,8 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype != null && rtype.hasBeenReloaded()) {
 			return rtype;
-		} else {
+		}
+		else {
 			return null;
 		}
 	}
@@ -886,22 +947,26 @@ public class ReflectiveInterceptor {
 				TypeRegistry tr = TypeRegistry.getTypeRegistryFor(cl);
 				if (tr == null) {
 					classToRType.put(clazz, ReloadableType.NOT_RELOADABLE_TYPE_REF);
-				} else {
+				}
+				else {
 					rtype = tr.getReloadableType(clazz.getName().replace('.', '/'));
 					if (rtype == null) {
 						classToRType.put(clazz, ReloadableType.NOT_RELOADABLE_TYPE_REF);
-					} else {
+					}
+					else {
 						classToRType.put(clazz, new WeakReference<ReloadableType>(rtype));
 					}
 				}
-			} else {
+			}
+			else {
 				// need to work it out
 				Field rtypeField;
 				try {
 					//				System.out.println("discovering field for " + clazz.getName());
 					// TODO cache somewhere - will need a clazz>Field cache
 					rtypeField = clazz.getDeclaredField(Constants.fReloadableTypeFieldName);
-				} catch (NoSuchFieldException nsfe) {
+				}
+				catch (NoSuchFieldException nsfe) {
 					classToRType.put(clazz, ReloadableType.NOT_RELOADABLE_TYPE_REF);
 					// expensive if constantly discovering this
 					return null;
@@ -913,15 +978,19 @@ public class ReflectiveInterceptor {
 						classToRType.put(clazz, ReloadableType.NOT_RELOADABLE_TYPE_REF);
 						throw new ReloadException("ReloadableType field '" + Constants.fReloadableTypeFieldName
 								+ "' is 'null' on type " + clazz.getName());
-					} else {
+					}
+					else {
 						classToRType.put(clazz, new WeakReference<ReloadableType>(rtype));
 					}
-				} catch (Exception e) {
-					throw new ReloadException("Unable to access ReloadableType field '" + Constants.fReloadableTypeFieldName
+				}
+				catch (Exception e) {
+					throw new ReloadException("Unable to access ReloadableType field '"
+							+ Constants.fReloadableTypeFieldName
 							+ "' on type " + clazz.getName(), e);
 				}
 			}
-		} else if (rtype == ReloadableType.NOT_RELOADABLE_TYPE) {
+		}
+		else if (rtype == ReloadableType.NOT_RELOADABLE_TYPE) {
 			return null;
 		}
 		return rtype;
@@ -932,7 +1001,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return method.getDeclaredAnnotations();
-		} else {
+		}
+		else {
 			// Method could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			MethodMember methodMember = rtype.getCurrentMethod(method.getName(), Type.getMethodDescriptor(method));
@@ -952,7 +1022,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return method.getParameterAnnotations();
-		} else {
+		}
+		else {
 			// Method could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			MethodMember currentMethod = rtype.getCurrentMethod(method.getName(), Type.getMethodDescriptor(method));
@@ -981,7 +1052,8 @@ public class ReflectiveInterceptor {
 		Constructor<?> c;
 		try {
 			c = jlClassGetDeclaredConstructor(clazz);
-		} catch (NoSuchMethodException e) {
+		}
+		catch (NoSuchMethodException e) {
 			e.printStackTrace();
 			throw Exceptions.instantiation(clazz);
 		}
@@ -990,7 +1062,8 @@ public class ReflectiveInterceptor {
 	}
 
 	public static Object jlrConstructorNewInstance(Constructor<?> c, Object... params) throws InstantiationException,
-			IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException, NoSuchMethodException {
+			IllegalAccessException, IllegalArgumentException, InvocationTargetException, SecurityException,
+			NoSuchMethodException {
 		//Note: unlike for methods we don't need to handle the reloadable but not reloaded case specially, that is because there
 		// is no inheritance on constructors, so reloaded superclasses can affect method lookup in the same way.
 
@@ -1000,7 +1073,8 @@ public class ReflectiveInterceptor {
 			c = asAccessibleConstructor(c, true);
 			//Nothing special to be done
 			return c.newInstance(params);
-		} else {
+		}
+		else {
 			// Constructor may have changed...
 			// this is the right thing to do but makes a mess of getDeclaredConstructors (and affects getDeclaredConstructor)
 			//			// TODO  should check about constructor changing
@@ -1023,7 +1097,8 @@ public class ReflectiveInterceptor {
 			Object[] instanceAndParams;
 			if (params == null || params.length == 0) {
 				instanceAndParams = new Object[] { instance };
-			} else {
+			}
+			else {
 				//Must add instance as first param: executor is a static method.
 				instanceAndParams = new Object[params.length + 1];
 				instanceAndParams[0] = instance;
@@ -1046,7 +1121,8 @@ public class ReflectiveInterceptor {
 	//	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Object jlrMethodInvoke(Method method, Object target, Object... params) throws IllegalArgumentException,
+	public static Object jlrMethodInvoke(Method method, Object target, Object... params)
+			throws IllegalArgumentException,
 			IllegalAccessException, InvocationTargetException {
 		//		System.out.println("> jlrMethodInvoke:method=" + method + " target=" + target + " params=" + toString(params));
 		Class declaringClass = method.getDeclaringClass();
@@ -1055,209 +1131,289 @@ public class ReflectiveInterceptor {
 			try {
 				if (mname.equals("getFields")) {
 					return jlClassGetFields((Class) target);
-				} else if (mname.equals("getDeclaredFields")) {
+				}
+				else if (mname.equals("getDeclaredFields")) {
 					return jlClassGetDeclaredFields((Class) target);
-				} else if (mname.equals("getDeclaredField")) {
+				}
+				else if (mname.equals("getDeclaredField")) {
 					return jlClassGetDeclaredField((Class) target, (String) params[0]);
-				} else if (mname.equals("getField")) {
+				}
+				else if (mname.equals("getField")) {
 					return jlClassGetField((Class) target, (String) params[0]);
-				} else if (mname.equals("getConstructors")) {
+				}
+				else if (mname.equals("getConstructors")) {
 					return jlClassGetConstructors((Class) target);
-				} else if (mname.equals("getDeclaredConstructors")) {
+				}
+				else if (mname.equals("getDeclaredConstructors")) {
 					return jlClassGetDeclaredConstructors((Class) target);
-				} else if (mname.equals("getDeclaredMethod")) {
+				}
+				else if (mname.equals("getDeclaredMethod")) {
 					return jlClassGetDeclaredMethod((Class) target, (String) params[0], (Class[]) params[1]);
-				} else if (mname.equals("getDeclaredMethods")) {
+				}
+				else if (mname.equals("getDeclaredMethods")) {
 					return jlClassGetDeclaredMethods((Class) target);
-				} else if (mname.equals("getMethod")) {
+				}
+				else if (mname.equals("getMethod")) {
 					return jlClassGetMethod((Class) target, (String) params[0], (Class[]) params[1]);
-				} else if (mname.equals("getMethods")) {
+				}
+				else if (mname.equals("getMethods")) {
 					return jlClassGetMethods((Class) target);
-				} else if (mname.equals("getConstructor")) {
+				}
+				else if (mname.equals("getConstructor")) {
 					return jlClassGetConstructor((Class) target, (Class[]) params[0]);
-				} else if (mname.equals("getDeclaredConstructor")) {
+				}
+				else if (mname.equals("getDeclaredConstructor")) {
 					return jlClassGetDeclaredConstructor((Class) target, (Class[]) params[0]);
-				} else if (mname.equals("getModifiers")) {
+				}
+				else if (mname.equals("getModifiers")) {
 					return jlClassGetModifiers((Class) target);
-				} else if (mname.equals("isAnnotationPresent")) {
+				}
+				else if (mname.equals("isAnnotationPresent")) {
 					return jlClassIsAnnotationPresent((Class) target, (Class<? extends Annotation>) params[0]);
-				} else if (mname.equals("newInstance")) {
+				}
+				else if (mname.equals("newInstance")) {
 					return jlClassNewInstance((Class) target);
-				} else if (mname.equals("getDeclaredAnnotations")) {
+				}
+				else if (mname.equals("getDeclaredAnnotations")) {
 					return jlClassGetDeclaredAnnotations((Class) target);
-				} else if (mname.equals("getAnnotation")) {
+				}
+				else if (mname.equals("getAnnotation")) {
 					return jlClassGetAnnotation((Class) target, (Class) params[0]);
-				} else if (mname.equals("getAnnotations")) {
+				}
+				else if (mname.equals("getAnnotations")) {
 					return jlClassGetAnnotations((Class) target);
 				}
-			} catch (NoSuchMethodException nsme) {
+			}
+			catch (NoSuchMethodException nsme) {
 				throw new InvocationTargetException(nsme);
-			} catch (NoSuchFieldException nsfe) {
+			}
+			catch (NoSuchFieldException nsfe) {
 				throw new InvocationTargetException(nsfe);
-			} catch (InstantiationException ie) {
+			}
+			catch (InstantiationException ie) {
 				throw new InvocationTargetException(ie);
 			}
-		} else if (declaringClass == Method.class) {
+		}
+		else if (declaringClass == Method.class) {
 			String mname = method.getName();
 			if (mname.equals("invoke")) {
 				return jlrMethodInvoke((Method) target, params[0], (Object[]) params[1]);
-			} else if (mname.equals("getAnnotation")) {
+			}
+			else if (mname.equals("getAnnotation")) {
 				return jlrMethodGetAnnotation((Method) target, (Class) params[0]);
-			} else if (mname.equals("getAnnotations")) {
+			}
+			else if (mname.equals("getAnnotations")) {
 				return jlrMethodGetAnnotations((Method) target);
-			} else if (mname.equals("getDeclaredAnnotations")) {
+			}
+			else if (mname.equals("getDeclaredAnnotations")) {
 				return jlrMethodGetDeclaredAnnotations((Method) target);
-			} else if (mname.equals("getParameterAnnotations")) {
+			}
+			else if (mname.equals("getParameterAnnotations")) {
 				return jlrMethodGetParameterAnnotations((Method) target);
-			} else if (mname.equals("isAnnotationPresent")) {
+			}
+			else if (mname.equals("isAnnotationPresent")) {
 				return jlrMethodIsAnnotationPresent((Method) target, (Class) params[0]);
 			}
-		} else if (declaringClass == Constructor.class) {
+		}
+		else if (declaringClass == Constructor.class) {
 			String mname = method.getName();
 			try {
 				if (mname.equals("getAnnotation")) {
 					return jlrConstructorGetAnnotation((Constructor) target, (Class) params[0]);
-				} else if (mname.equals("newInstance")) {
+				}
+				else if (mname.equals("newInstance")) {
 					return jlrConstructorNewInstance((Constructor) target, (Object[]) params[0]);
-				} else if (mname.equals("getAnnotations")) {
+				}
+				else if (mname.equals("getAnnotations")) {
 					return jlrConstructorGetAnnotations((Constructor) target);
-				} else if (mname.equals("getDeclaredAnnotations")) {
+				}
+				else if (mname.equals("getDeclaredAnnotations")) {
 					return jlrConstructorGetDeclaredAnnotations((Constructor) target);
-				} else if (mname.equals("isAnnotationPresent")) {
+				}
+				else if (mname.equals("isAnnotationPresent")) {
 					return jlrConstructorIsAnnotationPresent((Constructor) target, (Class) params[0]);
-				} else if (mname.equals("getParameterAnnotations")) {
+				}
+				else if (mname.equals("getParameterAnnotations")) {
 					return jlrConstructorGetParameterAnnotations((Constructor) target);
 				}
-			} catch (InstantiationException ie) {
+			}
+			catch (InstantiationException ie) {
 				throw new InvocationTargetException(ie);
-			} catch (NoSuchMethodException nsme) {
+			}
+			catch (NoSuchMethodException nsme) {
 				throw new InvocationTargetException(nsme);
 			}
-		} else if (declaringClass == Field.class) {
+		}
+		else if (declaringClass == Field.class) {
 			String mname = method.getName();
 			if (mname.equals("set")) {
 				jlrFieldSet((Field) target, params[0], params[1]);
 				return null;
-			} else if (mname.equals("setBoolean")) {
+			}
+			else if (mname.equals("setBoolean")) {
 				jlrFieldSetBoolean((Field) target, params[0], (Boolean) params[1]);
 				return null;
-			} else if (mname.equals("setByte")) {
+			}
+			else if (mname.equals("setByte")) {
 				jlrFieldSetByte((Field) target, params[0], (Byte) params[1]);
 				return null;
-			} else if (mname.equals("setChar")) {
+			}
+			else if (mname.equals("setChar")) {
 				jlrFieldSetChar((Field) target, params[0], (Character) params[1]);
 				return null;
-			} else if (mname.equals("setFloat")) {
+			}
+			else if (mname.equals("setFloat")) {
 				jlrFieldSetFloat((Field) target, params[0], (Float) params[1]);
 				return null;
-			} else if (mname.equals("setShort")) {
+			}
+			else if (mname.equals("setShort")) {
 				jlrFieldSetShort((Field) target, params[0], (Short) params[1]);
 				return null;
-			} else if (mname.equals("setLong")) {
+			}
+			else if (mname.equals("setLong")) {
 				jlrFieldSetLong((Field) target, params[0], (Long) params[1]);
 				return null;
-			} else if (mname.equals("setDouble")) {
+			}
+			else if (mname.equals("setDouble")) {
 				jlrFieldSetDouble((Field) target, params[0], (Double) params[1]);
 				return null;
-			} else if (mname.equals("setInt")) {
+			}
+			else if (mname.equals("setInt")) {
 				jlrFieldSetInt((Field) target, params[0], (Integer) params[1]);
 				return null;
-			} else if (mname.equals("get")) {
+			}
+			else if (mname.equals("get")) {
 				return jlrFieldGet((Field) target, params[0]);
-			} else if (mname.equals("getByte")) {
+			}
+			else if (mname.equals("getByte")) {
 				return jlrFieldGetByte((Field) target, params[0]);
-			} else if (mname.equals("getChar")) {
+			}
+			else if (mname.equals("getChar")) {
 				return jlrFieldGetChar((Field) target, params[0]);
-			} else if (mname.equals("getDouble")) {
+			}
+			else if (mname.equals("getDouble")) {
 				return jlrFieldGetDouble((Field) target, params[0]);
-			} else if (mname.equals("getBoolean")) {
+			}
+			else if (mname.equals("getBoolean")) {
 				return jlrFieldGetBoolean((Field) target, params[0]);
-			} else if (mname.equals("getLong")) {
+			}
+			else if (mname.equals("getLong")) {
 				return jlrFieldGetLong((Field) target, params[0]);
-			} else if (mname.equals("getFloat")) {
+			}
+			else if (mname.equals("getFloat")) {
 				return jlrFieldGetFloat((Field) target, params[0]);
-			} else if (mname.equals("getInt")) {
+			}
+			else if (mname.equals("getInt")) {
 				return jlrFieldGetInt((Field) target, params[0]);
-			} else if (mname.equals("getShort")) {
+			}
+			else if (mname.equals("getShort")) {
 				return jlrFieldGetShort((Field) target, params[0]);
-			} else if (mname.equals("getAnnotations")) {
+			}
+			else if (mname.equals("getAnnotations")) {
 				return jlrFieldGetAnnotations((Field) target);
-			} else if (mname.equals("getDeclaredAnnotations")) {
+			}
+			else if (mname.equals("getDeclaredAnnotations")) {
 				return jlrFieldGetDeclaredAnnotations((Field) target);
-			} else if (mname.equals("isAnnotationPresent")) {
+			}
+			else if (mname.equals("isAnnotationPresent")) {
 				return jlrFieldIsAnnotationPresent((Field) target, (Class) params[0]);
-			} else if (mname.equals("getAnnotation")) {
+			}
+			else if (mname.equals("getAnnotation")) {
 				return jlrFieldGetAnnotation((Field) target, (Class) params[0]);
 			}
-		} else if (declaringClass == AccessibleObject.class) {
+		}
+		else if (declaringClass == AccessibleObject.class) {
 			String mname = method.getName();
 			if (mname.equals("isAnnotationPresent")) {
 				if (target instanceof Constructor) {
 					// TODO what about null target - how should things go bang?
 					return jlrConstructorIsAnnotationPresent((Constructor) target, (Class) params[0]);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodIsAnnotationPresent((Method) target, (Class) params[0]);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldIsAnnotationPresent((Field) target, (Class) params[0]);
 				}
-			} else if (mname.equals("getAnnotations")) {
+			}
+			else if (mname.equals("getAnnotations")) {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetAnnotations((Constructor) target);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodGetAnnotations((Method) target);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldGetAnnotations((Field) target);
 				}
-			} else if (mname.equals("getDeclaredAnnotations")) {
+			}
+			else if (mname.equals("getDeclaredAnnotations")) {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetDeclaredAnnotations((Constructor) target);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodGetDeclaredAnnotations((Method) target);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldGetDeclaredAnnotations((Field) target);
 				}
-			} else if (mname.equals("getAnnotation")) {
+			}
+			else if (mname.equals("getAnnotation")) {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetAnnotation((Constructor) target, (Class) params[0]);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodGetAnnotation((Method) target, (Class) params[0]);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldGetAnnotation((Field) target, (Class) params[0]);
 				}
 			}
-		} else if (declaringClass == AnnotatedElement.class) {
+		}
+		else if (declaringClass == AnnotatedElement.class) {
 			String mname = method.getName();
 			if (mname.equals("isAnnotationPresent")) {
 				if (target instanceof Constructor) {
 					// TODO what about null target - how should things go bang?
 					return jlrConstructorIsAnnotationPresent((Constructor) target, (Class) params[0]);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodIsAnnotationPresent((Method) target, (Class) params[0]);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldIsAnnotationPresent((Field) target, (Class) params[0]);
 				}
-			} else if (mname.equals("getAnnotations")) {
+			}
+			else if (mname.equals("getAnnotations")) {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetAnnotations((Constructor) target);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodGetAnnotations((Method) target);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldGetAnnotations((Field) target);
 				}
-			} else if (mname.equals("getDeclaredAnnotations")) {
+			}
+			else if (mname.equals("getDeclaredAnnotations")) {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetDeclaredAnnotations((Constructor) target);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodGetDeclaredAnnotations((Method) target);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldGetDeclaredAnnotations((Field) target);
 				}
-			} else if (mname.equals("getAnnotation")) {
+			}
+			else if (mname.equals("getAnnotation")) {
 				if (target instanceof Constructor) {
 					return jlrConstructorGetAnnotation((Constructor) target, (Class) params[0]);
-				} else if (target instanceof Method) {
+				}
+				else if (target instanceof Method) {
 					return jlrMethodGetAnnotation((Method) target, (Class) params[0]);
-				} else if (target instanceof Field) {
+				}
+				else if (target instanceof Field) {
 					return jlrFieldGetAnnotation((Field) target, (Class) params[0]);
 				}
 			}
@@ -1274,7 +1430,8 @@ public class ReflectiveInterceptor {
 			//Not reloadable...
 			method = asAccessibleMethod(declaringType, method, target, true);
 			return method.invoke(target, params);
-		} else {
+		}
+		else {
 			//Reloadable...
 			asAccessibleMethod(declaringType, method, target, false);
 			int mods = method.getModifiers();
@@ -1283,11 +1440,14 @@ public class ReflectiveInterceptor {
 				//These methods are dispatched statically
 				MethodProvider methods = MethodProvider.create(declaringType);
 				invoker = methods.staticLookup(mods, method.getName(), Type.getMethodDescriptor(method));
-			} else {
+			}
+			else {
 				//These methods are dispatched dynamically
 				ReloadableType targetType = getRType(target.getClass()); //NPE possible but is what should happen here!
 				if (targetType == null) {
-					System.out.println("GRAILS-7799: Subtype '" + target.getClass().getName() + "' of reloadable type "
+					System.out.println("GRAILS-7799: Subtype '"
+							+ target.getClass().getName()
+							+ "' of reloadable type "
 							+ method.getDeclaringClass().getName()
 							+ " is not reloadable: may not see changes reloaded in this hierarchy (please comment on that jira)");
 					method = asAccessibleMethod(declaringType, method, target, true);
@@ -1309,7 +1469,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return method.getAnnotation(annotClass);
-		} else {
+		}
+		else {
 			if (annotClass == null) {
 				throw new NullPointerException();
 			}
@@ -1327,9 +1488,11 @@ public class ReflectiveInterceptor {
 	public static Annotation[] jlrAnnotatedElementGetAnnotations(AnnotatedElement elem) {
 		if (elem instanceof Class<?>) {
 			return jlClassGetAnnotations((Class<?>) elem);
-		} else if (elem instanceof AccessibleObject) {
+		}
+		else if (elem instanceof AccessibleObject) {
 			return jlrAccessibleObjectGetAnnotations((AccessibleObject) elem);
-		} else {
+		}
+		else {
 			//Don't know what it is... not something we handle anyway
 			return elem.getAnnotations();
 		}
@@ -1338,9 +1501,11 @@ public class ReflectiveInterceptor {
 	public static Annotation[] jlrAnnotatedElementGetDeclaredAnnotations(AnnotatedElement elem) {
 		if (elem instanceof Class<?>) {
 			return jlClassGetDeclaredAnnotations((Class<?>) elem);
-		} else if (elem instanceof AccessibleObject) {
+		}
+		else if (elem instanceof AccessibleObject) {
 			return jlrAccessibleObjectGetDeclaredAnnotations((AccessibleObject) elem);
-		} else {
+		}
+		else {
 			//Don't know what it is... not something we handle anyway
 			return elem.getDeclaredAnnotations();
 		}
@@ -1349,11 +1514,14 @@ public class ReflectiveInterceptor {
 	public static Annotation[] jlrAccessibleObjectGetDeclaredAnnotations(AccessibleObject obj) {
 		if (obj instanceof Method) {
 			return jlrMethodGetDeclaredAnnotations((Method) obj);
-		} else if (obj instanceof Field) {
+		}
+		else if (obj instanceof Field) {
 			return jlrFieldGetDeclaredAnnotations((Field) obj);
-		} else if (obj instanceof Constructor<?>) {
+		}
+		else if (obj instanceof Constructor<?>) {
 			return jlrConstructorGetDeclaredAnnotations((Constructor<?>) obj);
-		} else {
+		}
+		else {
 			//Some other type of member which we don't support reloading...
 			return obj.getDeclaredAnnotations();
 		}
@@ -1364,14 +1532,16 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return field.getDeclaredAnnotations();
-		} else {
+		}
+		else {
 			// Field could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			Field executor;
 			try {
 				executor = clv.getExecutorField(field.getName());
 				return executor.getAnnotations();
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -1385,13 +1555,15 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return field.isAnnotationPresent(annotType);
-		} else {
+		}
+		else {
 			// Field could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			try {
 				Field executor = clv.getExecutorField(field.getName());
 				return executor.isAnnotationPresent(annotType);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -1405,11 +1577,14 @@ public class ReflectiveInterceptor {
 	public static Annotation[] jlrAccessibleObjectGetAnnotations(AccessibleObject obj) {
 		if (obj instanceof Method) {
 			return jlrMethodGetAnnotations((Method) obj);
-		} else if (obj instanceof Field) {
+		}
+		else if (obj instanceof Field) {
 			return jlrFieldGetAnnotations((Field) obj);
-		} else if (obj instanceof Constructor<?>) {
+		}
+		else if (obj instanceof Constructor<?>) {
 			return jlrConstructorGetAnnotations((Constructor<?>) obj);
-		} else {
+		}
+		else {
 			//Some other type of member which we don't support reloading...
 			// (actually there are really no other cases any more!)
 			return obj.getAnnotations();
@@ -1425,7 +1600,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return c.getDeclaredAnnotations();
-		} else {
+		}
+		else {
 			// Constructor could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			Method executor = clv.getExecutorMethod(rtype.getCurrentConstructor(Type.getConstructorDescriptor(c)));
@@ -1438,7 +1614,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return c.getAnnotation(annotType);
-		} else {
+		}
+		else {
 			// Constructor could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			Method executor = clv.getExecutorMethod(rtype.getCurrentConstructor(Type.getConstructorDescriptor(c)));
@@ -1451,7 +1628,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return c.getParameterAnnotations();
-		} else {
+		}
+		else {
 			// Method could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			MethodMember currentConstructor = rtype.getCurrentConstructor(Type.getConstructorDescriptor(c));
@@ -1470,7 +1648,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return c.isAnnotationPresent(annotType);
-		} else {
+		}
+		else {
 			// Constructor could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			Method executor = clv.getExecutorMethod(rtype.getCurrentConstructor(Type.getConstructorDescriptor(c)));
@@ -1486,13 +1665,15 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Nothing special to be done
 			return field.getAnnotation(annotType);
-		} else {
+		}
+		else {
 			// Field could have changed...
 			CurrentLiveVersion clv = rtype.getLiveVersion();
 			try {
 				Field executor = clv.getExecutorField(field.getName());
 				return executor.getAnnotation(annotType);
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				throw new IllegalStateException(e);
 			}
 		}
@@ -1502,50 +1683,64 @@ public class ReflectiveInterceptor {
 		return jlrMethodGetDeclaredAnnotations(method);
 	}
 
-	public static boolean jlrAnnotatedElementIsAnnotationPresent(AnnotatedElement elem, Class<? extends Annotation> annotType) {
+	public static boolean jlrAnnotatedElementIsAnnotationPresent(AnnotatedElement elem,
+			Class<? extends Annotation> annotType) {
 		if (elem instanceof Class<?>) {
 			return jlClassIsAnnotationPresent((Class<?>) elem, annotType);
-		} else if (elem instanceof AccessibleObject) {
+		}
+		else if (elem instanceof AccessibleObject) {
 			return jlrAccessibleObjectIsAnnotationPresent((AccessibleObject) elem, annotType);
-		} else {
+		}
+		else {
 			//Don't know what it is... not something we handle anyway
 			return elem.isAnnotationPresent(annotType);
 		}
 	}
 
-	public static boolean jlrAccessibleObjectIsAnnotationPresent(AccessibleObject obj, Class<? extends Annotation> annotType) {
+	public static boolean jlrAccessibleObjectIsAnnotationPresent(AccessibleObject obj,
+			Class<? extends Annotation> annotType) {
 		if (obj instanceof Method) {
 			return jlrMethodIsAnnotationPresent((Method) obj, annotType);
-		} else if (obj instanceof Field) {
+		}
+		else if (obj instanceof Field) {
 			return jlrFieldIsAnnotationPresent((Field) obj, annotType);
-		} else if (obj instanceof Constructor) {
+		}
+		else if (obj instanceof Constructor) {
 			return jlrConstructorIsAnnotationPresent((Constructor<?>) obj, annotType);
-		} else {
+		}
+		else {
 			//Some other type of member which we don't support reloading...
 			return obj.isAnnotationPresent(annotType);
 		}
 	}
 
-	public static Annotation jlrAnnotatedElementGetAnnotation(AnnotatedElement elem, Class<? extends Annotation> annotType) {
+	public static Annotation jlrAnnotatedElementGetAnnotation(AnnotatedElement elem,
+			Class<? extends Annotation> annotType) {
 		if (elem instanceof Class<?>) {
 			return jlClassGetAnnotation((Class<?>) elem, annotType);
-		} else if (elem instanceof AccessibleObject) {
+		}
+		else if (elem instanceof AccessibleObject) {
 			return jlrAccessibleObjectGetAnnotation((AccessibleObject) elem, annotType);
-		} else {
+		}
+		else {
 			//Don't know what it is... not something we handle anyway
 			// Note: only thing it can be is probably java.lang.Package
 			return elem.getAnnotation(annotType);
 		}
 	}
 
-	public static Annotation jlrAccessibleObjectGetAnnotation(AccessibleObject obj, Class<? extends Annotation> annotType) {
+	public static Annotation jlrAccessibleObjectGetAnnotation(AccessibleObject obj,
+			Class<? extends Annotation> annotType) {
 		if (obj instanceof Method) {
 			return jlrMethodGetAnnotation((Method) obj, annotType);
-		} else if (obj instanceof Field) {
+		}
+		else if (obj instanceof Field) {
 			return jlrFieldGetAnnotation((Field) obj, annotType);
-		} else if (obj instanceof Constructor<?>) {
+		}
+		else if (obj instanceof Constructor<?>) {
 			return jlrConstructorGetAnnotation((Constructor<?>) obj, annotType);
-		} else {
+		}
+		else {
 			//Some other type of member which we don't support reloading...
 			return obj.getAnnotation(annotType);
 		}
@@ -1559,7 +1754,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			//Not reloadable
 			return clazz.getField(name);
-		} else {
+		}
+		else {
 			//Reloadable
 			Field f = GetFieldLookup.lookup(rtype, name);
 			if (f != null) {
@@ -1569,21 +1765,26 @@ public class ReflectiveInterceptor {
 		}
 	}
 
-	public static Field jlClassGetDeclaredField(Class<?> clazz, String name) throws SecurityException, NoSuchFieldException {
+	public static Field jlClassGetDeclaredField(Class<?> clazz, String name) throws SecurityException,
+			NoSuchFieldException {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			return clazz.getDeclaredField(name);
-		} else if (name.startsWith(Constants.PREFIX)) {
+		}
+		else if (name.startsWith(Constants.PREFIX)) {
 			throw Exceptions.noSuchFieldException(name);
-		} else if (!rtype.hasBeenReloaded()) {
+		}
+		else if (!rtype.hasBeenReloaded()) {
 			Field f = clazz.getDeclaredField(name);
 			fixModifier(rtype.getLatestTypeDescriptor(), f);
 			return f;
-		} else {
+		}
+		else {
 			Field f = GetDeclaredFieldLookup.lookup(rtype, name);
 			if (f == null) {
 				throw Exceptions.noSuchFieldException(name);
-			} else {
+			}
+			else {
 				return f;
 			}
 		}
@@ -1594,13 +1795,15 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			return fields;
-		} else {
+		}
+		else {
 			if (!rtype.hasBeenReloaded()) {
 				//Not reloaded yet...
 				fields = removeMetaFields(fields);
 				fixModifiers(rtype, fields);
 				return fields;
-			} else {
+			}
+			else {
 				// Was reloaded, it's up to us to create the field objects
 				TypeDescriptor typeDesc = rtype.getLatestTypeDescriptor();
 				FieldMember[] members = typeDesc.getFields();
@@ -1611,7 +1814,8 @@ public class ReflectiveInterceptor {
 					Class<?> type;
 					try {
 						type = Utils.toClass(Type.getType(fieldTypeDescriptor), rtype.typeRegistry.getClassLoader());
-					} catch (ClassNotFoundException e) {
+					}
+					catch (ClassNotFoundException e) {
 						throw new IllegalStateException(e);
 					}
 					fields[i++] = JVM.newField(clazz, type, f.getModifiers(), f.getName(), f.getGenericSignature());
@@ -1625,7 +1829,8 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * Given a list of fields filter out those fields that are created by springloaded (leaving only the "genuine" fields)
+	 * Given a list of fields filter out those fields that are created by springloaded (leaving only the "genuine"
+	 * fields)
 	 */
 	private static Field[] removeMetaFields(Field[] fields) {
 		Field[] realFields = new Field[fields.length - 1];
@@ -1646,8 +1851,9 @@ public class ReflectiveInterceptor {
 	}
 
 	/**
-	 * Although fields are not reloadable, we have to intercept this because otherwise we'll return the r$type field as a result
-	 * here.
+	 * Although fields are not reloadable, we have to intercept this because otherwise we'll return the r$type field as
+	 * a result here.
+	 * 
 	 * @param clazz the class for which to retrieve the fields
 	 * @return array of fields in the class
 	 */
@@ -1655,7 +1861,8 @@ public class ReflectiveInterceptor {
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			return clazz.getFields();
-		} else {
+		}
+		else {
 			List<Field> allFields = new ArrayList<Field>();
 			gatherFields(clazz, allFields, new HashSet<Class<?>>());
 			return allFields.toArray(new Field[allFields.size()]);
@@ -1664,6 +1871,7 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Gather up all (public) fields in an interface and all its super interfaces recursively.
+	 * 
 	 * @param clazz the class for which to collect up fields
 	 * @param collected a collector that has fields added to it as this method runs (recursively)
 	 * @param visited a set recording which types have already been visited
@@ -1690,13 +1898,15 @@ public class ReflectiveInterceptor {
 		}
 	}
 
-	public static Object jlrFieldGet(Field field, Object target) throws IllegalArgumentException, IllegalAccessException {
+	public static Object jlrFieldGet(Field field, Object target) throws IllegalArgumentException,
+			IllegalAccessException {
 		Class<?> clazz = field.getDeclaringClass();
 		ReloadableType rtype = getRType(clazz);
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.get(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			return rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 		}
@@ -1708,13 +1918,15 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getInt(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, int.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
 				return ((Character) value).charValue();
-			} else {
+			}
+			else {
 				return ((Number) value).intValue();
 			}
 		}
@@ -1726,7 +1938,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getByte(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, byte.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
@@ -1740,7 +1953,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getChar(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, char.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
@@ -1754,13 +1968,15 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getShort(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, short.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
 				return (short) ((Character) value).charValue();
-			} else {
+			}
+			else {
 				return ((Number) value).shortValue();
 			}
 		}
@@ -1772,13 +1988,15 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getDouble(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, double.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
 				return ((Character) value).charValue();
-			} else {
+			}
+			else {
 				return ((Number) value).doubleValue();
 			}
 		}
@@ -1790,13 +2008,15 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getFloat(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, float.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
 				return ((Character) value).charValue();
-			} else {
+			}
+			else {
 				return ((Number) value).floatValue();
 			}
 		}
@@ -1808,7 +2028,8 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getBoolean(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, boolean.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
@@ -1822,13 +2043,15 @@ public class ReflectiveInterceptor {
 		if (rtype == null) {
 			field = asAccessibleField(field, target, true);
 			return field.getLong(target);
-		} else {
+		}
+		else {
 			asAccessibleField(field, target, false);
 			typeCheckFieldGet(field, long.class);
 			Object value = rtype.getField(target, field.getName(), Modifier.isStatic(field.getModifiers()));
 			if (value instanceof Character) {
 				return ((Character) value).charValue();
-			} else {
+			}
+			else {
 				return ((Number) value).longValue();
 			}
 		}
@@ -1848,7 +2071,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, valueType(value), value, true);
 			field.set(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, valueType(value), value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1861,7 +2085,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, int.class, value, true);
 			field.setInt(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, int.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1874,7 +2099,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, byte.class, value, true);
 			field.setByte(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, byte.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1887,7 +2113,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, char.class, value, true);
 			field.setChar(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, char.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1900,7 +2127,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, short.class, value, true);
 			field.setShort(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, short.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1913,7 +2141,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, double.class, value, true);
 			field.setDouble(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, double.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1926,7 +2155,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, float.class, value, true);
 			field.setFloat(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, float.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1939,7 +2169,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, long.class, value, true);
 			field.setLong(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, long.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1952,7 +2183,8 @@ public class ReflectiveInterceptor {
 			// Not reloadable
 			field = asSetableField(field, target, boolean.class, value, true);
 			field.setBoolean(target, value);
-		} else {
+		}
+		else {
 			asSetableField(field, target, boolean.class, value, false);
 			rtype.setField(target, field.getName(), Modifier.isStatic(field.getModifiers()), value);
 		}
@@ -1964,19 +2196,26 @@ public class ReflectiveInterceptor {
 	private static Class<?> boxTypeFor(Class<?> primType) {
 		if (primType == int.class) {
 			return Integer.class;
-		} else if (primType == boolean.class) {
+		}
+		else if (primType == boolean.class) {
 			return Boolean.class;
-		} else if (primType == byte.class) {
+		}
+		else if (primType == byte.class) {
 			return Byte.class;
-		} else if (primType == char.class) {
+		}
+		else if (primType == char.class) {
 			return Character.class;
-		} else if (primType == double.class) {
+		}
+		else if (primType == double.class) {
 			return Double.class;
-		} else if (primType == float.class) {
+		}
+		else if (primType == float.class) {
 			return Float.class;
-		} else if (primType == long.class) {
+		}
+		else if (primType == long.class) {
 			return Long.class;
-		} else if (primType == short.class) {
+		}
+		else if (primType == short.class) {
 			return Short.class;
 		}
 		throw new IllegalStateException("Forgotten a case in this method?");

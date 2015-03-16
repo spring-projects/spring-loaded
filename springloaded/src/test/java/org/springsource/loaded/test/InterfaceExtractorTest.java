@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import org.junit.Test;
@@ -39,36 +40,45 @@ public class InterfaceExtractorTest extends SpringLoadedTests {
 		byte[] classBytes = loadBytesForClass("data.SimpleClass");
 		TypeDescriptor td = new TypeDescriptorExtractor(registry).extract(classBytes, true);
 		// @formatter:off
-		checkType(classBytes, 
+		checkType(classBytes,
 				"CLASS: data/SimpleClass v50 0x0020(synchronized) super java/lang/Object\n" +
-				"SOURCE: SimpleClass.java null\n"+
-				"METHOD: 0x0000() <init>()V\n" + 
-				"    CODE\n" + 
-				" L0\n" + 
-				"    ALOAD 0\n" +
-				"    INVOKESPECIAL java/lang/Object.<init>()V\n" + 
-				"    RETURN\n" + 
-				" L1\n" + 
-				"METHOD: 0x0001(public) foo()V\n" +
-				"    CODE\n" + 
-				" L0\n" + 
-				"    RETURN\n" + 
-				" L1\n" + 
-				"\n");
+						"SOURCE: SimpleClass.java null\n" +
+						"METHOD: 0x0000() <init>()V\n" +
+						"    CODE\n" +
+						" L0\n" +
+						"    ALOAD 0\n" +
+						"    INVOKESPECIAL java/lang/Object.<init>()V\n" +
+						"    RETURN\n" +
+						" L1\n" +
+						"METHOD: 0x0001(public) foo()V\n" +
+						"    CODE\n" +
+						" L0\n" +
+						"    RETURN\n" +
+						" L1\n" +
+						"\n");
 		// @formatter:on
 		byte[] bytes = InterfaceExtractor.extract(classBytes, registry, td);
 		// @formatter:off
-		checkType(bytes,
-				"CLASS: data/SimpleClass__I v50 0x0601(public abstract interface) super java/lang/Object\n"+
-				"METHOD: 0x0401(public abstract) ___init___(Ldata/SimpleClass;)V\n"+
-				"METHOD: 0x0401(public abstract) foo(Ldata/SimpleClass;)V\n"+
-				"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"+
-				"METHOD: 0x0401(public abstract) ___clinit___()V\n"+
-				"METHOD: 0x0401(public abstract) hashCode(Ldata/SimpleClass;)I\n"+
-				"METHOD: 0x0401(public abstract) equals(Ldata/SimpleClass;Ljava/lang/Object;)Z\n"+
-				"METHOD: 0x0401(public abstract) clone(Ldata/SimpleClass;)Ljava/lang/Object; java/lang/CloneNotSupportedException\n"+
-				"METHOD: 0x0401(public abstract) toString(Ldata/SimpleClass;)Ljava/lang/String;\n"+
-				"\n");
+		checkType(
+				bytes,
+				"CLASS: data/SimpleClass__I v50 0x0601(public abstract interface) super java/lang/Object\n"
+						+
+						"METHOD: 0x0401(public abstract) ___init___(Ldata/SimpleClass;)V\n"
+						+
+						"METHOD: 0x0401(public abstract) foo(Ldata/SimpleClass;)V\n"
+						+
+						"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						+
+						"METHOD: 0x0401(public abstract) ___clinit___()V\n"
+						+
+						"METHOD: 0x0401(public abstract) hashCode(Ldata/SimpleClass;)I\n"
+						+
+						"METHOD: 0x0401(public abstract) equals(Ldata/SimpleClass;Ljava/lang/Object;)Z\n"
+						+
+						"METHOD: 0x0401(public abstract) clone(Ldata/SimpleClass;)Ljava/lang/Object; java/lang/CloneNotSupportedException\n"
+						+
+						"METHOD: 0x0401(public abstract) toString(Ldata/SimpleClass;)Ljava/lang/String;\n" +
+						"\n");
 		// @formatter:on
 	}
 
@@ -79,22 +89,36 @@ public class InterfaceExtractorTest extends SpringLoadedTests {
 		TypeDescriptor td = new TypeDescriptorExtractor(registry).extract(classBytes, true);
 		byte[] bytes = InterfaceExtractor.extract(classBytes, registry, td);
 		// @formatter:off
-		checkType(bytes,
-				"CLASS: data/SimpleClassFour__I v50 0x0601(public abstract interface) super java/lang/Object\n"+
-				"METHOD: 0x0401(public abstract) ___init___(Ldata/SimpleClassFour;I)V\n" +
-				"METHOD: 0x0401(public abstract) ___init___(Ldata/SimpleClassFour;Ljava/lang/String;)V\n" +
-				"METHOD: 0x0401(public abstract) boo(Ldata/SimpleClassFour;)V\n"+
-				"METHOD: 0x0401(public abstract) foo(Ldata/SimpleClassFour;)V\n"+
-				"METHOD: 0x0401(public abstract) goo(Ldata/SimpleClassFour;IDLjava/lang/String;)Ljava/lang/String;\n"+
-				"METHOD: 0x0401(public abstract) hoo(Ldata/SimpleClassFour;J)I\n"+
-				"METHOD: 0x0401(public abstract) woo(Ldata/SimpleClassFour;)V java/lang/RuntimeException java/lang/IllegalStateException\n"+
-				"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"+
-				"METHOD: 0x0401(public abstract) ___clinit___()V\n"+
-				"METHOD: 0x0401(public abstract) hashCode(Ldata/SimpleClassFour;)I\n"+
-				"METHOD: 0x0401(public abstract) equals(Ldata/SimpleClassFour;Ljava/lang/Object;)Z\n"+
-				"METHOD: 0x0401(public abstract) clone(Ldata/SimpleClassFour;)Ljava/lang/Object; java/lang/CloneNotSupportedException\n"+
-				"METHOD: 0x0401(public abstract) toString(Ldata/SimpleClassFour;)Ljava/lang/String;\n"+
-				"\n");
+		checkType(
+				bytes,
+				"CLASS: data/SimpleClassFour__I v50 0x0601(public abstract interface) super java/lang/Object\n"
+						+
+						"METHOD: 0x0401(public abstract) ___init___(Ldata/SimpleClassFour;I)V\n"
+						+
+						"METHOD: 0x0401(public abstract) ___init___(Ldata/SimpleClassFour;Ljava/lang/String;)V\n"
+						+
+						"METHOD: 0x0401(public abstract) boo(Ldata/SimpleClassFour;)V\n"
+						+
+						"METHOD: 0x0401(public abstract) foo(Ldata/SimpleClassFour;)V\n"
+						+
+						"METHOD: 0x0401(public abstract) goo(Ldata/SimpleClassFour;IDLjava/lang/String;)Ljava/lang/String;\n"
+						+
+						"METHOD: 0x0401(public abstract) hoo(Ldata/SimpleClassFour;J)I\n"
+						+
+						"METHOD: 0x0401(public abstract) woo(Ldata/SimpleClassFour;)V java/lang/RuntimeException java/lang/IllegalStateException\n"
+						+
+						"METHOD: 0x0401(public abstract) __execute([Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;\n"
+						+
+						"METHOD: 0x0401(public abstract) ___clinit___()V\n"
+						+
+						"METHOD: 0x0401(public abstract) hashCode(Ldata/SimpleClassFour;)I\n"
+						+
+						"METHOD: 0x0401(public abstract) equals(Ldata/SimpleClassFour;Ljava/lang/Object;)Z\n"
+						+
+						"METHOD: 0x0401(public abstract) clone(Ldata/SimpleClassFour;)Ljava/lang/Object; java/lang/CloneNotSupportedException\n"
+						+
+						"METHOD: 0x0401(public abstract) toString(Ldata/SimpleClassFour;)Ljava/lang/String;\n" +
+						"\n");
 		// @formatter:on
 	}
 

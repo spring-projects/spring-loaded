@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 /**
@@ -22,18 +23,24 @@ package org.springsource.loaded;
  * @since 0.5.0
  */
 public class FieldDelta {
+
 	public int changed;
 
 	private final static int CHANGED_TYPE = 0x0001;
+
 	private final static int CHANGED_ACCESS = 0x0002;
+
 	private final static int CHANGED_ANNOTATIONS = 0x0004;
 
 	private final static int CHANGED_MASK = CHANGED_TYPE | CHANGED_ACCESS | CHANGED_ANNOTATIONS;
 
 	public final String name;
+
 	// o = original, n = new
 	String oDesc, nDesc;
+
 	String annotationChanges;
+
 	int oAccess, nAccess;
 
 	public FieldDelta(String name) {

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 /**
@@ -28,8 +29,8 @@ public class SpringLoaded {
 	 * 
 	 * @param clazz the class to be reloaded
 	 * @param newbytes the data bytecode data to reload as the new version
-	 * @return int return code: 0 is success. 1 is unknown classloader, 2 is unknown type (possibly not yet loaded). 3 is reload
-	 *         event failed. 4 is exception occurred.
+	 * @return int return code: 0 is success. 1 is unknown classloader, 2 is unknown type (possibly not yet loaded). 3
+	 *         is reload event failed. 4 is exception occurred.
 	 */
 	public static int loadNewVersionOfType(Class<?> clazz, byte[] newbytes) {
 		return loadNewVersionOfType(clazz.getClassLoader(), clazz.getName(), newbytes);
@@ -41,8 +42,8 @@ public class SpringLoaded {
 	 * @param classLoader the classloader that was used to load the original form of the type
 	 * @param dottedClassname the dotted name of the type being reloaded, e.g. com.foo.Bar
 	 * @param newbytes the data bytecode data to reload as the new version
-	 * @return int return code: 0 is success. 1 is unknown classloader, 2 is unknown type (possibly not yet loaded). 3 is reload
-	 *         event failed. 4 is exception occurred.
+	 * @return int return code: 0 is success. 1 is unknown classloader, 2 is unknown type (possibly not yet loaded). 3
+	 *         is reload event failed. 4 is exception occurred.
 	 */
 	public static int loadNewVersionOfType(ClassLoader classLoader, String dottedClassname, byte[] newbytes) {
 		try {
@@ -60,7 +61,8 @@ public class SpringLoaded {
 			String tag = Utils.encode(System.currentTimeMillis());
 			boolean reloaded = reloadableType.loadNewVersion(tag, newbytes);
 			return reloaded ? 0 : 3;
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 			return 4;
 		}

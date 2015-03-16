@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springsource.loaded.test;
 
+package org.springsource.loaded.test;
 
 
 import org.junit.Assert;
@@ -30,7 +30,8 @@ import org.springsource.loaded.ClassRenamer;
 public class ClassRenamerTests extends SpringLoadedTests {
 
 	/**
-	 * Load the byteform of a class, manipulate the bytes to rename it, then try and define it and use it under the new name
+	 * Load the byteform of a class, manipulate the bytes to rename it, then try and define it and use it under the new
+	 * name
 	 */
 	@Test
 	public void simpleRename() {

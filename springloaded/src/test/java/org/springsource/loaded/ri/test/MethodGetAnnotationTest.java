@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -34,71 +35,74 @@ import org.springsource.loaded.testgen.RejectedChoice;
 /**
  * Tests the following methods:
  * 
- *   Method.getAnnotation 
- *   Method.isAnnotationPresent
- *   
- * It is convenient to test both of these here, since they have the kinds of 
- * argument types, which means generation of test parameters is the same.
+ * Method.getAnnotation Method.isAnnotationPresent
+ * 
+ * It is convenient to test both of these here, since they have the kinds of argument types, which means generation of
+ * test parameters is the same.
  * 
  * @author kdvolder
  */
 @RunWith(ExploreAllChoicesRunner.class)
 public class MethodGetAnnotationTest extends GenerativeSpringLoadedTest {
-	
+
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
-	
+
 	// Parameters that change for different test runs
-	private Class<?> targetClass;  //One class chosen to focus test on
-	private Method method;		   //A method declared on the target class
+	private Class<?> targetClass; //One class chosen to focus test on
+
+	private Method method; //A method declared on the target class
+
 	private Class<Annotation> annotClass; //An annotation type to look for
 
 	private String testedMethodCaller;
-	
+
 	@Override
 	protected String getTargetPackage() {
 		return "reflection.methodannotations";
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void chooseTestParameters() throws RejectedChoice, Exception {
 		//We can test all of these methods, they have the same kinds of parameters.
-		testedMethodCaller = "call" 
-			+ choice("AnnotatedElement", "AccessibleObject", "Method") 	
-			+ choice("IsAnnotationPresent", "GetAnnotation");
-		
-		toStringValue.append(testedMethodCaller+": ");
+		testedMethodCaller = "call"
+				+ choice("AnnotatedElement", "AccessibleObject", "Method")
+				+ choice("IsAnnotationPresent", "GetAnnotation");
+
+		toStringValue.append(testedMethodCaller + ": ");
 
 
 		if (choice()) {
-			targetClass = targetClass("ClassTarget", choice("", "002","003"));
-		} else {
+			targetClass = targetClass("ClassTarget", choice("", "002", "003"));
+		}
+		else {
 			targetClass = targetClass("InterfaceTarget", choice("", "002", "003"));
 		}
-		
+
 		String annotClassName = choice(
 				null,
 				Deprecated.class.getName(),
 				"reflection.AnnoT",
 				"reflection.AnnoT2",
 				"reflection.AnnoT3"
-		);
+				);
 		annotClass = (Class<Annotation>) targetClass(annotClassName);
-		
+
 		callerClazz = loadClassVersion("reflection.AnnotationsInvoker", "");
 		callerInstance = newInstance(callerClazz);
-		
+
 		Method[] methods = ReflectiveInterceptor.jlClassGetDeclaredMethods(targetClass);
 		//To be deterministic we must sort these methods in a predictable fashion:
 		// Arrays.sort(methods, new ToStringComparator());
 		sort(methods);
-		
+
 		method = choice(methods);
 		toStringValue.append(method);
 	}
-	
+
 	@Override
 	public Result test() throws ResultException, Exception {
 		Result r = runOnInstance(callerClazz, callerInstance, testedMethodCaller, method, annotClass);

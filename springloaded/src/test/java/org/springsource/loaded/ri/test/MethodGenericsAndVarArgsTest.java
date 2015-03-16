@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -46,10 +47,12 @@ public class MethodGenericsAndVarArgsTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
 	private Class<?> targetClass; //One class chosen to focus test on
+
 	private Method method; //A method declared on the target class
 
 	private String testedMethodCaller;
@@ -72,7 +75,8 @@ public class MethodGenericsAndVarArgsTest extends GenerativeSpringLoadedTest {
 		//		} else 
 		if (choice()) {
 			targetClass = targetClass("GenericClass", choice("", "002"));
-		} else {
+		}
+		else {
 			targetClass = targetClass("GenericInterface", choice("", "002"));
 		}
 
@@ -108,9 +112,11 @@ public class MethodGenericsAndVarArgsTest extends GenerativeSpringLoadedTest {
 		Object actual = _actual.returnValue;
 		if (expected instanceof Type) {
 			assertEqualTypes((Type) expected, (Type) actual);
-		} else if (expected instanceof List<?>) {
+		}
+		else if (expected instanceof List<?>) {
 			assertEqualLists((List<?>) expected, (List<?>) actual);
-		} else {
+		}
+		else {
 			Assert.fail("All cases (expected by this test) covered above");
 			//Note: boolean case is already handled before we get here.
 		}
@@ -126,7 +132,8 @@ public class MethodGenericsAndVarArgsTest extends GenerativeSpringLoadedTest {
 	private void assertEqualListElements(Object expected, Object actual) {
 		if (expected instanceof Type) {
 			assertEqualTypes((Type) expected, (Type) actual);
-		} else {
+		}
+		else {
 			Assert.fail("Unreachable: only expected things in lists in this test should be Types");
 		}
 	}
@@ -154,17 +161,21 @@ public class MethodGenericsAndVarArgsTest extends GenerativeSpringLoadedTest {
 		try {
 			if (expected instanceof ParameterizedType) {
 				assertEqualParameterizedTypes((ParameterizedType) expected, (ParameterizedType) actual);
-			} else if (expected instanceof Class<?>) {
+			}
+			else if (expected instanceof Class<?>) {
 				Assert.assertEquals(expected.toString(), actual.toString());
-			} else if (expected instanceof TypeVariable<?>) {
+			}
+			else if (expected instanceof TypeVariable<?>) {
 				assertEqualTypeVariables((TypeVariable<?>) expected, (TypeVariable<?>) actual);
-			} else {
+			}
+			else {
 				//TODO: [...] no coverage in test cases for these kinds of results:
 				//  GenericArrayType
 				//  WildCardType
 				Assert.fail("Imlement comparison logic for " + expected.getClass() + " & " + actual.getClass());
 			}
-		} finally {
+		}
+		finally {
 			stackLimit++;
 		}
 	}
@@ -178,7 +189,8 @@ public class MethodGenericsAndVarArgsTest extends GenerativeSpringLoadedTest {
 	private void assertEqualGenericDecl(GenericDeclaration expected, GenericDeclaration actual) {
 		if (expected instanceof Class<?> || expected instanceof Method || expected instanceof Constructor<?>) {
 			Assert.assertEquals(expected.toString(), actual.toString());
-		} else {
+		}
+		else {
 			Assert.fail("Unreachable code, all cases covered above");
 		}
 	}
@@ -205,7 +217,9 @@ public class MethodGenericsAndVarArgsTest extends GenerativeSpringLoadedTest {
 	private static HashSet<TwoObjects> equalsCache = new HashSet<TwoObjects>();
 
 	public static class TwoObjects {
+
 		final Object o1;
+
 		final Object o2;
 
 		public TwoObjects(Object o1, Object o2) {

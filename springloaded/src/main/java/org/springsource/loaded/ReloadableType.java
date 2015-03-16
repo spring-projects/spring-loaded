@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.lang.ref.Reference;
@@ -95,15 +96,19 @@ public class ReloadableType {
 	private Class<?> superclazz;
 
 	private ReloadableType superRtype;
+
 	private ReloadableType[] interfaceRtypes;
 
 	List<Reference<ReloadableType>> associatedSubtypes = null;
 
-	/** Caches Method objects for this reloadable type. This cache should be invalidated (set to null) when a type is reloaded! */
+	/**
+	 * Caches Method objects for this reloadable type. This cache should be invalidated (set to null) when a type is
+	 * reloaded!
+	 */
 	private JavaMethodCache javaMethodCache;
 
 	private final static int IS_RESOLVED = 0x0001;
-	
+
 	// Indicates that this type or one in its hierarchy (super/sub) has been reloaded
 	private final static int IMPACTED_BY_RELOAD = 0x0002;
 
@@ -111,9 +116,12 @@ public class ReloadableType {
 
 	/** Cache of the invokers used to answer getDeclaredMethods() call made on this type */
 	public List<Invoker> invokersCache_getDeclaredMethods = null;
+
 	// TODO clear these out on reload
 	public Collection<Invoker> invokersCache_getMethods = null;
+
 	public Map<String, Map<String, Invoker>> invokerCache_getMethod = new HashMap<String, Map<String, Invoker>>();
+
 	public Map<String, Map<String, Invoker>> invokerCache_getDeclaredMethod = new HashMap<String, Map<String, Invoker>>();
 
 	public Class<?> getClazz() {
@@ -122,8 +130,10 @@ public class ReloadableType {
 			// classloader has defined it.
 			try {
 				clazz = Class.forName(dottedtypename, false, typeRegistry.getClassLoader());
-			} catch (ClassNotFoundException cnfe) {
-				throw new ReloadException("Unexpectedly unable to find class " + this.dottedtypename + ".  Asked classloader "
+			}
+			catch (ClassNotFoundException cnfe) {
+				throw new ReloadException("Unexpectedly unable to find class " + this.dottedtypename
+						+ ".  Asked classloader "
 						+ typeRegistry.getClassLoader(), cnfe);
 			}
 		}
@@ -150,12 +160,13 @@ public class ReloadableType {
 		}
 		this.id = id;
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-			log.info("New reloadable type: "+dottedtypename+ " (allocatedId="+id+") "+typeRegistry.toString());
+			log.info("New reloadable type: " + dottedtypename + " (allocatedId=" + id + ") " + typeRegistry.toString());
 		}
 		this.typeRegistry = typeRegistry;
 		this.dottedtypename = dottedtypename;
 		this.slashedtypename = dottedtypename.replace('.', '/');
-		this.typedescriptor = (typeDescriptor != null ? typeDescriptor : typeRegistry.getExtractor().extract(initialBytes, true));
+		this.typedescriptor = (typeDescriptor != null ? typeDescriptor : typeRegistry.getExtractor().extract(
+				initialBytes, true));
 		this.interfaceBytes = InterfaceExtractor.extract(initialBytes, typeRegistry, this.typedescriptor);
 		this.bytesInitial = initialBytes;
 		rewriteCallSitesAndDefine();
@@ -168,6 +179,7 @@ public class ReloadableType {
 	}
 
 	public final static ReloadableType NOT_RELOADABLE_TYPE = new ReloadableType();
+
 	public final static WeakReference<ReloadableType> NOT_RELOADABLE_TYPE_REF = new WeakReference<ReloadableType>(
 			NOT_RELOADABLE_TYPE);
 
@@ -176,8 +188,8 @@ public class ReloadableType {
 	}
 
 	/**
-	 * Gets the 'orignal' method corresponding to given name and method descriptor. This only considers methods that exist in the
-	 * first (non-reloaded) version of the type.
+	 * Gets the 'orignal' method corresponding to given name and method descriptor. This only considers methods that
+	 * exist in the first (non-reloaded) version of the type.
 	 * 
 	 * @param name method name
 	 * @param descriptor method descriptor (e.g (Ljava/lang/String;)I)
@@ -190,7 +202,8 @@ public class ReloadableType {
 				return method;
 			}
 		}
-		throw new IllegalStateException("Unable to find member '" + name + descriptor + "' on type " + this.dottedtypename);
+		throw new IllegalStateException("Unable to find member '" + name + descriptor + "' on type "
+				+ this.dottedtypename);
 	}
 
 	public MethodMember getConstructor(String descriptor) {
@@ -199,13 +212,15 @@ public class ReloadableType {
 				return ctor;
 			}
 		}
-		throw new IllegalStateException("Unable to find constructor '<init>" + descriptor + "' on type " + this.dottedtypename);
+		throw new IllegalStateException("Unable to find constructor '<init>" + descriptor + "' on type "
+				+ this.dottedtypename);
 	}
 
 	// TODO what about 'regular' spring load time weaving?
 	/**
-	 * This method will attempt to apply any pre-existing transforms to the provided bytecode, if it is thought to be necessary.
-	 * Currently 'necessary' is determined by finding ourselves running under tcServer and Spring Insight being turned on.
+	 * This method will attempt to apply any pre-existing transforms to the provided bytecode, if it is thought to be
+	 * necessary. Currently 'necessary' is determined by finding ourselves running under tcServer and Spring Insight
+	 * being turned on.
 	 * 
 	 * @param bytes the new bytes to be possibly transformed.
 	 * @return either the original bytes or a transformed set of bytes
@@ -231,7 +246,8 @@ public class ReloadableType {
 						log.info("Determining if retransform necessary, result = " + retransformNecessary);
 					}
 				}
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				log.log(Level.SEVERE, "Unexpected exception when determining if Spring Insight enabled", e);
 				retransformNecessary = false;
 			}
@@ -247,7 +263,8 @@ public class ReloadableType {
 					log.info("retransform was attempted, oldsize=" + bytes.length + " newsize=" + newdata.length);
 				}
 				return newdata;
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				if (GlobalConfiguration.isRuntimeLogging) {
 					log.log(Level.SEVERE, "Unexpected exception when trying to run other weaving transformers", e);
 				}
@@ -257,8 +274,11 @@ public class ReloadableType {
 	}
 
 	private boolean determinedNeedToRetransform = false;
+
 	private boolean retransformNecessary = false;
+
 	private Object retransformWeavingTransformer;
+
 	private java.lang.reflect.Method retransformWeavingTransformMethod;
 
 	// for lazy tests that are only loading one new version, fill in the versionsuffix for them
@@ -288,7 +308,8 @@ public class ReloadableType {
 	public boolean loadNewVersion(String versionsuffix, byte[] newbytedata) {
 		javaMethodCache = null;
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-			log.info("Loading new version of "+slashedtypename+", identifying suffix "+versionsuffix+", new data length is "+newbytedata.length+"bytes");
+			log.info("Loading new version of " + slashedtypename + ", identifying suffix " + versionsuffix
+					+ ", new data length is " + newbytedata.length + "bytes");
 		}
 
 		// If we find our parent classloader has a weavingTransformer
@@ -307,13 +328,15 @@ public class ReloadableType {
 					// Not allowed to change the type
 					reload = false;
 
-					s = new StringBuilder("Spring Loaded: Cannot reload new version of ").append(this.dottedtypename).append("\n");
+					s = new StringBuilder("Spring Loaded: Cannot reload new version of ").append(this.dottedtypename).append(
+							"\n");
 					if (td.hasTypeAccessChanged()) {
 						s.append(" Reason: Type modifiers changed\n");
 						cantReload = true;
 					}
 					if (td.hasTypeSupertypeChanged()) {
-						s.append(" Reason: Supertype changed from ").append(td.oSuperName).append(" to ").append(td.nSuperName)
+						s.append(" Reason: Supertype changed from ").append(td.oSuperName).append(" to ").append(
+								td.nSuperName)
 								.append("\n");
 						cantReload = true;
 					}
@@ -388,7 +411,8 @@ public class ReloadableType {
 			invokersCache_getDeclaredMethods = null; // will no longer use this cache
 			if (GlobalConfiguration.reloadMessages) {
 				// Only put out the message when running in limit mode (under tc Server)
-				System.out.println("Reloading: Loading new version of " + this.dottedtypename + " [" + versionsuffix + "]");
+				System.out.println("Reloading: Loading new version of " + this.dottedtypename + " [" + versionsuffix
+						+ "]");
 			}
 			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 				log.info("Reloading: Loading new version of " + this.dottedtypename + " [" + versionsuffix + "]");
@@ -405,7 +429,8 @@ public class ReloadableType {
 			if (typeRegistry.shouldRerunStaticInitializer(this, versionsuffix) || typedescriptor.isEnum()) {
 				liveVersion.staticInitializedNeedsRerunningOnDefine = true;
 				liveVersion.runStaticInitializer();
-			} else {
+			}
+			else {
 				liveVersion.staticInitializedNeedsRerunningOnDefine = false;
 			}
 			// For performance:
@@ -425,7 +450,7 @@ public class ReloadableType {
 
 	private void tagSupertypesAsAffectedByReload() {
 		ReloadableType superRtype = getSuperRtype();
-		if (superRtype!=null) {
+		if (superRtype != null) {
 			superRtype.tagAsAffectedByReload();
 			// need to recurse up with the tagging
 			superRtype.tagSupertypesAsAffectedByReload();
@@ -433,8 +458,8 @@ public class ReloadableType {
 
 		// need to recurse through super interfaces too
 		ReloadableType[] superinterfaceRtypes = getInterfacesRtypes();
-		if (superinterfaceRtypes!=null) {
-			for (ReloadableType superinterfaceRtype: superinterfaceRtypes) {
+		if (superinterfaceRtypes != null) {
+			for (ReloadableType superinterfaceRtype : superinterfaceRtypes) {
 				superinterfaceRtype.tagAsAffectedByReload();
 				superinterfaceRtype.tagSupertypesAsAffectedByReload();
 			}
@@ -443,8 +468,8 @@ public class ReloadableType {
 
 	// TODO who is clearing up dead entries?
 	private void tagSubtypesAsAffectedByReload() {
-		if (associatedSubtypes !=null) {
-			for (Reference<ReloadableType> ref: associatedSubtypes) {
+		if (associatedSubtypes != null) {
+			for (Reference<ReloadableType> ref : associatedSubtypes) {
 				ReloadableType rsubtype = ref.get();
 				if (rsubtype != null) {
 					rsubtype.tagAsAffectedByReload();
@@ -453,18 +478,17 @@ public class ReloadableType {
 			}
 		}
 	}
-	
+
 	private void tagAsAffectedByReload() {
 		bits |= IMPACTED_BY_RELOAD;
 		invokersCache_getMethods = null;
 		invokersCache_getDeclaredMethods = null;
 	}
-	
+
 	public boolean isAffectedByReload() {
-		return (bits&IMPACTED_BY_RELOAD)!=0;
+		return (bits & IMPACTED_BY_RELOAD) != 0;
 	}
-	
-	
+
 
 	// TODO cache these field objects to avoid digging for them every time?
 	/**
@@ -479,14 +503,16 @@ public class ReloadableType {
 			Field f = clazz.getClass().getDeclaredField("enumConstants");
 			f.setAccessible(true);
 			f.set(clazz, null);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		try {
 			Field f = clazz.getClass().getDeclaredField("enumConstantDirectory");
 			f.setAccessible(true);
 			f.set(clazz, null);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -507,10 +533,11 @@ public class ReloadableType {
 	// TODO Subclassloader lookups (via subregistries) when the cglib proxies are being loaded below this registry
 	// TODO caching discovered Method objects
 	/**
-	 * Go through proxies we know about in this registry and see if any of them are for the type we have just reloaded. If they are,
-	 * regenerate them and reload them.
+	 * Go through proxies we know about in this registry and see if any of them are for the type we have just reloaded.
+	 * If they are, regenerate them and reload them.
 	 * 
-	 * @param versionsuffix the suffix to use when reloading the proxies (it matches what is being used to reload the type)
+	 * @param versionsuffix the suffix to use when reloading the proxies (it matches what is being used to reload the
+	 *            type)
 	 */
 	private void reloadProxiesIfNecessary(String versionsuffix) {
 		ReloadableType proxy = typeRegistry.cglibProxies.get(this.slashedtypename);
@@ -537,7 +564,8 @@ public class ReloadableType {
 				byte[] bs = (byte[]) found.invoke(a, b);
 				proxy.loadNewVersion(versionsuffix, bs);
 				proxy.runStaticInitializer();
-			} catch (Throwable t) {
+			}
+			catch (Throwable t) {
 				t.printStackTrace();
 			}
 		}
@@ -564,7 +592,8 @@ public class ReloadableType {
 					byte[] bs = (byte[]) found.invoke(a, b);
 					proxy.loadNewVersion(versionsuffix, bs);
 					proxy.runStaticInitializer();
-				} catch (Throwable t) {
+				}
+				catch (Throwable t) {
 					t.printStackTrace();
 				}
 			}
@@ -578,14 +607,16 @@ public class ReloadableType {
 					for (ReloadableType relevantProxy : relevantProxies) {
 						Class<?>[] interfacesImplementedByProxy = relevantProxy.getClazz().getInterfaces();
 						// check slashedname correct
-//						@SuppressWarnings("restriction")
-						byte[] newProxyBytes = sun.misc.ProxyGenerator.generateProxyClass(relevantProxy.getSlashedName(),
+						//						@SuppressWarnings("restriction")
+						byte[] newProxyBytes = sun.misc.ProxyGenerator.generateProxyClass(
+								relevantProxy.getSlashedName(),
 								interfacesImplementedByProxy);
 						relevantProxy.loadNewVersion(versionsuffix, newProxyBytes, true);
 					}
 				}
 			}
-		} catch (Throwable t) {
+		}
+		catch (Throwable t) {
 			new RuntimeException("Unexpected problem trying to reload proxy for interface " + this.dottedtypename, t)
 					.printStackTrace();
 		}
@@ -594,14 +625,16 @@ public class ReloadableType {
 	Object[] reflectiveTargets;
 
 	private final static int INDEX_SWAPINIT_METHOD = 0;
+
 	private final static int INDEX_CALLSITEARRAY_FIELD = 1;
+
 	private final static int INDEX_METACLASS_FIELD = 2;
 
 	/**
 	 * Groovy types need some extra fixup:
 	 * <ul>
-	 * <li>they contain a callsite array that caches destinations for calls. It needs clearing (it will be reinitialized when
-	 * required)
+	 * <li>they contain a callsite array that caches destinations for calls. It needs clearing (it will be reinitialized
+	 * when required)
 	 * <li>not quite sure about the two: $staticClassInfo and GroovySystem removeMetaClass
 	 * <li>ClassScope.getClassInfo(Foo.class).cachedClassRef.clear()
 	 * </ul>
@@ -613,22 +646,26 @@ public class ReloadableType {
 			reflectiveTargets = new Object[5];
 			try {
 				reflectiveTargets[INDEX_SWAPINIT_METHOD] = clazz.getDeclaredMethod("__$swapInit");
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				s.append("cannot discover __$swapInit " + e.toString() + "  --  ");
 			}
 			try {
 				reflectiveTargets[INDEX_CALLSITEARRAY_FIELD] = clazz.getDeclaredField("$callSiteArray");
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				s.append("cannot discover $callSiteArray " + e.toString() + "  --  ");
 			}
 			try {
 				reflectiveTargets[INDEX_METACLASS_FIELD] = clazz.getDeclaredField("$class$groovy$lang$MetaClass");
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				s.append("cannot discover $class$groovy$lang$MetaClass " + e.toString() + "  --  ");
 			}
 			try {
 				reflectiveTargets[3] = clazz.getDeclaredField("$staticClassInfo");
-			} catch (Exception e) {
+			}
+			catch (Exception e) {
 				s.append("cannot discover $staticClassInfo " + e.toString() + "  --  ");
 			}
 		}
@@ -658,7 +695,8 @@ public class ReloadableType {
 				f.setAccessible(true);
 				f.set(null, null);
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			s.append("cannot reset state" + e.toString() + "  --  ");
 			//			new RuntimeException("Unable to fix up groovy state for " + this.dottedtypename, e);
 		}
@@ -668,11 +706,14 @@ public class ReloadableType {
 			Field metaClassRegistryField = clazz.getDeclaredField("META_CLASS_REGISTRY");
 			metaClassRegistryField.setAccessible(true);
 			Object metaClassRegistry = metaClassRegistryField.get(null);
-			Method metaClassRegistryMethod = metaClassRegistry.getClass().getDeclaredMethod("removeMetaClass", Class.class);
+			Method metaClassRegistryMethod = metaClassRegistry.getClass().getDeclaredMethod("removeMetaClass",
+					Class.class);
 			metaClassRegistryMethod.setAccessible(true);
 			metaClassRegistryMethod.invoke(metaClassRegistry, getClazz());
-		} catch (Exception e) {
-			s.append("Unable to remove meta class for groovy type " + this.dottedtypename + ": " + e.toString() + "  --  ");
+		}
+		catch (Exception e) {
+			s.append("Unable to remove meta class for groovy type " + this.dottedtypename + ": " + e.toString()
+					+ "  --  ");
 			//			new RuntimeException("Unable to remove meta class for groovy type " + this.dottedtypename, e)
 			//					.printStackTrace(System.err);
 		}
@@ -688,8 +729,10 @@ public class ReloadableType {
 			// java.lang.NoSuchMethodException: org.codehaus.groovy.reflection.ClassInfo$LazyCachedClassRef.clear()
 			Method clearMethod = lazyReferenceClass.getMethod("clear");//DeclaredMethod("clear");
 			clearMethod.invoke(cachedClassRefObject);
-		} catch (Exception e) {
-			s.append("1 Unable to clear ClassInfo CachedClass data for groovy type " + this.dottedtypename + ": " + e.toString()
+		}
+		catch (Exception e) {
+			s.append("1 Unable to clear ClassInfo CachedClass data for groovy type " + this.dottedtypename + ": "
+					+ e.toString()
 					+ "  --  ");
 			//			new RuntimeException("Unable to clear ClassInfo CachedClass data for groovy type " + this.dottedtypename, e)
 			//					.printStackTrace(System.err);
@@ -714,8 +757,10 @@ public class ReloadableType {
 			//			// java.lang.NoSuchMethodException: org.codehaus.groovy.reflection.ClassInfo$LazyCachedClassRef.clear()
 			//			Method clearMethod = lazyReferenceClass.getMethod("clear");//DeclaredMethod("clear");
 			//			clearMethod.invoke(cachedClassRefObject);
-		} catch (Exception e) {
-			s.append("2 Unable to clear ClassInfo CachedClass data for groovy type " + this.dottedtypename + ": " + e.toString()
+		}
+		catch (Exception e) {
+			s.append("2 Unable to clear ClassInfo CachedClass data for groovy type " + this.dottedtypename + ": "
+					+ e.toString()
 					+ "  --  ");
 			//			new RuntimeException("Unable to clear ClassInfo CachedClass data for groovy type " + this.dottedtypename, e)
 			//					.printStackTrace(System.err);
@@ -731,7 +776,8 @@ public class ReloadableType {
 						deadInstances = new HashSet<WeakReference<Object>>();
 					}
 					deadInstances.add(instance);
-				} else {
+				}
+				else {
 					f.setAccessible(true);
 					f.set(o, null);
 				}
@@ -739,8 +785,10 @@ public class ReloadableType {
 			if (deadInstances != null) {
 				liveInstances.removeAll(deadInstances);
 			}
-		} catch (Exception e) {
-			s.append("2 Unable to clear metaClass for groovy object instance (class=" + this.dottedtypename + ") " + e.toString()
+		}
+		catch (Exception e) {
+			s.append("2 Unable to clear metaClass for groovy object instance (class=" + this.dottedtypename + ") "
+					+ e.toString()
 					+ "  --  ");
 			//			new RuntimeException("Unable to clear metaClass for groovy object instance (class=" + this.dottedtypename + ")", e)
 			//					.printStackTrace(System.err);
@@ -771,7 +819,8 @@ public class ReloadableType {
 				loadNewVersion("0", bytesInitial);
 			}
 			return liveVersion.dispatcherInstance;
-		} else {
+		}
+		else {
 			// Same as getLatestDispatcherInstance()
 			return (liveVersion == null ? null : liveVersion.dispatcherInstance);
 		}
@@ -802,18 +851,19 @@ public class ReloadableType {
 	}
 
 	/**
-	 * Gets the method corresponding to given name and descriptor, taking into consideration changes that have happened by
-	 * reloading.
+	 * Gets the method corresponding to given name and descriptor, taking into consideration changes that have happened
+	 * by reloading.
 	 * 
 	 * @param name the member name
 	 * @param descriptor the member descriptor (e.g. (Ljava/lang/String;)I)
-	 * @return the MethodMember for that name and descriptor. Null if not found on a live version, or an exception if there is no live version and
-	 * it cannot be found.
+	 * @return the MethodMember for that name and descriptor. Null if not found on a live version, or an exception if
+	 *         there is no live version and it cannot be found.
 	 */
 	public MethodMember getCurrentMethod(String name, String descriptor) {
 		if (liveVersion == null) {
 			return getMethod(name, descriptor);
-		} else {
+		}
+		else {
 			return liveVersion.getReloadableMethod(name, descriptor);
 		}
 	}
@@ -885,8 +935,8 @@ public class ReloadableType {
 		}
 		if (typeRegistry.shouldDefineClasses()) {
 			/**
-			 * Define the actual class. This is a separate call because it doesn't need doing when the ReloadableType is built
-			 * during agent processing, because that agent will define the class.
+			 * Define the actual class. This is a separate call because it doesn't need doing when the ReloadableType is
+			 * built during agent processing, because that agent will define the class.
 			 */
 			//			ClassPrinter.print(bytesLoaded);
 			clazz = typeRegistry.defineClass(dottedtypename, bytesLoaded, true);
@@ -898,13 +948,15 @@ public class ReloadableType {
 	 * This merges the two steps: method invocation rewriting and type rewriting
 	 */
 	static class MergedRewrite {
+
 		public static byte[] rewrite(ReloadableType rtype, byte[] bytes) {
 			try {
 				ClassReader fileReader = new ClassReader(bytes);
 				ChainedAdapters classAdaptor = new ChainedAdapters(rtype);
 				fileReader.accept(classAdaptor, 0);
 				return classAdaptor.getBytes();
-			} catch (DontRewriteException drex) {
+			}
+			catch (DontRewriteException drex) {
 				return bytes;
 			}
 		}
@@ -912,8 +964,9 @@ public class ReloadableType {
 		static class ChainedAdapters extends ClassVisitor implements Constants {
 
 			public ChainedAdapters(ReloadableType rtype) {
-				super(ASM5,new RewriteClassAdaptor(rtype.typeRegistry, new TypeRewriter.RewriteClassAdaptor(rtype, new ClassWriter(
-						ClassWriter.COMPUTE_MAXS))));
+				super(ASM5, new RewriteClassAdaptor(rtype.typeRegistry, new TypeRewriter.RewriteClassAdaptor(rtype,
+						new ClassWriter(
+								ClassWriter.COMPUTE_MAXS))));
 			}
 
 			public byte[] getBytes() {
@@ -977,13 +1030,15 @@ public class ReloadableType {
 	 * Check if the specified method is different to the original form from the type as loaded.
 	 * 
 	 * @param methodId the ID of the method currently executing
-	 * @return 0 if the method cannot have changed. 1 if the method has changed. 2 if the method has been deleted in a new version.
+	 * @return 0 if the method cannot have changed. 1 if the method has changed. 2 if the method has been deleted in a
+	 *         new version.
 	 */
 	@UsedByGeneratedCode
 	public int changed(int methodId) {
 		if (liveVersion == null) {
 			return 0;
-		} else {
+		}
+		else {
 			int retval = 0;
 			// First check if a new version of the type was loaded:
 			if (liveVersion != null) {
@@ -998,7 +1053,8 @@ public class ReloadableType {
 				boolean b = liveVersion.incrementalTypeDescriptor.hasBeenDeleted(methodId);
 				if (b) {
 					retval = 2;
-				} else {
+				}
+				else {
 					retval = liveVersion.incrementalTypeDescriptor.mustUseExecutorForThisMethod(methodId) ? 1 : 0;
 				}
 			}
@@ -1038,7 +1094,7 @@ public class ReloadableType {
 	public String getSlashedSupertypeName() {
 		return getTypeDescriptor().getSupertypeName();
 	}
-	
+
 	public String[] getSlashedSuperinterfacesName() {
 		return getTypeDescriptor().getSuperinterfacesName();
 	}
@@ -1058,8 +1114,8 @@ public class ReloadableType {
 	}
 
 	/**
-	 * Intended to handle dynamic dispatch. This will determine the right type to handle the specified method and return a
-	 * dispatcher that can handle it.
+	 * Intended to handle dynamic dispatch. This will determine the right type to handle the specified method and return
+	 * a dispatcher that can handle it.
 	 * 
 	 * @param instance the target instance for the invocation
 	 * @param nameAndDescriptor an encoded method name and descriptor, e.g. foo(Ljava/langString;)V
@@ -1080,7 +1136,8 @@ public class ReloadableType {
 		// iterate up the hierarchy finding the first person that can satisfy that method from a virtual dispatch perspective
 		ReloadableType rtype = typeRegistry.getReloadableType(dynamicTypeName.replace('.', '/'));
 		if (rtype == null) {
-			throw new ReloadException("ReloadableType.determineDispatcher(): expected " + dynamicTypeName + " to be reloadable");
+			throw new ReloadException("ReloadableType.determineDispatcher(): expected " + dynamicTypeName
+					+ " to be reloadable");
 		}
 		boolean found = false;
 		while (rtype != null && !found) {
@@ -1101,12 +1158,14 @@ public class ReloadableType {
 						break;
 					}
 				}
-			} else {
+			}
+			else {
 				// Did the type originally define it:
 				MethodMember[] mms = rtype.getTypeDescriptor().getMethods();
 				for (MethodMember mm : mms) {
 					// TODO don't need superdispatcher check, name won't match will it...
-					if (mm.getNameAndDescriptor().equals(nameAndDescriptor) && !MethodMember.isCatcher(mm) && !MethodMember.isSuperDispatcher(mm)) {
+					if (mm.getNameAndDescriptor().equals(nameAndDescriptor) && !MethodMember.isCatcher(mm)
+							&& !MethodMember.isSuperDispatcher(mm)) {
 						// the original version does implement it
 						found = true;
 						break;
@@ -1141,7 +1200,8 @@ public class ReloadableType {
 		int dotIndex = dottedtypename.lastIndexOf(".");
 		if (dotIndex == -1) {
 			return dottedtypename;
-		} else {
+		}
+		else {
 			return dottedtypename.substring(dotIndex + 1);
 		}
 	}
@@ -1149,7 +1209,8 @@ public class ReloadableType {
 	public TypeDescriptor getLatestTypeDescriptor() {
 		if (liveVersion == null) {
 			return typedescriptor;
-		} else {
+		}
+		else {
 			return liveVersion.incrementalTypeDescriptor.getLatestTypeDescriptor();
 		}
 	}
@@ -1190,9 +1251,10 @@ public class ReloadableType {
 	}
 
 	/**
-	 * Find the named instance field either on this reloadable type or on a reloadable supertype - it will not go into the
-	 * non-reloadable types. This method also avoids interfaces because it is looking for instance fields. This is slightly naughty
-	 * but if we assume the code we are reloading is valid code, it should never be referring to interface fields.
+	 * Find the named instance field either on this reloadable type or on a reloadable supertype - it will not go into
+	 * the non-reloadable types. This method also avoids interfaces because it is looking for instance fields. This is
+	 * slightly naughty but if we assume the code we are reloading is valid code, it should never be referring to
+	 * interface fields.
 	 * 
 	 * @param name the name of the field to locate
 	 * @return the FieldMember or null if the field is not found
@@ -1218,9 +1280,9 @@ public class ReloadableType {
 	}
 
 	/**
-	 * Search for a static field from this type upwards, as far as the topmost reloadable types. This is searching for a field, it
-	 * is not checking the result. It is up to the caller to check they have not ended up with an instance field and throw the
-	 * appropriate exception.
+	 * Search for a static field from this type upwards, as far as the topmost reloadable types. This is searching for a
+	 * field, it is not checking the result. It is up to the caller to check they have not ended up with an instance
+	 * field and throw the appropriate exception.
 	 * 
 	 * @param name the name of the field to look for
 	 * @return a FieldMember for the named field or null if not found
@@ -1265,33 +1327,40 @@ public class ReloadableType {
 	 * @param newValue the new value to put into the field
 	 * @throws IllegalAccessException if there is a problem setting the field value
 	 */
-	public void setField(Object instance, String fieldname, boolean isStatic, Object newValue) throws IllegalAccessException {
+	public void setField(Object instance, String fieldname, boolean isStatic, Object newValue)
+			throws IllegalAccessException {
 		FieldReaderWriter fieldReaderWriter = locateField(fieldname);
 		if (isStatic && !fieldReaderWriter.isStatic()) {
-			throw new IncompatibleClassChangeError("Expected static field " + fieldReaderWriter.theField.getDeclaringTypeName()
+			throw new IncompatibleClassChangeError("Expected static field "
+					+ fieldReaderWriter.theField.getDeclaringTypeName()
 					+ "." + fieldReaderWriter.theField.getName());
-		} else if (!isStatic && fieldReaderWriter.isStatic()) {
-			throw new IncompatibleClassChangeError("Expected non-static field " + fieldReaderWriter.theField.getDeclaringTypeName()
+		}
+		else if (!isStatic && fieldReaderWriter.isStatic()) {
+			throw new IncompatibleClassChangeError("Expected non-static field "
+					+ fieldReaderWriter.theField.getDeclaringTypeName()
 					+ "." + fieldReaderWriter.theField.getName());
 		}
 
 		if (fieldReaderWriter.isStatic()) {
 			fieldReaderWriter.setStaticFieldValue(getClazz(), newValue, null);
-		} else {
+		}
+		else {
 			fieldReaderWriter.setValue(instance, newValue, null);
 		}
 	}
 
 	private Set<WeakReference<Object>> liveInstances = Collections.synchronizedSet(new HashSet<WeakReference<Object>>());
+
 	private ReferenceQueue<Object> liveInstancesRQ = new ReferenceQueue<Object>();
 
 	// reflective state caching
 	public Reference<Method[]> jlClassGetDeclaredMethods_cache = new WeakReference<Method[]>(null);
+
 	public Reference<Method[]> jlClassGetMethods_cache = new WeakReference<Method[]>(null);
 
 	/**
-	 * Attempt to set the value of a field on an instance to the specified value. Simply locate the field, which returns an object
-	 * capable of reading/writing it, then use that to retrieve the value.
+	 * Attempt to set the value of a field on an instance to the specified value. Simply locate the field, which returns
+	 * an object capable of reading/writing it, then use that to retrieve the value.
 	 * 
 	 * @param instance the object upon which to set the field (maybe null for static fields)
 	 * @param fieldname the name of the field
@@ -1302,16 +1371,20 @@ public class ReloadableType {
 	public Object getField(Object instance, String fieldname, boolean isStatic) throws IllegalAccessException {
 		FieldReaderWriter fieldReaderWriter = locateField(fieldname);
 		if (isStatic && !fieldReaderWriter.isStatic()) {
-			throw new IncompatibleClassChangeError("Expected static field " + fieldReaderWriter.theField.getDeclaringTypeName()
+			throw new IncompatibleClassChangeError("Expected static field "
+					+ fieldReaderWriter.theField.getDeclaringTypeName()
 					+ "." + fieldReaderWriter.theField.getName());
-		} else if (!isStatic && fieldReaderWriter.isStatic()) {
-			throw new IncompatibleClassChangeError("Expected non-static field " + fieldReaderWriter.theField.getDeclaringTypeName()
+		}
+		else if (!isStatic && fieldReaderWriter.isStatic()) {
+			throw new IncompatibleClassChangeError("Expected non-static field "
+					+ fieldReaderWriter.theField.getDeclaringTypeName()
 					+ "." + fieldReaderWriter.theField.getName());
 		}
 		Object o = null;
 		if (fieldReaderWriter.isStatic()) {
 			o = fieldReaderWriter.getStaticFieldValue(getClazz(), null);
-		} else {
+		}
+		else {
 			o = fieldReaderWriter.getValue(instance, null);
 		}
 
@@ -1325,7 +1398,8 @@ public class ReloadableType {
 	public FieldReaderWriter locateField(String name) {
 		if (hasFieldChangedInHierarchy(name)) {
 			return walk(name, getLatestTypeDescriptor());
-		} else {
+		}
+		else {
 			return getFieldInHierarchy(name);
 		}
 	}
@@ -1335,7 +1409,8 @@ public class ReloadableType {
 		if (theField != null) {
 			// Found it
 			return new FieldReaderWriter(theField, typeDescriptor);
-		} else {
+		}
+		else {
 			String[] superinterfaceNames = typeDescriptor.getSuperinterfacesName();
 			for (String superinterfaceName : superinterfaceNames) {
 				TypeDescriptor interfaceTypeDescriptor = getTypeRegistry().getLatestDescriptorFor(superinterfaceName);
@@ -1379,7 +1454,8 @@ public class ReloadableType {
 		if (originalField != null && field != null) {
 			if (originalField.equals(field)) {
 				return FieldWalkDiscoveryResult.UNCHANGED_STOPWALKINGNOW;
-			} else {
+			}
+			else {
 				return FieldWalkDiscoveryResult.CHANGED_STOPNOW;
 			}
 		}
@@ -1435,12 +1511,12 @@ public class ReloadableType {
 
 		FieldWalkDiscoveryResult b = hasFieldChangedInHierarchy(name, rtype.getTypeDescriptor().getSupertypeName());
 		switch (b) {
-		case CHANGED_STOPNOW:
-			return true;
-		case UNCHANGED_STOPWALKINGNOW:
-			return false;
-		case DONTKNOW:
-			throw new IllegalStateException();
+			case CHANGED_STOPNOW:
+				return true;
+			case UNCHANGED_STOPWALKINGNOW:
+				return false;
+			case DONTKNOW:
+				throw new IllegalStateException();
 		}
 		throw new IllegalStateException();
 	}
@@ -1456,7 +1532,8 @@ public class ReloadableType {
 					}
 				}
 			}
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
 		if (field != null) {
@@ -1500,7 +1577,8 @@ public class ReloadableType {
 			Reference<Object> r = (Reference<Object>) liveInstancesRQ.poll();
 			if (r != null) {
 				liveInstances.remove(r);
-			} else {
+			}
+			else {
 				break;
 			}
 		}
@@ -1526,10 +1604,9 @@ public class ReloadableType {
 	}
 
 	/**
-	 * Return the ReloadableType representing the superclass of this type. If the supertype
-	 * is not reloadable, this method will return null. The ReloadableType that is returned
-	 * may not be within the same type registry, if the supertype was loaded by a different
-	 * classloader.
+	 * Return the ReloadableType representing the superclass of this type. If the supertype is not reloadable, this
+	 * method will return null. The ReloadableType that is returned may not be within the same type registry, if the
+	 * supertype was loaded by a different classloader.
 	 * 
 	 * @return the ReloadableType for the supertype or null if it is not reloadable
 	 */
@@ -1556,17 +1633,18 @@ public class ReloadableType {
 			return superRtype;
 		}
 	}
-	
+
 	public ReloadableType[] getInterfacesRtypes() {
 		if (interfaceRtypes != null) {
 			return interfaceRtypes;
 		}
 		if (this.getSlashedSuperinterfacesName() == null) {
 			return null;
-		} else {
+		}
+		else {
 			List<ReloadableType> reloadableInterfaces = new ArrayList<ReloadableType>();
 			String[] names = this.getSlashedSuperinterfacesName();
-			for (String name: names) {
+			for (String name : names) {
 				ReloadableType interfaceRtype = typeRegistry.getReloadableSuperType(name);
 				if (interfaceRtype != null) { // If null then that interface is not reloadable
 					reloadableInterfaces.add(interfaceRtype);
@@ -1576,7 +1654,7 @@ public class ReloadableType {
 			return interfaceRtypes;
 		}
 	}
-	
+
 
 	public boolean hasStaticInitializer() {
 		return this.typedescriptor.hasClinit();
@@ -1599,11 +1677,10 @@ public class ReloadableType {
 	public List<Reference<ReloadableType>> getAssociatedSubtypes() {
 		return associatedSubtypes;
 	}
-	
+
 	/**
-	 * For this specified reloadable type, records the type with its parent types
-	 * (super class and super interfaces).  With this information the system can run faster
-	 * when reloading has occurred.
+	 * For this specified reloadable type, records the type with its parent types (super class and super interfaces).
+	 * With this information the system can run faster when reloading has occurred.
 	 */
 	public void createTypeAssociations() {
 		// Connect the child to the parent rtype and interface rtypes
@@ -1612,12 +1689,12 @@ public class ReloadableType {
 			return;
 		}
 		ReloadableType srtype = getSuperRtype();
-		if (srtype!=null) {
+		if (srtype != null) {
 			srtype.recordSubtype(this);
 		}
 		ReloadableType[] irtypes = getInterfacesRtypes();
-		if (irtypes!=null) {
-			for (ReloadableType irtype: irtypes) {
+		if (irtypes != null) {
+			for (ReloadableType irtype : irtypes) {
 				irtype.recordSubtype(this);
 			}
 		}

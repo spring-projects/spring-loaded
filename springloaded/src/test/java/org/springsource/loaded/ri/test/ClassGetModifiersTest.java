@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.ri.test;
 
 import static org.springsource.loaded.ri.test.AbstractReflectionTests.newInstance;
@@ -36,6 +37,7 @@ public class ClassGetModifiersTest extends GenerativeSpringLoadedTest {
 
 	// Needed to run the tests (non-changing parameters)
 	private Class<?> callerClazz;
+
 	private Object callerInstance;
 
 	// Parameters that change for different test runs
@@ -61,7 +63,8 @@ public class ClassGetModifiersTest extends GenerativeSpringLoadedTest {
 	public Result test() throws ResultException, Exception {
 		try {
 			return runOnInstance(callerClazz, callerInstance, testedMethodCaller, targetClass);
-		} catch (ResultException e) {
+		}
+		catch (ResultException e) {
 			throw new Error(e);
 		}
 	}

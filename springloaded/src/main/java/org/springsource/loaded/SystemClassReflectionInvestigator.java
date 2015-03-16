@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import org.objectweb.asm.ClassReader;
@@ -22,16 +23,17 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
- * This is similar to SystemClassReflectionRewriter but this version just summarizes what it finds, rather than making any changes.
- * Using the results of this we can determine whether it needs proper rewriting by the SystemClassReflectionRewriter (which would be
- * done by adding this class to the list of those in the SLPP that should be processed like that).
+ * This is similar to SystemClassReflectionRewriter but this version just summarizes what it finds, rather than making
+ * any changes. Using the results of this we can determine whether it needs proper rewriting by the
+ * SystemClassReflectionRewriter (which would be done by adding this class to the list of those in the SLPP that should
+ * be processed like that).
  * 
  * @author Andy Clement
  * @since 0.7.3
  */
 public class SystemClassReflectionInvestigator {
 
-	
+
 	public static int investigate(String slashedClassName, byte[] bytes, boolean print) {
 		ClassReader fileReader = new ClassReader(bytes);
 		RewriteClassAdaptor classAdaptor = new RewriteClassAdaptor(print);
@@ -42,9 +44,13 @@ public class SystemClassReflectionInvestigator {
 	static class RewriteClassAdaptor extends ClassVisitor implements Constants {
 
 		int hitCount = 0;
+
 		private ClassWriter cw;
+
 		int bits = 0x0000;
+
 		private boolean print;
+
 		private String classname;
 
 		private static boolean isInterceptable(String owner, String methodName) {
@@ -53,7 +59,7 @@ public class SystemClassReflectionInvestigator {
 
 		public RewriteClassAdaptor(boolean print) {
 			// TODO should it also compute frames?
-			super(ASM5,new ClassWriter(ClassWriter.COMPUTE_MAXS));
+			super(ASM5, new ClassWriter(ClassWriter.COMPUTE_MAXS));
 			this.print = print;
 			cw = (ClassWriter) cv;
 		}
@@ -74,7 +80,8 @@ public class SystemClassReflectionInvestigator {
 		}
 
 		@Override
-		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
+		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature,
+				String[] exceptions) {
 			MethodVisitor mv = super.visitMethod(flags, name, descriptor, signature, exceptions);
 			return new RewritingMethodAdapter(mv);
 		}
@@ -82,14 +89,15 @@ public class SystemClassReflectionInvestigator {
 		class RewritingMethodAdapter extends MethodVisitor implements Opcodes, Constants {
 
 			public RewritingMethodAdapter(MethodVisitor mv) {
-				super(ASM5,mv);
+				super(ASM5, mv);
 			}
 
 			private boolean interceptReflection(String owner, String name, String desc) {
 				if (isInterceptable(owner, name)) {
 					hitCount++;
 					if (print) {
-						System.out.println("SystemClassReflectionInvestigator: " + classname + "  uses " + owner + "." + name + desc);
+						System.out.println("SystemClassReflectionInvestigator: " + classname + "  uses " + owner + "."
+								+ name + desc);
 					}
 				}
 				return false;
@@ -106,7 +114,8 @@ public class SystemClassReflectionInvestigator {
 			}
 
 			@Override
-			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, final boolean itf) {
+			public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
+					final boolean itf) {
 				if (!GlobalConfiguration.interceptReflection || rewriteReflectiveCall(opcode, owner, name, desc)) {
 					return;
 				}

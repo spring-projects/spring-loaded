@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import org.objectweb.asm.ClassReader;
 
 /**
- * Can be used to take a quick look in the bytecode for something. The various static get* methods are the things that the quick
- * visitor can discover.
+ * Can be used to take a quick look in the bytecode for something. The various static get* methods are the things that
+ * the quick visitor can discover.
  * 
  * @author Andy Clement
  * @since 0.7.3
@@ -31,12 +32,14 @@ public class QuickVisitor {
 		QuickVisitor1 qv = new QuickVisitor1();
 		try {
 			fileReader.accept(qv, ClassReader.SKIP_FRAMES);// TODO more flags to skip other things?
-		} catch (EarlyExitException eee) {
+		}
+		catch (EarlyExitException eee) {
 		}
 		return qv.interfaces;
 	}
 
 	static class QuickVisitor1 extends EmptyClassVisitor {
+
 		String[] interfaces;
 
 		@Override

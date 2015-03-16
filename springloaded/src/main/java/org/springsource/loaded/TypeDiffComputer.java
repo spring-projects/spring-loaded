@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import java.util.ArrayList;
@@ -45,7 +46,8 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 /**
- * Compute the differences between two versions of a type as a series of deltas. Entry point is the computeDifferences method.
+ * Compute the differences between two versions of a type as a series of deltas. Entry point is the computeDifferences
+ * method.
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -96,7 +98,8 @@ public class TypeDiffComputer implements Opcodes {
 				}
 				if (found == null) {
 					td.addNewMethod(nMethod);
-				} else {
+				}
+				else {
 					oMethods.remove(found);
 				}
 			}
@@ -129,7 +132,8 @@ public class TypeDiffComputer implements Opcodes {
 			if (found == null) {
 				// this is a new field
 				td.addNewField(nField);
-			} else {
+			}
+			else {
 				oFields.remove(found);
 			}
 		}
@@ -141,8 +145,8 @@ public class TypeDiffComputer implements Opcodes {
 	}
 
 	/**
-	 * Check the properties of the field - if they have changed at all then record what kind of change for the field. Thinking the
-	 * type delta should have a map from names to a delta describing (capturing) the change.
+	 * Check the properties of the field - if they have changed at all then record what kind of change for the field.
+	 * Thinking the type delta should have a map from names to a delta describing (capturing) the change.
 	 */
 	@SuppressWarnings("unchecked")
 	private static void computeAnyFieldDifferences(FieldNode oField, FieldNode nField, TypeDelta td) {
@@ -168,8 +172,8 @@ public class TypeDiffComputer implements Opcodes {
 	}
 
 	/**
-	 * Determine if there any differences between the methods supplied. A MethodDelta object is built to record any differences and
-	 * stored against the type delta.
+	 * Determine if there any differences between the methods supplied. A MethodDelta object is built to record any
+	 * differences and stored against the type delta.
 	 * 
 	 * @param oMethod 'old' method
 	 * @param nMethod 'new' method
@@ -185,7 +189,8 @@ public class TypeDiffComputer implements Opcodes {
 		InsnList nInstructions = nMethod.instructions;
 		if (oInstructions.size() != nInstructions.size()) {
 			md.setInstructionsChanged(oInstructions.toArray(), nInstructions.toArray());
-		} else {
+		}
+		else {
 			// TODO Just interested in constructors right now - should add others
 			if (oMethod.name.charAt(0) == '<') {
 				String oInvokeSpecialDescriptor = null;
@@ -218,7 +223,8 @@ public class TypeDiffComputer implements Opcodes {
 							if (oUninitCount == 0) {
 								// this is the one!
 								oInvokeSpecialDescriptor = mi.desc;
-							} else {
+							}
+							else {
 								oUninitCount--;
 							}
 						}
@@ -229,7 +235,8 @@ public class TypeDiffComputer implements Opcodes {
 							if (nUninitCount == 0) {
 								// this is the one!
 								nInvokeSpecialDescriptor = mi.desc;
-							} else {
+							}
+							else {
 								nUninitCount--;
 							}
 						}
@@ -240,7 +247,8 @@ public class TypeDiffComputer implements Opcodes {
 					if (nInvokeSpecialDescriptor != null) {
 						md.setInvokespecialChanged(oInvokeSpecialDescriptor, nInvokeSpecialDescriptor);
 					}
-				} else {
+				}
+				else {
 					if (!oInvokeSpecialDescriptor.equals(nInvokeSpecialDescriptor)) {
 						md.setInvokespecialChanged(oInvokeSpecialDescriptor, nInvokeSpecialDescriptor);
 					}
@@ -262,83 +270,83 @@ public class TypeDiffComputer implements Opcodes {
 			return false;
 		}
 		switch (o.getType()) {
-		case (AbstractInsnNode.INSN): // 0
-			if (!sameInsnNode(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.INT_INSN): // 1
-			if (!sameIntInsnNode(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.VAR_INSN): // 2
-			if (!sameVarInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.TYPE_INSN):// 3
-			if (!sameTypeInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.FIELD_INSN): // 4
-			if (!sameFieldInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.METHOD_INSN): // 5
-			if (!sameMethodInsnNode(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.JUMP_INSN): // 6
-			if (!sameJumpInsnNode(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.LABEL): // 7
-			if (!sameLabelNode(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.LDC_INSN): // 8
-			if (!sameLdcInsnNode(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.IINC_INSN): // 9
-			if (!sameIincInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.TABLESWITCH_INSN): // 10
-			if (!sameTableSwitchInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.LOOKUPSWITCH_INSN): // 11
-			if (!sameLookupSwitchInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.MULTIANEWARRAY_INSN): // 12
-			if (!sameMultiANewArrayInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.FRAME): // 13
-			if (!sameFrameInsn(o, n)) {
-				return false;
-			}
-			break;
-		case (AbstractInsnNode.LINE): // 14
-			if (!sameLineNumberNode(o, n)) {
-				return false;
-			}
-			break;
-		default:
-			throw new IllegalStateException("nyi " + o.getType());
+			case (AbstractInsnNode.INSN): // 0
+				if (!sameInsnNode(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.INT_INSN): // 1
+				if (!sameIntInsnNode(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.VAR_INSN): // 2
+				if (!sameVarInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.TYPE_INSN):// 3
+				if (!sameTypeInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.FIELD_INSN): // 4
+				if (!sameFieldInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.METHOD_INSN): // 5
+				if (!sameMethodInsnNode(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.JUMP_INSN): // 6
+				if (!sameJumpInsnNode(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.LABEL): // 7
+				if (!sameLabelNode(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.LDC_INSN): // 8
+				if (!sameLdcInsnNode(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.IINC_INSN): // 9
+				if (!sameIincInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.TABLESWITCH_INSN): // 10
+				if (!sameTableSwitchInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.LOOKUPSWITCH_INSN): // 11
+				if (!sameLookupSwitchInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.MULTIANEWARRAY_INSN): // 12
+				if (!sameMultiANewArrayInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.FRAME): // 13
+				if (!sameFrameInsn(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.LINE): // 14
+				if (!sameLineNumberNode(o, n)) {
+					return false;
+				}
+				break;
+			default:
+				throw new IllegalStateException("nyi " + o.getType());
 		}
 		return true;
 	}
@@ -626,7 +634,7 @@ public class TypeDiffComputer implements Opcodes {
 		//		}
 		if (oldClassNode.access != newClassNode.access) {
 			// Is it only because of 0x20000 - that appears to represent Deprecated!
-			if ((oldClassNode.access & 0xffff) != (newClassNode.access&0xffff)) {
+			if ((oldClassNode.access & 0xffff) != (newClassNode.access & 0xffff)) {
 				td.setTypeAccessChange(oldClassNode.access, newClassNode.access);
 			}
 		}
@@ -648,22 +656,26 @@ public class TypeDiffComputer implements Opcodes {
 			if (newClassNode.superName != null) {
 				td.setTypeSuperNameChange(oldClassNode.superName, newClassNode.superName);
 			}
-		} else if (newClassNode.superName == null) {
+		}
+		else if (newClassNode.superName == null) {
 			if (oldClassNode.superName != null) {
 				td.setTypeSuperNameChange(oldClassNode.superName, newClassNode.superName);
 			}
-		} else if (!oldClassNode.superName.equals(newClassNode.superName)) {
+		}
+		else if (!oldClassNode.superName.equals(newClassNode.superName)) {
 			td.setTypeSuperNameChange(oldClassNode.superName, newClassNode.superName);
 		}
 		if (oldClassNode.interfaces.size() == 0) {
 			if (newClassNode.interfaces.size() != 0) {
 				td.setTypeInterfacesChange(oldClassNode.interfaces, newClassNode.interfaces);
 			}
-		} else if (newClassNode.interfaces.size() == 0) {
+		}
+		else if (newClassNode.interfaces.size() == 0) {
 			if (oldClassNode.interfaces.size() != 0) {
 				td.setTypeInterfacesChange(oldClassNode.interfaces, newClassNode.interfaces);
 			}
-		} else {
+		}
+		else {
 			if (oldClassNode.interfaces.size() != newClassNode.interfaces.size()) {
 				td.setTypeInterfacesChange(oldClassNode.interfaces, newClassNode.interfaces);
 			}

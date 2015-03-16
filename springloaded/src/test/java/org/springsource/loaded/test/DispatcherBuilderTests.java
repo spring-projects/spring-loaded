@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springsource.loaded.test;
 
+package org.springsource.loaded.test;
 
 
 import org.junit.Assert;
@@ -84,8 +84,8 @@ public class DispatcherBuilderTests extends SpringLoadedTests {
 	}
 
 	/**
-	 * Test we can differentiate between methods that would clash (static method on the target that takes the instance as first
-	 * parameter and an instance method) - these clash methods would normally create
+	 * Test we can differentiate between methods that would clash (static method on the target that takes the instance
+	 * as first parameter and an instance method) - these clash methods would normally create
 	 */
 	@Test
 	public void callingClashingMethods() throws Exception {
@@ -120,35 +120,35 @@ public class DispatcherBuilderTests extends SpringLoadedTests {
 	//		// Load a version that has a new method in it:  foo(I)Ljava/lang/String;
 	//		rtype.loadNewVersion("2", retrieveRename(tclass, "builder.DispatcherTestOne003"));
 	//
-//		// @formatter:off
-//		Assert.assertEquals(
-//				// Build a string consisting of the method name and descriptor:
-//				"    ALOAD 3\n"+
-//				
-//				// Is it foo(I)Ljava/lang/String; ?
-//				"    LDC foo(I)Ljava/lang/String;\n"+
-//				"    INVOKEVIRTUAL java/lang/String.equals(Ljava/lang/Object;)Z\n"+
-//				"    IFEQ L0\n"+
-//				
-//				// It is! So call the real method on the dispatcher after preparing the arguments
-//				"    ALOAD 2\n"+
-//				"    CHECKCAST builder/DispatcherTestOne\n"+
-//				"    ALOAD 1\n"+
-//				"    LDC 0\n"+
-//				"    AALOAD\n"+
-//				"    CHECKCAST java/lang/Integer\n"+
-//				"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n"+
-//				"    INVOKESTATIC builder/DispatcherTestOne__E2.foo(Lbuilder/DispatcherTestOne;I)Ljava/lang/String;\n"+
-//				"    ARETURN\n"+
-//				
-//				// Is isnt! So throw an exception
-//				" L0\n"+
-//				"    NEW java/lang/IllegalStateException\n"+
-//				"    DUP\n"+
-//				"    INVOKESPECIAL java/lang/IllegalStateException.<init>()V\n"+
-//				"    ATHROW\n",
-//				toStringMethod(rtype.getLatestDispatcherBytes(), Constants.mDynamicDispatchName, false));
-//		// @formatter:on
+	//		// @formatter:off
+	//		Assert.assertEquals(
+	//				// Build a string consisting of the method name and descriptor:
+	//				"    ALOAD 3\n"+
+	//				
+	//				// Is it foo(I)Ljava/lang/String; ?
+	//				"    LDC foo(I)Ljava/lang/String;\n"+
+	//				"    INVOKEVIRTUAL java/lang/String.equals(Ljava/lang/Object;)Z\n"+
+	//				"    IFEQ L0\n"+
+	//				
+	//				// It is! So call the real method on the dispatcher after preparing the arguments
+	//				"    ALOAD 2\n"+
+	//				"    CHECKCAST builder/DispatcherTestOne\n"+
+	//				"    ALOAD 1\n"+
+	//				"    LDC 0\n"+
+	//				"    AALOAD\n"+
+	//				"    CHECKCAST java/lang/Integer\n"+
+	//				"    INVOKEVIRTUAL java/lang/Integer.intValue()I\n"+
+	//				"    INVOKESTATIC builder/DispatcherTestOne__E2.foo(Lbuilder/DispatcherTestOne;I)Ljava/lang/String;\n"+
+	//				"    ARETURN\n"+
+	//				
+	//				// Is isnt! So throw an exception
+	//				" L0\n"+
+	//				"    NEW java/lang/IllegalStateException\n"+
+	//				"    DUP\n"+
+	//				"    INVOKESPECIAL java/lang/IllegalStateException.<init>()V\n"+
+	//				"    ATHROW\n",
+	//				toStringMethod(rtype.getLatestDispatcherBytes(), Constants.mDynamicDispatchName, false));
+	//		// @formatter:on
 	//	}
 
 }

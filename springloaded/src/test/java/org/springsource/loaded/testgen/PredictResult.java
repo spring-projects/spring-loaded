@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Attach this annotation to a test class that uses the ExploreAllChoices runner. To enable result prediction in the construction of
- * the suite. Without this tag results will be predicted only during the actual test run, which speeds up the construction of the
- * test suite.
+ * Attach this annotation to a test class that uses the ExploreAllChoices runner. To enable result prediction in the
+ * construction of the suite. Without this tag results will be predicted only during the actual test run, which speeds
+ * up the construction of the test suite.
  * <p>
  * The price to pay for this speedup is that predicted results will not be shown as part of the test name.
  * 

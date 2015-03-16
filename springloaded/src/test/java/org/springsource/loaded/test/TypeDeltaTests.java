@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
@@ -127,7 +128,8 @@ public class TypeDeltaTests extends SpringLoadedTests {
 		assertFalse(td.hasNewFields());
 		assertTrue(td.haveFieldsChanged());
 		assertEquals(1, td.getChangedFields().size());
-		assertEquals("FieldDelta[field:anIntField type:I>Ljava/lang/String;]", td.getChangedFields().get("anIntField").toString());
+		assertEquals("FieldDelta[field:anIntField type:I>Ljava/lang/String;]",
+				td.getChangedFields().get("anIntField").toString());
 	}
 
 	@Test

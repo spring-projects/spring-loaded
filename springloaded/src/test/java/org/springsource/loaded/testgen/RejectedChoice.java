@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 /**
- * Exception to be thrown by Generated tests when they choice generator produced an invalid/uninteresting test parameter. Tests
- * throwing 'rejected choice' during the setup phase of the test will be ignored rather than reported as errors.
+ * Exception to be thrown by Generated tests when they choice generator produced an invalid/uninteresting test
+ * parameter. Tests throwing 'rejected choice' during the setup phase of the test will be ignored rather than reported
+ * as errors.
  * <p>
- * However, tests that throw this exception during the actual test run will not swallow the exception. If test throws 'rejected
- * choice' in the running stage this should only happen because the test behaved differently than it did before, or because of bug
- * in the replay logic of the IChoiceGenerator implementation.
+ * However, tests that throw this exception during the actual test run will not swallow the exception. If test throws
+ * 'rejected choice' in the running stage this should only happen because the test behaved differently than it did
+ * before, or because of bug in the replay logic of the IChoiceGenerator implementation.
  * 
  * @author kdvolder
  */

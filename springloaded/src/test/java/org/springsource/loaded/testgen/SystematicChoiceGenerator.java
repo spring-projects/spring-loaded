@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded.testgen;
 
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ public class SystematicChoiceGenerator implements IChoiceGenerator {
 	 * Record choices in here so they can be retrieved afterwards
 	 */
 	public List<Boolean> choices = new ArrayList<Boolean>();
+
 	public int next;
 
 	public SystematicChoiceGenerator() {
@@ -39,7 +41,8 @@ public class SystematicChoiceGenerator implements IChoiceGenerator {
 		Boolean chosen = null;
 		if (next < choices.size()) {
 			chosen = choices.get(next++);
-		} else {
+		}
+		else {
 			chosen = firstChoice;
 			choices.add(chosen);
 			next++;
@@ -48,8 +51,8 @@ public class SystematicChoiceGenerator implements IChoiceGenerator {
 	}
 
 	/**
-	 * Should be called when reusing this choice generator. It will produce a test run that makes identical choices than the
-	 * previous run.
+	 * Should be called when reusing this choice generator. It will produce a test run that makes identical choices than
+	 * the previous run.
 	 */
 	public void restart() {
 	}
@@ -63,8 +66,8 @@ public class SystematicChoiceGenerator implements IChoiceGenerator {
 	}
 
 	/**
-	 * Call this method to 'advance' the predetermined choices array by one (this will do a kind of backtracking starting by trying
-	 * to change the last choice for which the alternative has not been tried yet.
+	 * Call this method to 'advance' the predetermined choices array by one (this will do a kind of backtracking
+	 * starting by trying to change the last choice for which the alternative has not been tried yet.
 	 * <p>
 	 * 
 	 * @return true if backtracking was successful, false if all options where explored.
@@ -79,7 +82,8 @@ public class SystematicChoiceGenerator implements IChoiceGenerator {
 			if (choices.get(last) == firstChoice) {
 				choices.set(last, !firstChoice);
 				return true; //Found another choice to explore
-			} else {
+			}
+			else {
 				choices.remove(last);
 				last--;
 			}

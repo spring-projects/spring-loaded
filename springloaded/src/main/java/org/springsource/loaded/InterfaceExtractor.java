@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springsource.loaded;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -24,21 +25,26 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 /**
- * Extract an interface for a type. The interface embodies the shape of the type as originally loaded. The key difference with
- * methods in the interface is that they contain an extra (leading) parameter that is the type of the original loaded class.<br>
+ * Extract an interface for a type. The interface embodies the shape of the type as originally loaded. The key
+ * difference with methods in the interface is that they contain an extra (leading) parameter that is the type of the
+ * original loaded class.<br>
  * For example:<br>
  * 
- * <pre><tt>
+ * <pre>
+ * <tt>
  * class Foo {
  *   public String foo(int i) {}
  * }
- * </tt></pre>
+ * </tt>
+ * </pre>
  * 
  * will cause creation of an interface method:
  * 
- * <pre> <tt>
+ * <pre>
+ * <tt>
  * String foo(Foo instance, int i) {}
- * </tt></pre>
+ * </tt>
+ * </pre>
  * 
  * @author Andy Clement
  * @since 0.5.0
@@ -74,7 +80,9 @@ public class InterfaceExtractor {
 	class ExtractorVisitor extends ClassVisitor implements Constants {
 
 		private TypeDescriptor typeDescriptor;
+
 		private ClassWriter interfaceWriter = new ClassWriter(0);
+
 		private String slashedtypename;
 
 		public ExtractorVisitor(TypeDescriptor typeDescriptor) {
@@ -86,13 +94,16 @@ public class InterfaceExtractor {
 			return interfaceWriter.toByteArray();
 		}
 
-		public void visit(int version, int flags, String name, String signature, String superclassName, String[] interfaceNames) {
+		public void visit(int version, int flags, String name, String signature, String superclassName,
+				String[] interfaceNames) {
 			// Create interface "public interface [typename]__I {"
-			interfaceWriter.visit(version, ACC_PUBLIC_INTERFACE, Utils.getInterfaceName(name), null, "java/lang/Object", null);
+			interfaceWriter.visit(version, ACC_PUBLIC_INTERFACE, Utils.getInterfaceName(name), null,
+					"java/lang/Object", null);
 			this.slashedtypename = name;
 		}
 
-		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature, String[] exceptions) {
+		public MethodVisitor visitMethod(int flags, String name, String descriptor, String signature,
+				String[] exceptions) {
 			// TODO should we special case statics (and not have them require an extra leading param)?
 			if (isClinitOrInit(name)) {
 				if (name.charAt(1) != 'c') { // avoid <clinit>
@@ -102,7 +113,8 @@ public class InterfaceExtractor {
 					name = "___init___";
 					interfaceWriter.visitMethod(ACC_PUBLIC_ABSTRACT, name, newDescriptor, signature, exceptions);
 				}
-			} else {
+			}
+			else {
 				String newDescriptor = createDescriptorWithPrefixedParameter(descriptor);
 				// generic signature is erased
 				MethodMember method = typeDescriptor.getByDescriptor(name, descriptor);
@@ -149,13 +161,15 @@ public class InterfaceExtractor {
 					continue;
 				}
 				descriptor = createDescriptorWithPrefixedParameter(method.getDescriptor());
-				interfaceWriter.visitMethod(ACC_PUBLIC_ABSTRACT, method.getName(), descriptor, null, method.getExceptions());
+				interfaceWriter.visitMethod(ACC_PUBLIC_ABSTRACT, method.getName(), descriptor, null,
+						method.getExceptions());
 			}
 		}
 
 		/**
-		 * Modify the descriptor to include a leading parameter of the type of the class being visited. For example: if visiting
-		 * type "com.Bar" and hit method "(Ljava/lang/String;)V" then this method will return "(Lcom/Bar;Ljava/lang/String;)V"
+		 * Modify the descriptor to include a leading parameter of the type of the class being visited. For example: if
+		 * visiting type "com.Bar" and hit method "(Ljava/lang/String;)V" then this method will return
+		 * "(Lcom/Bar;Ljava/lang/String;)V"
 		 * 
 		 * @return new descriptor with extra leading parameter
 		 */
