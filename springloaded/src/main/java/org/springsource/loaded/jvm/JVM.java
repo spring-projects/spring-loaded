@@ -40,7 +40,7 @@ public class JVM {
 
 	private static Method jlrMethodCopy;
 
-	private static Method jlrMethodGetRoot;
+	private static Field jlrMethodRootField;
 
 	static {
 		try {
@@ -51,8 +51,8 @@ public class JVM {
 			log.log(Level.SEVERE, "Problems getting 'Method.copy()' method. Incompatible JVM?", e);
 		}
 		try {
-			jlrMethodGetRoot = Method.class.getDeclaredMethod("getRoot");
-			jlrMethodGetRoot.setAccessible(true);
+			jlrMethodRootField = Method.class.getDeclaredField("root");
+			jlrMethodRootField.setAccessible(true);
 		}
 		catch (Exception e) {
 			// Possibly on a JDK level that didn't have this?
@@ -62,6 +62,7 @@ public class JVM {
 	private static Field jlrFieldRootField;
 
 	private static Method jlrFieldCopy;
+
 	static {
 		try {
 			jlrFieldCopy = Field.class.getDeclaredMethod("copy");
@@ -79,7 +80,7 @@ public class JVM {
 		}
 	}
 
-	private static Method jlrConstructorGetRoot;
+	private static Field jlrConstructorRootField;
 
 	private static Method jlrConstructorCopy;
 	static {
@@ -92,8 +93,8 @@ public class JVM {
 			log.log(Level.SEVERE, "Problems getting 'Constructor.copy()' method. Incompatible JVM?", e);
 		}
 		try {
-			jlrConstructorGetRoot = Constructor.class.getDeclaredMethod("getRoot");
-			jlrConstructorGetRoot.setAccessible(true);
+			jlrConstructorRootField = Constructor.class.getDeclaredField("root");
+			jlrConstructorRootField.setAccessible(true);
 		}
 		catch (Exception e) {
 			// Possibly on a JDK level that didn't have this?
@@ -170,11 +171,8 @@ public class JVM {
 	 */
 	public static Method copyMethod(Method method) {
 		try {
-			if (jlrMethodGetRoot != null) {
-				Method possibleRoot = (Method) jlrMethodGetRoot.invoke(method);
-				if (possibleRoot != null) {
-					method = possibleRoot;
-				}
+			if (jlrMethodRootField != null) {
+				jlrMethodRootField.set(method, null);
 			}
 			return (Method) jlrMethodCopy.invoke(method);
 		}
@@ -187,11 +185,7 @@ public class JVM {
 	public static Field copyField(Field field) {
 		try {
 			if (jlrFieldRootField != null) {
-				jlrFieldRootField.setAccessible(true);
-				Field possibleRoot = (Field) jlrFieldRootField.get(field);
-				if (possibleRoot != null) {
-					field = possibleRoot;
-				}
+				jlrFieldRootField.set(field, null);
 			}
 			return (Field) jlrFieldCopy.invoke(field);
 		}
@@ -203,11 +197,8 @@ public class JVM {
 
 	public static Constructor<?> copyConstructor(Constructor<?> c) {
 		try {
-			if (jlrConstructorGetRoot != null) {
-				Constructor<?> possibleRoot = (Constructor<?>) jlrConstructorGetRoot.invoke(c);
-				if (possibleRoot != null) {
-					c = possibleRoot;
-				}
+			if (jlrConstructorRootField != null) {
+				jlrConstructorRootField.set(c, null);
 			}
 			return (Constructor<?>) jlrConstructorCopy.invoke(c);
 		}
