@@ -38,9 +38,9 @@ import org.springsource.loaded.Plugin;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.SystemClassReflectionInvestigator;
 import org.springsource.loaded.SystemClassReflectionRewriter;
+import org.springsource.loaded.SystemClassReflectionRewriter.RewriteResult;
 import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils;
-import org.springsource.loaded.SystemClassReflectionRewriter.RewriteResult;
 import org.springsource.loaded.ri.ReflectiveInterceptor;
 import org.springsource.loaded.support.Java8;
 
@@ -53,7 +53,7 @@ import org.springsource.loaded.support.Java8;
  * <li>system classes also need their reflection calls modified but in a different way (they cannot have dependencies on
  * types they cannot see)
  * </ul>
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -106,7 +106,7 @@ public class SpringLoadedPreProcessor implements Constants {
 	 * Main entry point to Spring Loaded when it is running as an agent. This method will use the classLoader and the
 	 * class name in order to determine whether the type should be made reloadable. Non-reloadable types will at least
 	 * get their call sites rewritten.
-	 * 
+	 *
 	 * @param classLoader the classloader loading this type
 	 * @param slashedClassName the slashed class name (e.g. java/lang/String) being loaded
 	 * @param protectionDomain the protection domain for the loaded class
@@ -164,7 +164,7 @@ public class SpringLoadedPreProcessor implements Constants {
 						SystemClassReflectionInvestigator.investigate(slashedClassName, bytes,
 								GlobalConfiguration.investigateSystemClassReflection) > 0) {
 					// This block can help when you suspect there is a system class using reflection and that
-					// class isn't on the 'shortlist' (in systemClassesContainingReflection). Basically turn on the 
+					// class isn't on the 'shortlist' (in systemClassesContainingReflection). Basically turn on the
 					// options to trigger this investigation then add them to the shortlist if it looks like they need rewriting.
 					RewriteResult rr = SystemClassReflectionRewriter.rewrite(slashedClassName, bytes);
 					if (GlobalConfiguration.rewriteAllSystemClasses) {
@@ -213,7 +213,7 @@ public class SpringLoadedPreProcessor implements Constants {
 				String watchPath = getWatchPathFromProtectionDomain(protectionDomain, slashedClassName);
 				if (watchPath == null) {
 					// For a CGLIB generated type, we may still need to make the type reloadable.  For example:
-					// type: com/vmware/rabbit/ApplicationContext$$EnhancerByCGLIB$$512eb60c 
+					// type: com/vmware/rabbit/ApplicationContext$$EnhancerByCGLIB$$512eb60c
 					// codesource determined to be: file:/Users/aclement/springsource/tc-server-developer-2.1.1.RELEASE/spring-insight-instance/wtpwebapps/hello-rabbit-client/WEB-INF/lib/cglib-nodep-2.2.jar <no signer certificates>
 					// But if the type 'com/vmware/rabbit/ApplicationContext' is reloadable, then this should be too
 					boolean makeReloadableAnyway = false;
@@ -374,8 +374,15 @@ public class SpringLoadedPreProcessor implements Constants {
 				}
 				int bits = me.getValue();
 				try {
-					Class<?> clazz = SpringLoadedPreProcessor.class.getClassLoader().loadClass(
-							classname.replace('/', '.'));
+					ClassLoader cl = SpringLoadedPreProcessor.class.getClassLoader();
+					if (cl == null) {
+						cl = ClassLoader.getSystemClassLoader();
+					}
+					if (cl == null) {
+						throw new IllegalStateException(
+								"Unable to determine a classloader to use to ensure system classes properly initialized for reloading");
+					}
+					Class<?> clazz = cl.loadClass(classname.replace('/', '.'));
 					injectReflectiveInterceptorMethods(slashedClassName, bits, clazz);
 					toRemoveList.add(classname);
 				}
@@ -536,7 +543,7 @@ public class SpringLoadedPreProcessor implements Constants {
 	 * fragile though, as it is up to the classloader in question to create it. Some classloaders will create one
 	 * protectionDomain per 'directory' containing class files (and so the slashedClassName must be appended to the
 	 * codesource). Some classloaders have a protectiondomain per class.
-	 * 
+	 *
 	 * @param protectionDomain the protection domain passed in to the defineclass call
 	 * @param slashedClassName the slashed class name currently being defined
 	 * @return the path to watch for changes to this class
@@ -563,7 +570,7 @@ public class SpringLoadedPreProcessor implements Constants {
 						log.finest("Codesource.getLocation()=" + codeSource.getLocation());
 					}
 					// A 'URI is not hierarchical' message can come out when the File ctor is called. Cases seen
-					// so far: 
+					// so far:
 					// GRAILS-10384: relative URL file:../foo/bar - should have built it with new File().toURI.toURL() and not just new URL()
 					File file = null;
 					URI uri = null;
