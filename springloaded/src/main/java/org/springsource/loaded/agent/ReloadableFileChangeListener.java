@@ -82,7 +82,7 @@ public class ReloadableFileChangeListener implements FileChangeListener {
 				Set<JarEntry> entriesBeingWatched = watchedJarContents.get(file);
 				for (JarEntry entryBeingWatched : entriesBeingWatched) {
 					ZipEntry ze = zf.getEntry(entryBeingWatched.slashname);
-					long lmt = ze.getLastModifiedTime().toMillis();
+					long lmt = ze.getTime();//getLastModifiedTime().toMillis();
 					if (lmt > entryBeingWatched.lmt) {
 						// entry in jar has been updated
 						if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
@@ -112,7 +112,7 @@ public class ReloadableFileChangeListener implements FileChangeListener {
 				ZipFile zf = new ZipFile(file);
 				String slashname = rtype.getSlashedName() + ".class";
 				ZipEntry ze = zf.getEntry(slashname);
-				long lmt = ze.getLastModifiedTime().toMillis();
+				long lmt = ze.getTime();//LastModifiedTime().toMillis();
 				JarEntry je = new JarEntry(rtype, slashname, lmt);
 				zf.close();
 				Set<JarEntry> jarEntries = watchedJarContents.get(file);

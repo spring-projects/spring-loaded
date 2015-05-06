@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.attribute.FileTime;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -315,10 +314,10 @@ public class ReloadingJVM {
 				}
 				//				System.out.println("LMT for " + ze.getName() + " is " + new Date(ze.getLastModifiedTime().toMillis()));
 				if (!found) {
-					newZipEntry.setLastModifiedTime(ze.getLastModifiedTime());
+					newZipEntry.setTime(ze.getTime());//LastModifiedTime());
 				}
 				else {
-					newZipEntry.setLastModifiedTime(FileTime.fromMillis(newtime));
+					newZipEntry.setTime(newtime);//FileTime.fromMillis(newtime));
 				}
 				//				System.out.println("LMT for " + ze.getName() + " is updated to "
 				//						+ new Date(newZipEntry.getLastModifiedTime().toMillis()));
