@@ -21,7 +21,6 @@ import static org.springsource.loaded.test.SpringLoadedTests.runOnInstance;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 
 import org.junit.runner.RunWith;
 import org.springsource.loaded.ri.ReflectiveInterceptor;
@@ -34,12 +33,12 @@ import org.springsource.loaded.testgen.RejectedChoice;
 
 /**
  * Tests the following methods:
- * 
+ *
  * Field.getAnnotation Field.isAnnotationPresent
- * 
+ *
  * It is convenient to test both of these here, since they have the kinds of argument types, which means generation of
  * test parameters is the same.
- * 
+ *
  * @author kdvolder
  */
 @RunWith(ExploreAllChoicesRunner.class)

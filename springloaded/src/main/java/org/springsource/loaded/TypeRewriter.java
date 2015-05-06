@@ -27,7 +27,6 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 import org.springsource.loaded.Utils.ReturnType;
 
 
@@ -41,7 +40,7 @@ import org.springsource.loaded.Utils.ReturnType;
  * <li>Creates catchers for inherited methods. Catchers are simply passed through unless a new version of the class
  * provides an implementation
  * </ul>
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -311,7 +310,7 @@ public class TypeRewriter implements Constants {
 			mv.visitJumpInsn(IFNONNULL, l2);
 			mv.visitTypeInsn(NEW, tStaticStateManager);
 			mv.visitInsn(DUP);
-			mv.visitMethodInsn(INVOKESPECIAL, tStaticStateManager, "<init>", "()V");
+			mv.visitMethodInsn(INVOKESPECIAL, tStaticStateManager, "<init>", "()V", false);
 			mv.visitFieldInsn(PUTSTATIC, slashedname, fStaticFieldsName, lStaticStateManager);
 			mv.visitLabel(l2);
 			mv.visitFieldInsn(GETSTATIC, slashedname, fStaticFieldsName, lStaticStateManager);
@@ -319,7 +318,7 @@ public class TypeRewriter implements Constants {
 			mv.visitVarInsn(ALOAD, 0);
 			mv.visitVarInsn(ALOAD, 1);
 			mv.visitMethodInsn(INVOKEVIRTUAL, tStaticStateManager, "setValue", "(" + lReloadableType
-					+ "Ljava/lang/Object;Ljava/lang/String;)V");
+					+ "Ljava/lang/Object;Ljava/lang/String;)V", false);
 			mv.visitInsn(RETURN);
 			mv.visitMaxs(4, 2);
 			mv.visitEnd();
@@ -406,7 +405,7 @@ public class TypeRewriter implements Constants {
 			mv.visitVarInsn(ALOAD, lvInstance);
 			mv.visitVarInsn(ALOAD, lvNewValue);
 			mv.visitVarInsn(ALOAD, lvName);
-			// setValue(ReloadableType rtype, Object instance, Object value, String name) 
+			// setValue(ReloadableType rtype, Object instance, Object value, String name)
 			mv.visitMethodInsn(INVOKEVIRTUAL, tInstanceStateManager, "setValue", "(" + lReloadableType
 					+ "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V");
 			mv.visitInsn(RETURN);
@@ -714,13 +713,13 @@ public class TypeRewriter implements Constants {
 				if (MethodMember.isCatcherForInterfaceMethod(method)) {
 					mv.visitTypeInsn(NEW, "java/lang/IllegalStateException");
 					mv.visitInsn(DUP);
-					mv.visitMethodInsn(INVOKESPECIAL, "java/lang/AbstractMethodError", "<init>", "()V");
+					mv.visitMethodInsn(INVOKESPECIAL, "java/lang/AbstractMethodError", "<init>", "()V", false);
 					mv.visitInsn(ATHROW);
 				}
 				else {
 					mv.visitVarInsn(ALOAD, 0); // load this
 					Utils.createLoadsBasedOnDescriptor(mv, method.getDescriptor(), 1);
-					mv.visitMethodInsn(INVOKESPECIAL, supertypeName, method.getName(), method.getDescriptor());
+					mv.visitMethodInsn(INVOKESPECIAL, supertypeName, method.getName(), method.getDescriptor(), false);
 					Utils.addCorrectReturnInstruction(mv, methodReturnType, false);
 				}
 
@@ -765,7 +764,7 @@ public class TypeRewriter implements Constants {
 		/**
 		 * For the fields that need it (protected fields from a non-reloadable supertype), create the getters and
 		 * setters so that the executor can read/write them.
-		 * 
+		 *
 		 */
 		private void createProtectedFieldGetterSetter(FieldMember field) {
 			String descriptor = field.descriptor;
@@ -847,7 +846,7 @@ public class TypeRewriter implements Constants {
 					mv.visitJumpInsn(IFNONNULL, l1);
 					mv.visitTypeInsn(NEW, tStaticStateManager);
 					mv.visitInsn(DUP);
-					mv.visitMethodInsn(INVOKESPECIAL, tStaticStateManager, "<init>", "()V");
+					mv.visitMethodInsn(INVOKESPECIAL, tStaticStateManager, "<init>", "()V", false);
 					mv.visitFieldInsn(PUTSTATIC, slashedname, fStaticFieldsName, lStaticStateManager);
 					mv.visitLabel(l1);
 				}

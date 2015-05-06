@@ -19,13 +19,11 @@ package org.springsource.loaded.agent;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.Collection;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.springsource.loaded.GlobalConfiguration;
@@ -37,7 +35,7 @@ import org.springsource.loaded.ReloadEventProcessorPlugin;
  * Reloading plugin for 'poking' JVM classes that are known to cache reflective state. Some of the behaviour is switched
  * ON based on which classes are loaded. For example the Introspector clearing logic is only activated if the
  * Introspector gets loaded.
- * 
+ *
  * @author Andy Clement
  * @since 0.7.3
  */
@@ -109,7 +107,7 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 		//	        /** queue for WeakReferences to field reflectors keys */
 		//	        private static final ReferenceQueue<Class<?>> reflectorsQueue =
 		//	            new ReferenceQueue<>();
-		//	    }	
+		//	    }
 	}
 
 
@@ -129,7 +127,7 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 				beanInfoCacheCleared = clearThreadGroupContext(clazz);
 			}
 
-			// GRAILS-9505 - had to introduce the flushFromCaches(). The appcontext we seem to be able to 
+			// GRAILS-9505 - had to introduce the flushFromCaches(). The appcontext we seem to be able to
 			// access from AppContext.getAppContext() isn't the same one the Introspector will be using
 			// so we can fail to clean up the cache.  Strangely calling getAppContexts() and clearing them
 			// all (the code commented out below) doesn't fetch all the contexts. I'm sure it is a nuance of
@@ -157,7 +155,7 @@ public class JVMPlugin implements ReloadEventProcessorPlugin, LoadtimeInstrument
 					//						if (map != null) {
 					//							if (GlobalConfiguration.debugplugins) {
 					//								System.err.println("JVMPlugin: clearing out BeanInfo for " + clazz.getName());
-					//							} 
+					//							}
 					//							map.remove(clazz);
 					//						}
 					//					}

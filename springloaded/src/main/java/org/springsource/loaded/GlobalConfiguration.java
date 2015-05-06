@@ -30,7 +30,7 @@ import org.springsource.loaded.agent.SpringPlugin;
  * Encapsulates configurable elements - these are set (to values other than the defaults) in TypeRegistry when the
  * system property springloaded configuration is processed. Some of the options are only used by testcases to make the
  * testcases easier to write and more straightforward.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -103,6 +103,13 @@ public class GlobalConfiguration {
 	public static String cacheDir = null;
 
 	public final static boolean logNonInterceptedReflectiveCalls = false;
+
+	/**
+	 * Holds a list of fully qualified paths to jars that should be 'watched' for changes. Types
+	 * within these jars will be made reloadable. Set via option 'watchJars' which
+	 * takes a colon separated list of jars.
+	 */
+	public static String[] jarsToWatch = null;
 
 	/**
 	 * Global control for checking assertions
@@ -254,6 +261,12 @@ public class GlobalConfiguration {
 							if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
 								log.info("configuration: dumpFolder = " + dumpFolder);
 							}
+						}
+						else if (key.equals("watchJars")) {
+							if (isRuntimeLogging && log.isLoggable(Level.INFO)) {
+								log.info("Watching jars: " + kv.substring(equals + 1));
+							}
+							jarsToWatch = kv.substring(equals + 1).split(":");
 						}
 						else if (key.equals("maxClassDefinitions")) {
 							try {

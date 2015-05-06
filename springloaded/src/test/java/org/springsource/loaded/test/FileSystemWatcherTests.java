@@ -17,11 +17,14 @@
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.junit.Assert;
@@ -74,8 +77,38 @@ public class FileSystemWatcherTests {
 		pause(3000);
 		watcher.shutdown();
 		System.out.println(listener.changesDetected);
-		assertEquals("abc.txt", listener.changesDetected.get(0));
-		assertEquals("abcd.txt", listener.changesDetected.get(1));
+		assertContains(listener.changesDetected, "abc.txt");
+		assertContains(listener.changesDetected, "abcd.txt");
+	}
+
+	@Test
+	public void jars() throws IOException {
+		TestFileChangeListener listener = new TestFileChangeListener();
+		File dir = getTempDir();
+		FileSystemWatcher watcher = new FileSystemWatcher(listener, -1, "test");
+		pause(1000);
+		File j1 = create(dir, "foo.jar");
+		watcher.register(j1);
+		pause(1100);
+		File j2 = create(dir, "bar.jar");
+		watcher.register(j2);
+		pause(1100);
+		watcher.setPaused(true);
+		touch(j2);
+		watcher.setPaused(false);
+		pause(3000);
+		watcher.shutdown();
+		assertTrue(listener.changesDetected.size() != 0);
+		assertContains(listener.changesDetected, "bar.jar");
+	}
+
+	private void assertContains(Collection<String> cs, String element) {
+		for (String s : cs) {
+			if (s.equals(element)) {
+				return;
+			}
+		}
+		fail("Did not find '" + element + "' in collection: " + cs);
 	}
 
 	@Ignore

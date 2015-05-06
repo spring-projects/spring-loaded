@@ -606,11 +606,23 @@ public class SpringLoadedPreProcessor implements Constants {
 						// great! nothing to do
 					}
 					else if (file.getName().endsWith(".jar")) {
-						if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.WARNING)) {
+						boolean found = false;
+						if (GlobalConfiguration.jarsToWatch != null) {
+							// Check if it is one to watch
+							String candidate = file.getName();
+							for (String jarToWatch : GlobalConfiguration.jarsToWatch) {
+								if (candidate.equals(jarToWatch)) {
+									found = true;
+									break;
+								}
+							}
+						}
+						if (!found && GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.WARNING)) {
 							log.warning("unable to watch this jar file entry: " + slashedClassName.replace('/', '.')
 									+ ". Computed location=" + file.toString());
 						}
-						return null;
+						if (!found)
+							return null;
 					}
 					else if (file.toString().equals("/groovy/script") || file.toString().equals("\\groovy\\script")) {
 						// nothing to do, compiled/loaded by a GroovyClassLoader$InnerLoader - there is nothing to watch.  If the type is to be

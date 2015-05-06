@@ -29,7 +29,7 @@ import org.springsource.loaded.TypeRegistry;
 
 /**
  * Class pre-processor.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */

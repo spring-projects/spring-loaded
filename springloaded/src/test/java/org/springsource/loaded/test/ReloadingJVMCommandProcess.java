@@ -17,8 +17,12 @@
 package org.springsource.loaded.test;
 
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -32,13 +36,33 @@ import org.springsource.loaded.TypeRegistry;
 /**
  * When a ReloadingJVM is launched, this is the program it runs. It can be driven by commands and instructed to do
  * things.
- * 
+ *
  * @author Andy Clement
  * @since 0.7.3
  */
 public class ReloadingJVMCommandProcess {
 
+	static class ExtensibleClassLoader extends URLClassLoader {
+
+		public ExtensibleClassLoader(ClassLoader parent) {
+			super(new URL[0], parent);
+		}
+
+		public void addJar(String jar) {
+			try {
+				addURL(new File(jar).toURI().toURL());
+			}
+			catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	static ExtensibleClassLoader cl;
+
 	public static void main(String[] argv) throws IOException {
+		cl = new ExtensibleClassLoader(ReloadingJVMCommandProcess.class.getClassLoader());
 		System.err.println("ReloadingJVM:started");
 		System.err.flush();
 		try {
@@ -73,6 +97,9 @@ public class ReloadingJVMCommandProcess {
 					}
 					else if (commandName.equals("reload")) {
 						reloadCommand(arguments.get(0), arguments.size() == 1 ? null : arguments.get(1));
+					}
+					else if (commandName.equals("extendcp")) {
+						extendClasspath(arguments.get(0));
 					}
 					else {
 						System.out.println("Don't understand command '" + commandName + "' !!");
@@ -157,6 +184,12 @@ public class ReloadingJVMCommandProcess {
 		}
 	}
 
+	private static void extendClasspath(String newClasspathEntry) {
+		System.err.println("Extending classpath to include: " + newClasspathEntry);
+		cl.addJar(newClasspathEntry);
+		System.err.println("!!");
+	}
+
 	private static void reloadCommand(String classname, String data) {
 		try {
 			Class<?> clazz = Class.forName(classname);
@@ -187,7 +220,7 @@ public class ReloadingJVMCommandProcess {
 	private static void newCommand(String instanceName, String classname) {
 		try {
 			System.err.println("(jvm) creating new instance '" + instanceName + "' of type '" + classname + "'");
-			Class<?> clazz = Class.forName(classname);
+			Class<?> clazz = Class.forName(classname, true, cl);
 			instances.put(instanceName, clazz.newInstance());
 			System.err.println("(jvm) instance successfully created!!");
 		}

@@ -16,6 +16,8 @@
 
 package org.springsource.loaded.test;
 
+import static org.junit.Assert.assertEquals;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -26,7 +28,7 @@ import org.springsource.loaded.test.ReloadingJVM.JVMOutput;
 /**
  * These tests use a harness that forks a JVM with the agent attached, closely simulating a real environment. The forked
  * process is running a special class that can be sent commands.
- * 
+ *
  * @author Andy Clement
  */
 public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
@@ -44,6 +46,7 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		jvm.shutdown();
 	}
 
+	@Override
 	@After
 	public void teardown() throws Exception {
 		super.teardown();
@@ -184,6 +187,46 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		jvm.updateClass("remote.One", retrieveRename("remote.One", "remote.One2"));
 		pause(2);
 		assertStdoutContains("second", jvm.call("b", "run"));
+	}
+
+	@Test
+	public void testReloadingJarsInOtherVM() throws Exception {
+		jvm.shutdown();
+		jvm = ReloadingJVM.launch("watchJars=foo.jar", false); // ;verbose=true;logging=true
+		String path = jvm.copyJarToTestdataDirectory("one/foo.jar", "foo.jar");
+		JVMOutput output = jvm.extendCp(path);
+		jvm.newInstance("a", "Foo", false);
+		JVMOutput jo = jvm.call("a", "run");
+		assertEquals("m() running", jo.stdout.trim());
+		String s = jvm.copyJarToTestdataDirectory("two/foo.jar", "foo.jar", "Foo.class");
+		pause(2);
+		jo = jvm.call("a", "run");
+		String stdout = jo.stdout.trim();
+		if (stdout.startsWith("Reloading:")) {
+			stdout = stdout.substring(stdout.indexOf("\n") + 1);
+		}
+		assertEquals("n() running", stdout);
+	}
+
+
+	@Test
+	public void testReloadingJarsInOtherVM_packages() throws Exception {
+		jvm.shutdown();
+		jvm = ReloadingJVM.launch("watchJars=foo.jar:bar.jar", false);//;verbose=true;logging=true
+		String path = jvm.copyJarToTestdataDirectory("one/bar.jar", "bar.jar");
+		jvm.extendCp(path);
+		jvm.newInstance("a", "test.Bar", false);
+		JVMOutput jo = jvm.call("a", "run");
+		assertEquals("Wibble.foo() running, version 1", jo.stdout.trim());
+		jvm.copyJarToTestdataDirectory("two/bar.jar", "bar.jar", "test/Wibble.class");
+		pause(2);
+		jo = jvm.call("a", "run");
+		String stdout = jo.stdout.trim();
+		if (stdout.startsWith("Reloading:")) {
+			System.out.println("retpos = " + stdout.indexOf("\n"));
+			stdout = stdout.substring(stdout.indexOf("\n") + 1);
+		}
+		assertEquals("Wibble.foo() running, version 2", stdout);
 	}
 
 	// TODO tidyup test data area after each test?

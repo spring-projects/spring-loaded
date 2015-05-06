@@ -45,12 +45,12 @@ import org.objectweb.asm.tree.FieldNode;
 import org.springsource.loaded.Utils.ReturnType.Kind;
 
 
-// TODO debugging tests - how is the experience?  rewriting of field accesses will really 
+// TODO debugging tests - how is the experience?  rewriting of field accesses will really
 // affect field navigation in the debugger
 
 /**
  * Utility functions for use throughout SpringLoaded
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -72,7 +72,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Convert a number (base10) to base62 encoded string
-	 * 
+	 *
 	 * @param number the number to convert
 	 * @return the base 62 encoded string
 	 */
@@ -90,7 +90,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Decode a base62 encoded string into a number (base10). (More expensive than encoding)
-	 * 
+	 *
 	 * @param s the string to decode
 	 * @return the number
 	 */
@@ -104,7 +104,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Depending on the signature of the return type, add the appropriate instructions to the method visitor.
-	 * 
+	 *
 	 * @param mv where to visit to append the instructions
 	 * @param returnType return type descriptor
 	 * @param createCast whether to include CHECKCAST instructions for return type values
@@ -153,7 +153,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Return the number of parameters in the descriptor. Copes with primitives and arrays and reference types.
-	 * 
+	 *
 	 * @param methodDescriptor a method descriptor of the form (Ljava/lang/String;I[[Z)I
 	 * @return number of parameters in the descriptor
 	 */
@@ -183,7 +183,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Create the set of LOAD instructions to load the method parameters. Take into account the size and type.
-	 * 
+	 *
 	 * @param mv the method visitor to recieve the load instructions
 	 * @param descriptor the complete method descriptor (eg. "(ILjava/lang/String;)V") - params and return type are
 	 *            skipped
@@ -310,7 +310,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Return a simple sequence for the descriptor where type references are collapsed to 'O', so
 	 * (IILjava/lang/String;Z) will return IIOZ.
-	 * 
+	 *
 	 * @param descriptor method descriptor, for example (IILjava/lang/String;Z)V
 	 * @return sequence where all parameters are represented by a single character - or null if no parameters
 	 */
@@ -595,7 +595,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Create a descriptor for some set of parameter types. The descriptor will be of the form "([Ljava/lang/String;)"
-	 * 
+	 *
 	 * @param params the (possibly null) list of parameters for which to create the descriptor
 	 * @return a descriptor or "()" for no parameters
 	 */
@@ -614,7 +614,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Given a method descriptor, extract the parameter descriptor and convert into corresponding Class objects. This
 	 * requires a reference to a class loader to convert type names into Class objects.
-	 * 
+	 *
 	 * @param methodDescriptor a method descriptor (e.g (Ljava/lang/String;)I)
 	 * @param classLoader a class loader that can be used to lookup types
 	 * @return an array for classes representing the types in the method descriptor
@@ -633,7 +633,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Convert an asm Type into a corresponding Class object, requires a reference to a ClassLoader to be able to
 	 * convert classnames to class objects.
-	 * 
+	 *
 	 * @param type the asm Type
 	 * @param classLoader a class loader that can be used to find types
 	 * @return the JVM Class for the type
@@ -672,7 +672,7 @@ public class Utils implements Opcodes, Constants {
 	 * Construct the method descriptor for a method. For example 'String bar(int)' would return '(I)Ljava/lang/String;'.
 	 * If the first parameter is skipped, the leading '(' is also skipped (the caller is expect to build the right
 	 * prefix).
-	 * 
+	 *
 	 * @param method method for which the descriptor should be created
 	 * @param ignoreFirstParameter whether to include the first parameter in the output descriptor
 	 * @return a method descriptor
@@ -744,7 +744,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Create the string representation of an integer and pad it to a particular width using leading zeroes.
-	 * 
+	 *
 	 * @param value the value to convert to a string
 	 * @param width the width (in chars) that the resultant string should be
 	 * @return the padded string
@@ -761,7 +761,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Access the specified class as a resource accessible through the specified loader and return the bytes. The
 	 * classname should be 'dot' separated (eg. com.foo.Bar) and not suffixed .class
-	 * 
+	 *
 	 * @param loader the classloader against which getResourceAsStream() will be invoked
 	 * @param dottedclassname the dot separated classname without .class suffix
 	 * @return the byte data defining that class
@@ -785,7 +785,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Access the specified class as a resource accessible through the specified loader and return the bytes. The
 	 * classname should be 'dot' separated (eg. com.foo.Bar) and not suffixed .class
-	 * 
+	 *
 	 * @param loader the classloader against which getResourceAsStream() will be invoked
 	 * @param slashedclassname the dot separated classname without .class suffix
 	 * @return the byte data defining that class
@@ -833,8 +833,8 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Load all the byte data from an input stream.
-	 * 
-	 * @param stream thr input stream from which to read
+	 *
+	 * @param stream the input stream from which to read
 	 * @return a byte array containing all the data from the stream
 	 */
 	public static byte[] loadBytesFromStream(InputStream stream) {
@@ -876,7 +876,7 @@ public class Utils implements Opcodes, Constants {
 	 * Generate the name for the executor class. Must use '$' so that it is considered by some code (eclipse debugger
 	 * for example) to be an inner type of the original class (thus able to consider itself as being from the same
 	 * source file).
-	 * 
+	 *
 	 * @param name the name prefix for the executor class
 	 * @param versionstamp the suffix string for the executor class name
 	 * @return an executor class name
@@ -892,7 +892,7 @@ public class Utils implements Opcodes, Constants {
 	 * Strip the first parameter out of a method descriptor and return the shortened method descriptor. Since primitive
 	 * types cannot be reloadable, there is no need to handle that case - it should always be true that the first
 	 * parameter will exist and will end with a semi-colon. For example: (Ljava/lang/String;II)V becomes (IIV)
-	 * 
+	 *
 	 * @param descriptor method descriptor to be shortened
 	 * @return new version of input descriptor with first parameter taken out
 	 */
@@ -911,7 +911,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Discover the descriptor for the return type. It may be a primitive (so one char) or a reference type (so a/b/c,
 	 * with no 'L' or ';') or it may be an array descriptor ([Ljava/lang/String;).
-	 * 
+	 *
 	 * @param methodDescriptor method descriptor
 	 * @return return type descriptor (with any 'L' or ';' trimmed off)
 	 */
@@ -952,7 +952,7 @@ public class Utils implements Opcodes, Constants {
 
 		/**
 		 * Descriptor for a reference type has already been stripped of L and ;
-		 * 
+		 *
 		 * @param descriptor descriptor, either one char for a primitive or slashed name for a reference type or
 		 *            [La/b/c; for array type
 		 * @param kind one of primitive, array or reference
@@ -1052,7 +1052,7 @@ public class Utils implements Opcodes, Constants {
 	 * Generate the instructions in the specified method visitor to unpack an assumed array (on top of the stack)
 	 * according to the specified descriptor. For example, if the descriptor is (I)V then the array contains a single
 	 * Integer that must be unloaded from the array then unboxed to an int.
-	 * 
+	 *
 	 * @param mv the method visitor to receive the unpack instructions
 	 * @param toCallDescriptor the descriptor for the method whose parameters describe the array contents
 	 * @param arrayVariableIndex index of the array variable
@@ -1127,7 +1127,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Dump the specified bytes under the specified name in the filesystem. If the location hasn't been configured then
 	 * File.createTempFile() is used to determine where the file will be put.
-	 * 
+	 *
 	 * @param slashname the slashed class name (e.g. java/lang/String)
 	 * @param bytes the bytes to dump
 	 * @return the path to the file
@@ -1172,7 +1172,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Return the size of a type. The size is usually 1 except for double and long which are of size 2. The descriptor
 	 * passed in is the full descriptor, including any leading 'L' and trailing ';'.
-	 * 
+	 *
 	 * @param typeDescriptor the descriptor for a single type, may be primitive. For example: I, J, Z,
 	 *            Ljava/lang/String;
 	 * @return the size of the descriptor (number of slots it will consume), either 1 or 2
@@ -1192,7 +1192,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Dump some bytes into the specified file.
-	 * 
+	 *
 	 * @param file full filename for where to dump the stuff (e.g. c:/temp/Foo.class)
 	 * @param bytes the bytes to write to the file
 	 */
@@ -1226,7 +1226,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Compute the size required for a specific method descriptor.
-	 * 
+	 *
 	 * @param descriptor a method descriptor, for example (Ljava/lang/String;ZZ)V
 	 * @return number of stack/var entries necessary for that descriptor
 	 */
@@ -1391,7 +1391,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Load the contents of an input stream.
-	 * 
+	 *
 	 * @param stream input stream that contains the bytes to load
 	 * @return the byte array loaded from the input stream
 	 */
@@ -1427,10 +1427,10 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * If the flags indicate it is not public, private or protected, then it is default and make it public.
-	 * 
+	 *
 	 * Default visibility needs promoting because package visibility is determined by classloader+package, not just
 	 * package.
-	 * 
+	 *
 	 * @param access incoming access modifiers
 	 * @return adjusted modifiers
 	 */
@@ -1439,9 +1439,9 @@ public class Utils implements Opcodes, Constants {
 			// is default
 			return (access | Modifier.PUBLIC);
 		}
-		if ((access & Constants.ACC_PROTECTED) != 0) {
+		if ((access & Opcodes.ACC_PROTECTED) != 0) {
 			// was protected, need to 'publicize' it
-			return access - Constants.ACC_PROTECTED + Constants.ACC_PUBLIC;
+			return access - Opcodes.ACC_PROTECTED + Opcodes.ACC_PUBLIC;
 		}
 		//		if ((access & Constants.ACC_PRIVATE) != 0) {
 		//			// was private, need to 'publicize' it
@@ -1455,18 +1455,18 @@ public class Utils implements Opcodes, Constants {
 			// is default
 			return (access | Modifier.PUBLIC);
 		}
-		if ((access & Constants.ACC_PROTECTED) != 0) {
+		if ((access & Opcodes.ACC_PROTECTED) != 0) {
 			// was protected, need to 'publicize' it
-			return access - Constants.ACC_PROTECTED + Constants.ACC_PUBLIC;
+			return access - Opcodes.ACC_PROTECTED + Opcodes.ACC_PUBLIC;
 		}
-		if (isEnum && (access & Constants.ACC_PRIVATE) != 0) {
+		if (isEnum && (access & Opcodes.ACC_PRIVATE) != 0) {
 			// was private, need to 'publicize' it
-			return access - Constants.ACC_PRIVATE + Constants.ACC_PUBLIC;
+			return access - Opcodes.ACC_PRIVATE + Opcodes.ACC_PUBLIC;
 		}
 		if ((access & Constants.ACC_PRIVATE_STATIC_SYNTHETIC) == ACC_PRIVATE_STATIC_SYNTHETIC
 				&& name.startsWith("lambda")) {
 			// Special case for lambda, may need to generalize for general invokedynamic support
-			return access - Constants.ACC_PRIVATE + Constants.ACC_PUBLIC;
+			return access - Opcodes.ACC_PRIVATE + Opcodes.ACC_PUBLIC;
 		}
 		return access;
 	}
@@ -1476,9 +1476,9 @@ public class Utils implements Opcodes, Constants {
 			// is default
 			return (access | Modifier.PUBLIC);
 		}
-		if ((access & Constants.ACC_PROTECTED) != 0) {
+		if ((access & Opcodes.ACC_PROTECTED) != 0) {
 			// was protected, need to 'publicize' it
-			return access - Constants.ACC_PROTECTED + Constants.ACC_PUBLIC;
+			return access - Opcodes.ACC_PROTECTED + Opcodes.ACC_PUBLIC;
 		}
 		//		if ((access & Constants.ACC_PRIVATE) != 0) {
 		//			// was private, need to 'publicize' it
@@ -1489,7 +1489,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Utility method similar to Java 1.6 Arrays.copyOf, used instead of that method to stick to Java 1.5 only API.
-	 * 
+	 *
 	 * @param <T> the type of the array entries
 	 * @param array the array to copy
 	 * @param newSize the size of the new array
@@ -1504,7 +1504,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Modify visibility to be public.
-	 * 
+	 *
 	 * @param access existing access
 	 * @return modified access, adjusted to public non-final
 	 */
@@ -1556,7 +1556,7 @@ public class Utils implements Opcodes, Constants {
 	 * Convert a value to the requested descriptor. For null values where the caller needs a primitive, this returns the
 	 * appropriate (boxed) default. This method will not attempt conversion, it is basically checking what to do if the
 	 * result is null - and ensuring the caller gets back what they expect (the appropriate primitive default).
-	 * 
+	 *
 	 * @param value the value
 	 * @param desc the type the caller would like it to be
 	 * @return the converted value or possibly a default value for the type if the incoming value is null
@@ -1598,7 +1598,7 @@ public class Utils implements Opcodes, Constants {
 	 * Check that the value we have discovered is of the right type. It may not be if the field has changed type during
 	 * a reload. When this happens we will default the value for the new field and forget the one we were holding onto.
 	 * note: array forms are not compatible (e.g. int[] and Integer[])
-	 * 
+	 *
 	 * @param registry the type registry that can be quizzed for type information
 	 * @param result the result we have discovered and are about to return - this is never null
 	 * @param expectedTypeDescriptor the type we are looking for (will be primitive or Ljava/lang/String style)
@@ -1654,7 +1654,7 @@ public class Utils implements Opcodes, Constants {
 	/*
 	 * Determine if the type specified in lookingFor is a supertype (class/interface) of the specified typedescriptor, i.e. can an
 	 * object of type 'candidate' be assigned to a variable of typ 'lookingFor'.
-	 * 
+	 *
 	 * @return true if it is a supertype
 	 */
 	public static boolean isAssignableFrom(String lookingFor, TypeDescriptor candidate) {
@@ -1680,7 +1680,7 @@ public class Utils implements Opcodes, Constants {
 
 	/*
 	 * Produce the bytecode that will collapse the stack entries into an array - the descriptor describes what is being packed.
-	 * 
+	 *
 	 * @param mv the method visitor to receive the instructions to package the data
 	 * @param desc the descriptor for the method that shows (through its parameters) the contents of the stack
 	 */
@@ -1750,7 +1750,7 @@ public class Utils implements Opcodes, Constants {
 	/**
 	 * Looks at the supplied descriptor and inserts enough pops to remove all parameters. Should be used when about to
 	 * avoid a method call.
-	 * 
+	 *
 	 * @param mv the method visitor to append instructions to
 	 * @param desc the method descriptor for the parameter sequence (e.g. (Ljava/lang/String;IZZ)V)
 	 * @return number of parameters popped
@@ -1834,7 +1834,7 @@ public class Utils implements Opcodes, Constants {
 
 	/**
 	 * Determine the interfaces implemented by a given class (supplied as bytes)
-	 * 
+	 *
 	 * @param classbytes the classfile bytes
 	 * @return array of interface names (slashed descriptors)
 	 */
@@ -1855,34 +1855,43 @@ public class Utils implements Opcodes, Constants {
 
 		public String[] interfaces;
 
+		@Override
 		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
 			this.interfaces = interfaces;
 		}
 
+		@Override
 		public void visitSource(String source, String debug) {
 		}
 
+		@Override
 		public void visitOuterClass(String owner, String name, String desc) {
 		}
 
+		@Override
 		public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
 			return null;
 		}
 
+		@Override
 		public void visitAttribute(Attribute attr) {
 		}
 
+		@Override
 		public void visitInnerClass(String name, String outerName, String innerName, int access) {
 		}
 
+		@Override
 		public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 			return null;
 		}
 
+		@Override
 		public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 			return null;
 		}
 
+		@Override
 		public void visitEnd() {
 		}
 

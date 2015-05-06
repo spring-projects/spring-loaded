@@ -58,7 +58,7 @@ import org.springsource.loaded.support.Java8;
  * The type registry tracks all reloadable types loaded by a specific class loader. It is configurable via a
  * springloaded.properties file (which it will discover as resources through the classloader) or directly via a
  * configure(Properties) method call.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -97,13 +97,13 @@ public class TypeRegistry {
 		"javax.management.remote.rmi.NoCallStackClassLoader",
 		"org.springsource.loaded.ChildClassLoader",
 		//		"groovy.lang.GroovyClassLoader$InnerLoader",
-		// not excluding GCL$InnerLoader because we want the reflection stuff rewritten - think we need to separate out 
+		// not excluding GCL$InnerLoader because we want the reflection stuff rewritten - think we need to separate out
 		// reflection rewriting from the rest of callside rewriting.  Although do we still need to rewrite call sites anyway, although the code there may not change (i.e. TypeRewriter not
 		// required), the targets for some calls may come and go (may not have been in the original loaded version)
 		"org.apache.jasper.servlet.JasperLoader",
 
 			// tc server configuration...
-			//	"org.apache.catalina.loader.StandardClassLoader" 
+			//	"org.apache.catalina.loader.StandardClassLoader"
 	};
 
 	// @formatter:on
@@ -231,7 +231,7 @@ public class TypeRegistry {
 	/**
 	 * Check if a type registry exists for a specific type registry ID. Enables parts of the system (for example the
 	 * FileSystemWatcher) to check if a type registry is still alive/active.
-	 * 
+	 *
 	 * @param typeRegistryId the ID of a type registry
 	 * @return true if that type registry is still around, false otherwise
 	 */
@@ -246,7 +246,7 @@ public class TypeRegistry {
 
 	/**
 	 * Factory access method for obtaining TypeRegistry instances. Returns a TypeRegistry for the specified classloader.
-	 * 
+	 *
 	 * @param classloader The classloader to create/retrieve the type registry for
 	 * @return the TypeRegistry for the classloader
 	 */
@@ -308,7 +308,7 @@ public class TypeRegistry {
 
 	/**
 	 * Only checks the reloadable types this registry knows about, it doesn't search beyond that.
-	 * 
+	 *
 	 * @param slashedClassname the slashed classname (e.g. java/lang/String)
 	 * @return the TypeDescriptor or null if that classname is unknown
 	 */
@@ -432,7 +432,7 @@ public class TypeRegistry {
 	/**
 	 * Configure this TypeRegistry using a specific set of properties - this will override any previous configuration.
 	 * It is mainly provided for testing purposes.
-	 * 
+	 *
 	 * @param properties the properties to use to configure this type registry
 	 */
 	public void configure(Properties properties) {
@@ -605,7 +605,7 @@ public class TypeRegistry {
 	 * Determine if the named type could be reloadable. This method is invoked if the user has not setup any inclusions.
 	 * With no inclusions specified, something is considered reloadable if it is accessible by the classloader for this
 	 * registry and is not in a jar
-	 * 
+	 *
 	 * @param slashedName the typename of interest (e.g. com/foo/Bar)
 	 * @return true if the type should be considered reloadable
 	 */
@@ -693,6 +693,26 @@ public class TypeRegistry {
 				//					new RuntimeException().printStackTrace();
 				//				}
 				reloadable = protocol.equals("file");
+				// Check if it is from a jar that is being watched
+				if (!reloadable && protocol.equals("jar")) {
+					if (GlobalConfiguration.jarsToWatch != null) {
+						// 1.3 feature, can watch jars!
+						String urlstring = url.toString();
+						// example path: jar:file:/var/folders/cn/p3n4rh_n6z7gm6zwk53mtfc80000gp/T/_sl308369570226517394/foo.jar!/Foo.class
+						int bangSlash = urlstring.lastIndexOf("!/");
+						if (bangSlash != -1) {
+							String pathInJar = urlstring.substring(bangSlash + 2);
+							String remainingPrefix = urlstring.substring(0, bangSlash);
+							int lastSlash = remainingPrefix.lastIndexOf("/"); // TODO windoze?
+							String jarname = remainingPrefix.substring(lastSlash + 1);
+							for (String jarToWatch : GlobalConfiguration.jarsToWatch) {
+								if (jarname.equals(jarToWatch)) {
+									reloadable = true;
+								}
+							}
+						}
+					}
+				}
 			}
 			if (packageName != null) {
 				if (reloadable) {
@@ -719,7 +739,7 @@ public class TypeRegistry {
 	/**
 	 * Determine if the type specified is a reloadable type. This method works purely by name, it does not load
 	 * anything.
-	 * 
+	 *
 	 * @param slashedName the type name, eg. a/b/c/D
 	 * @param protectionDomain the protection domain this class is being loaded under
 	 * @param bytes the class bytes for the class being loaded
@@ -851,7 +871,7 @@ public class TypeRegistry {
 	/**
 	 * Lookup the type ID for a string. First checks those allocated but not yet registered, then those that are already
 	 * registered. If not found then a new one is allocated and recorded.
-	 * 
+	 *
 	 * @param slashname the slashed type name, eg. a/b/c/D
 	 * @param allocateIfNotFound determines whether an id should be allocated for the type if it cannot be found
 	 * @return the unique ID number
@@ -897,6 +917,13 @@ public class TypeRegistry {
 			throw new RuntimeException(e);
 		}
 
+		rtype.loadNewVersion(versionstamp, newBytes);
+	}
+
+	public void loadNewVersion(ReloadableType rtype, long lastModTime, InputStream is) {
+		String versionstamp = Utils.encode(lastModTime);
+		// load bytes for new version
+		byte[] newBytes = Utils.loadFromStream(is);
 		rtype.loadNewVersion(versionstamp, newBytes);
 	}
 
@@ -952,7 +979,7 @@ public class TypeRegistry {
 
 	/**
 	 * Add a type to the registry. The name should have already passed the isReloadableTypeName() test.
-	 * 
+	 *
 	 * @param dottedname type name of the form a.b.c.D
 	 * @param initialbytes the first version of the bytes as loaded
 	 * @return the ReloadableType or null if it cannot be made reloadable
@@ -1053,7 +1080,7 @@ public class TypeRegistry {
 	/**
 	 * Sometimes we discover the reloadabletype during program execution, for example A calls B and we haven't yet seen
 	 * B. We find B has been loaded by a parent classloader, let's remember B here so we can do fast lookups for it.
-	 * 
+	 *
 	 * @param typeId the id for the type
 	 * @param rtype the ReloadableType to associate with the id
 	 */
@@ -1070,7 +1097,7 @@ public class TypeRegistry {
 	/**
 	 * Determine the reloadabletype object representation for a specified class. If the caller already knows the ID for
 	 * the type, that would be a quicker way to locate the reloadable type object.
-	 * 
+	 *
 	 * @param slashedClassName the slashed (e.g. java/lang/String) class name
 	 * @return the ReloadableType
 	 */
@@ -1095,7 +1122,7 @@ public class TypeRegistry {
 	 * For a specific classname, this method will search in the current type registry and any parent type registries
 	 * (similar to a regular classloader delegation strategy). Returns null if the type is not found. It does not
 	 * attempt to load anything in.
-	 * 
+	 *
 	 * @param classname the type being searched for, e.g. com/foo/Bar
 	 * @return the ReloadableType if found, otherwise null
 	 */
@@ -1125,7 +1152,7 @@ public class TypeRegistry {
 	 * Find the ReloadableType object for a given classname. If the allocateIdIfNotYetLoaded option is set then a new id
 	 * will be allocated for this classname if it hasn't previously been seen before. This method does not create new
 	 * ReloadableType objects, they are expected to come into existence when defined by the classloader.
-	 * 
+	 *
 	 * @param slashedClassname the slashed class name (e.g. java/lang/String)
 	 * @param allocateIdIfNotYetLoaded if true an id will be allocated because sometime later the type will be loaded
 	 *            (and made reloadable)
@@ -1206,7 +1233,7 @@ public class TypeRegistry {
 
 	/**
 	 * Used to determine if the invokedynamic needs to be intercepted.
-	 * 
+	 *
 	 * @return null if nothing has been reloaded
 	 */
 	@UsedByGeneratedCode
@@ -1223,7 +1250,7 @@ public class TypeRegistry {
 	 * Determine if something has changed in a particular type related to a particular descriptor and so the dispatcher
 	 * interface should be used. The type registry ID and class ID are merged in the 'ids' parameter. This method is for
 	 * INVOKESTATIC rewrites and so performs additional checks because it assumes the target is static.
-	 * 
+	 *
 	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
 	 * @param nameAndDescriptor the name and descriptor of the method about to be INVOKESTATIC'd
 	 * @return null if the original code can run otherwise return the dispatcher to use
@@ -1364,7 +1391,7 @@ public class TypeRegistry {
 
 	/**
 	 * See notes.md#001
-	 * 
+	 *
 	 * @param instance the object instance on which the INVOKEINTERFACE is being called
 	 * @param params the parameters to the INVOKEINTERFACE call
 	 * @param instance2 the object instance on which the INVOKEINTERFACE is being called
@@ -1470,7 +1497,7 @@ public class TypeRegistry {
 	 * changes about the descriptor it is considered an entirely different method (and the old form is a deleted
 	 * method). For this reason there is no need to consider 'changed' methods, because the static-ness nor visibility
 	 * cannot change.
-	 * 
+	 *
 	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
 	 * @param nameAndDescriptor the name and descriptor of the method about to be INVOKEINTERFACE'd
 	 * @return true if the original method operation must be intercepted
@@ -1523,19 +1550,19 @@ public class TypeRegistry {
 	 * "can i call what I was going to call, or not?"
 	 * The answer to that question primarily depends on whether the method was previously defined in the target hierarchy.  If it was then
 	 * yes, make the call and let catchers sort it out.  If not then we need to jump through firey hoops.
-	 * 
+	 *
 	 * For example, this code:
 	 * public int run1() {
 		XX zz = new ZZ();
 		return zz.foo();
 	   }
-	 * 
+	 *
 	 * results in this invokevirtual:
-	 * 
+	 *
 	  INVOKEVIRTUAL invokevirtual/XX.foo()I
-	 * 
+	 *
 	 * Notice the static type of the variable is used in the method descriptor for the invoke.
-	 * 
+	 *
 	 * The rewriter then turns it into this:
 	LDC 65537
 	LDC foo()I
@@ -1554,28 +1581,28 @@ public class TypeRegistry {
 	L5
 	 *
 	 * What that says is: call ivicheck for 65537,foo()I (65537 embodies the type registry id and the class ID, XX in our case, as per the descriptor).
-	 * 
+	 *
 	 * vcheck should return true for methods that do not exist - since we can't run the invokevirtual
-	 * 
+	 *
 	 * If vcheck returns false, do what you were going to do anyway:
 	 *   this will actually cause us to jump into a catcher method.
 	 * If vcheck returns true, call the __execute() method on the type XX - however, due to virtual dispatch and all the types implementing __execute() we
 	 * will end up in the one for the dynamic type (ZZ.__execute())
-	 * 
+	 *
 	 * These two paths proceed as follows.
-	 * 
+	 *
 	 * 1) If we jumped into a catcher method, we actually hit the catcher ZZ.foo()
 	 * The catcher works as follows - grab the latest version of this type (if it has been reloaded) and call foo() on the dispatcher, otherwise call super.foo().
 	 * The catcher exists because the type did not originally implement the method.  It exists to enable the type to implement the method later.  The same sequence
 	 * will continue (through catchers) until a type is hit that provides an implementation which did not used to, or an original implementation is hit, or we run out
 	 * of options and an NSME is created.  The catcher code is below.
-	 * 
+	 *
 	 * 2) In the ZZ.__execute() method we actually ask the type registry to tell us what to call - we call determineDispatcher which uses the runtime type for the call
 	 * and discovers which dispatcher should be used.  it is a bit naughty in that if it finds an reloadabletype that is the right answer but that hasn't been reloaded,
 	 * it forces a reload of the original code to create a dispatcher instance that can be returned.
-	 * 
+	 *
 	 * __execute is for methods that were never there at all
-	 * 
+	 *
 	METHOD: 0x0001(public) foo()I
 	CODE
 	GETSTATIC invokevirtual/ZZ.r$type Lorg/springsource/loaded/ReloadableType;
@@ -1592,14 +1619,14 @@ public class TypeRegistry {
 	ALOAD 0
 	INVOKESPECIAL invokevirtual/YY.foo()I
 	IRETURN
-	 * 
-	 * 
-	 * 
+	 *
+	 *
+	 *
 	 */
 
 	/**
 	 * Called for a field operation - trying to determine whether a particular field needs special handling.
-	 * 
+	 *
 	 * @param ids packed representation of the registryId (top 16bits) and typeId (bottom 16bits)
 	 * @param name the name of the instance field about to be accessed
 	 * @return true if the field operation must be intercepted
@@ -1664,7 +1691,7 @@ public class TypeRegistry {
 	/**
 	 * Used in code the generated code replaces invokevirtual calls. Determine if the code can run as it was originally
 	 * compiled.
-	 * 
+	 *
 	 * This method will return FALSE if nothing has changed to interfere with the invocation and it should proceed. This
 	 * method will return TRUE if something has changed and the caller needs to do something different.
 	 *
@@ -1758,7 +1785,7 @@ public class TypeRegistry {
 
 	/**
 	 * This method discovers the reloadable type instance for the registry and type id specified.
-	 * 
+	 *
 	 * @param typeRegistryId the type registry id
 	 * @param typeId the type id
 	 * @return the ReloadableType (if there is no ReloadableType an exception will be thrown)
@@ -1787,6 +1814,7 @@ public class TypeRegistry {
 		return reloadableType;
 	}
 
+	@Override
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		s.append("TypeRegistry(id=");
@@ -1828,7 +1856,8 @@ public class TypeRegistry {
 			log.info("Called to monitor " + rtype.dottedtypename + " from " + externalForm);
 		}
 
-		if (!watching.contains(externalForm)) {
+		boolean watchingContainsIt = watching.contains(externalForm);
+		if (!watchingContainsIt || externalForm.endsWith(".jar")) {
 			// classFileToType.put(externalForm, rtype.slashedtypename);
 			File f = new File(externalForm);
 			if (fileChangeListener == null) {
@@ -1838,8 +1867,10 @@ public class TypeRegistry {
 				fsWatcher = new FileSystemWatcher(fileChangeListener, id, getClassLoaderName());
 			}
 			fileChangeListener.register(rtype, f);
-			fsWatcher.register(f);
-			watching.add(externalForm);
+			if (!watchingContainsIt) {
+				fsWatcher.register(f);
+				watching.add(externalForm);
+			}
 		}
 	}
 
@@ -1916,7 +1947,7 @@ public class TypeRegistry {
 	/**
 	 * Process some type pattern objects from the supplied value. For example the value might be
 	 * 'com.foo.Bar,!com.foo.Goo'
-	 * 
+	 *
 	 * @param value string defining a comma separated list of type patterns
 	 * @return list of TypePatterns
 	 */
@@ -2010,7 +2041,7 @@ public class TypeRegistry {
 	/**
 	 * To avoid leaking permgen we want to periodically discard the child classloader and recreate a new one. We will
 	 * need to then redefine types again over time as they are used (the most recent variants of them).
-	 * 
+	 *
 	 * @param currentlyDefining the reloadable type currently being defined reloaded
 	 */
 	public void checkChildClassLoader(ReloadableType currentlyDefining) {
@@ -2101,7 +2132,7 @@ public class TypeRegistry {
 	/**
 	 * When an invokedynamic instruction is reached, we allocate an id that recognizes that bsm and the parameters to
 	 * that bsm. The index can be used when rewriting that invokedynamic
-	 * 
+	 *
 	 * @param slashedClassName the slashed class name containing the bootstrap method
 	 * @param bsm the bootstrap methods
 	 * @param bsmArgs the bootstrap method arguments (asm types)
@@ -2148,7 +2179,7 @@ public class TypeRegistry {
 	/**
 	 * Called from the static initializer of a reloadabletype, allowing it to connect itself to the parent type, such
 	 * that when reloading occurs we can mark all relevant types in the hierarchy as being impacted by the reload.
-	 * 
+	 *
 	 * @param child the ReloadableType actively being initialized
 	 * @param parent the superclass of the reloadable type (may or may not be reloadable!)
 	 */
