@@ -102,8 +102,8 @@ public class TypeRegistry {
 		// required), the targets for some calls may come and go (may not have been in the original loaded version)
 		"org.apache.jasper.servlet.JasperLoader",
 
-			// tc server configuration...
-			//	"org.apache.catalina.loader.StandardClassLoader"
+		// tc server configuration...
+		//	"org.apache.catalina.loader.StandardClassLoader"
 	};
 
 	// @formatter:on
@@ -132,8 +132,8 @@ public class TypeRegistry {
 	 * created before a ReloadableType object is created - and in that window TypeRegistries would be GCd if the
 	 * reference here was weak.
 	 */
-	private static Map<ClassLoader, TypeRegistry> loaderToRegistryMap = Collections
-			.synchronizedMap(new WeakHashMap<ClassLoader, TypeRegistry>());
+	private static Map<ClassLoader, TypeRegistry> loaderToRegistryMap = Collections.synchronizedMap(
+			new WeakHashMap<ClassLoader, TypeRegistry>());
 
 	private static String[] excludedLoaders = STANDARD_EXCLUDED_LOADERS;
 
@@ -819,16 +819,18 @@ public class TypeRegistry {
 				}
 			}
 			else {
-				boolean isExcluded = false;
-				String matchName = slashedName.replace('/', '.');
-				for (TypePattern typepattern : exclusionPatterns) {
-					if (typepattern.matches(matchName)) {
-						isExcluded = true;
-						break;
+				if (slashedName != null) {
+					boolean isExcluded = false;
+					String matchName = slashedName.replace('/', '.');
+					for (TypePattern typepattern : exclusionPatterns) {
+						if (typepattern.matches(matchName)) {
+							isExcluded = true;
+							break;
+						}
 					}
-				}
-				if (isExcluded) {
-					return false;
+					if (isExcluded) {
+						return false;
+					}
 				}
 				if (couldBeReloadable(slashedName)) {
 					return true;
@@ -1275,8 +1277,8 @@ public class TypeRegistry {
 		}
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
-			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
-					.getFromLatestByDescriptor(nameAndDescriptor);
+			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
+					nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				// method has been deleted or is on a supertype. Look for it:
@@ -1301,7 +1303,8 @@ public class TypeRegistry {
 						}
 					}
 					else if (nextInHierarchy.hasBeenReloaded()) {
-						method = nextInHierarchy.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(nameAndDescriptor);
+						method = nextInHierarchy.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
+								nameAndDescriptor);
 						if (method != null && IncrementalTypeDescriptor.wasDeleted(method)) {
 							method = null;
 						}
@@ -1454,7 +1457,8 @@ public class TypeRegistry {
 		//			return false;
 		//		}
 		// Search for the dispatcher we can call
-		__DynamicallyDispatchable o = (__DynamicallyDispatchable) invokespecialSearch(reloadableType, nameAndDescriptor);
+		__DynamicallyDispatchable o = (__DynamicallyDispatchable) invokespecialSearch(reloadableType,
+				nameAndDescriptor);
 		return o;
 	}
 
@@ -1519,8 +1523,8 @@ public class TypeRegistry {
 			return false;
 		}
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
-			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
-					.getFromLatestByDescriptor(nameAndDescriptor);
+			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
+					nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				// method does not exist
@@ -1739,8 +1743,8 @@ public class TypeRegistry {
 		}
 
 		if (reloadableType != null && reloadableType.hasBeenReloaded()) {
-			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor
-					.getFromLatestByDescriptor(nameAndDescriptor);
+			MethodMember method = reloadableType.getLiveVersion().incrementalTypeDescriptor.getFromLatestByDescriptor(
+					nameAndDescriptor);
 			boolean dispatchThroughDescriptor = false;
 			if (method == null) {
 				if (!reloadableType.getTypeDescriptor().isFinalInHierarchy(nameAndDescriptor)) {
