@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Handle;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -33,6 +34,7 @@ import org.objectweb.asm.tree.IincInsnNode;
 import org.objectweb.asm.tree.InsnList;
 import org.objectweb.asm.tree.InsnNode;
 import org.objectweb.asm.tree.IntInsnNode;
+import org.objectweb.asm.tree.InvokeDynamicInsnNode;
 import org.objectweb.asm.tree.JumpInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.LdcInsnNode;
@@ -48,7 +50,7 @@ import org.objectweb.asm.tree.VarInsnNode;
 /**
  * Compute the differences between two versions of a type as a series of deltas. Entry point is the computeDifferences
  * method.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -174,7 +176,7 @@ public class TypeDiffComputer implements Opcodes {
 	/**
 	 * Determine if there any differences between the methods supplied. A MethodDelta object is built to record any
 	 * differences and stored against the type delta.
-	 * 
+	 *
 	 * @param oMethod 'old' method
 	 * @param nMethod 'new' method
 	 * @param td the type delta where changes are currently being accumulated
@@ -270,77 +272,82 @@ public class TypeDiffComputer implements Opcodes {
 			return false;
 		}
 		switch (o.getType()) {
-			case (AbstractInsnNode.INSN): // 0
+			case (AbstractInsnNode.INSN):
 				if (!sameInsnNode(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.INT_INSN): // 1
+			case (AbstractInsnNode.INT_INSN):
 				if (!sameIntInsnNode(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.VAR_INSN): // 2
+			case (AbstractInsnNode.VAR_INSN):
 				if (!sameVarInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.TYPE_INSN):// 3
+			case (AbstractInsnNode.TYPE_INSN):
 				if (!sameTypeInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.FIELD_INSN): // 4
+			case (AbstractInsnNode.FIELD_INSN):
 				if (!sameFieldInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.METHOD_INSN): // 5
+			case (AbstractInsnNode.METHOD_INSN):
 				if (!sameMethodInsnNode(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.JUMP_INSN): // 6
+			case (AbstractInsnNode.INVOKE_DYNAMIC_INSN):
+				if (!sameInvokeDynamicInsnNode(o, n)) {
+					return false;
+				}
+				break;
+			case (AbstractInsnNode.JUMP_INSN):
 				if (!sameJumpInsnNode(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.LABEL): // 7
+			case (AbstractInsnNode.LABEL):
 				if (!sameLabelNode(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.LDC_INSN): // 8
+			case (AbstractInsnNode.LDC_INSN):
 				if (!sameLdcInsnNode(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.IINC_INSN): // 9
+			case (AbstractInsnNode.IINC_INSN):
 				if (!sameIincInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.TABLESWITCH_INSN): // 10
+			case (AbstractInsnNode.TABLESWITCH_INSN):
 				if (!sameTableSwitchInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.LOOKUPSWITCH_INSN): // 11
+			case (AbstractInsnNode.LOOKUPSWITCH_INSN):
 				if (!sameLookupSwitchInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.MULTIANEWARRAY_INSN): // 12
+			case (AbstractInsnNode.MULTIANEWARRAY_INSN):
 				if (!sameMultiANewArrayInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.FRAME): // 13
+			case (AbstractInsnNode.FRAME):
 				if (!sameFrameInsn(o, n)) {
 					return false;
 				}
 				break;
-			case (AbstractInsnNode.LINE): // 14
+			case (AbstractInsnNode.LINE):
 				if (!sameLineNumberNode(o, n)) {
 					return false;
 				}
@@ -458,6 +465,41 @@ public class TypeDiffComputer implements Opcodes {
 		return oi.name.equals(ni.name) && oi.desc.equals(ni.desc) && oi.owner.equals(ni.owner);
 	}
 
+	private static boolean sameInvokeDynamicInsnNode(AbstractInsnNode o, AbstractInsnNode n) {
+		InvokeDynamicInsnNode oi = (InvokeDynamicInsnNode) o;
+		if (!(n instanceof InvokeDynamicInsnNode)) {
+			return false;
+		}
+		InvokeDynamicInsnNode ni = (InvokeDynamicInsnNode) n;
+
+		if (!oi.name.equals(ni.name) || !oi.desc.equals(ni.desc)) {
+			return false;
+		}
+		if (!sameBsm(oi.bsm, ni.bsm)) {
+			return false;
+		}
+
+		Object[] oArgs = oi.bsmArgs;
+		Object[] nArgs = ni.bsmArgs;
+		if ((oArgs == null && nArgs != null) || (nArgs == null && oArgs != null)) {
+			return false;
+		}
+		if (oArgs.length != nArgs.length) {
+			return false;
+		}
+		for (int i = 0; i < oArgs.length; i++) {
+			if (!oArgs[i].equals(nArgs[i])) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private static boolean sameBsm(Handle o, Handle n) {
+		return (o.equals(n));
+	}
+
 	private static boolean sameVarInsn(AbstractInsnNode o, AbstractInsnNode n) {
 		VarInsnNode oi = (VarInsnNode) o;
 		if (!(n instanceof VarInsnNode)) {
@@ -566,7 +608,7 @@ public class TypeDiffComputer implements Opcodes {
 
 	/**
 	 * Compare two labels to check they are the same.
-	 * 
+	 *
 	 * @param o 'old' label
 	 * @param n 'new' label
 	 * @return true if they are different
