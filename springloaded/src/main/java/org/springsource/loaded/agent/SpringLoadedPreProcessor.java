@@ -17,6 +17,8 @@
 package org.springsource.loaded.agent;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -159,7 +161,8 @@ public class SpringLoadedPreProcessor implements Constants {
 					bytes = Java8.enhanceInnerClassLambdaMetaFactory(bytes);
 					return bytes;
 				}
-				else if ((GlobalConfiguration.investigateSystemClassReflection || GlobalConfiguration.rewriteAllSystemClasses)
+				else if ((GlobalConfiguration.investigateSystemClassReflection
+						|| GlobalConfiguration.rewriteAllSystemClasses)
 						&&
 						SystemClassReflectionInvestigator.investigate(slashedClassName, bytes,
 								GlobalConfiguration.investigateSystemClassReflection) > 0) {
@@ -275,7 +278,8 @@ public class SpringLoadedPreProcessor implements Constants {
 							for (int i = 0; i < interfacesImplemented.length; i++) {
 								TypeRegistry currentRegistry = typeRegistry;
 								while (currentRegistry != null) {
-									ReloadableType originalReloadable = currentRegistry.getReloadableType(interfacesImplemented[i]);
+									ReloadableType originalReloadable = currentRegistry.getReloadableType(
+											interfacesImplemented[i]);
 									if (originalReloadable != null) {
 										makeReloadableAnyway = true;
 										break;
@@ -390,7 +394,29 @@ public class SpringLoadedPreProcessor implements Constants {
 					// See comment above. 'assume' this is OK, the initialization will happen again next time around.
 				}
 				catch (Exception e) {
-					e.printStackTrace();
+					// NPE seen out in the wild:
+					// java.lang.NullPointerException
+					// at java.lang.reflect.Proxy.isProxyClass(Proxy.java:789)
+					// at java.lang.Class.checkPackageAccess(Class.java:2358)
+					// at java.lang.Class.checkMemberAccess(Class.java:2338)
+					// at java.lang.Class.getDeclaredField(Class.java:2054)
+					// at org.springsource.loaded.agent.SpringLoadedPreProcessor.injectReflectiveInterceptorMethods(SpringLoadedPreProcessor.java:446)
+					// at org.springsource.loaded.agent.SpringLoadedPreProcessor.tryToEnsureSystemClassesInitialized(SpringLoadedPreProcessor.java:386)
+					// at org.springsource.loaded.agent.SpringLoadedPreProcessor.preProcess(SpringLoadedPreProcessor.java:132)
+					// at org.springsource.loaded.agent.ClassPreProcessorAgentAdapter.transform(ClassPreProcessorAgentAdapter.java:107)
+					// at sun.instrument.TransformerManager.transform(TransformerManager.java:188)
+					// at sun.instrument.InstrumentationImpl.transform(InstrumentationImpl.java:428)
+					// at java.lang.reflect.Proxy.<clinit>(Proxy.java:240)
+					// at sun.reflect.misc.ReflectUtil.isNonPublicProxyClass(ReflectUtil.java:289)
+					StringWriter sw = new StringWriter();
+					e.printStackTrace(new PrintWriter(sw));
+					String stringifiedException = sw.toString();
+					if (stringifiedException.length() > 500)
+						stringifiedException = stringifiedException.substring(0, 500);
+					if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+						log.info("Exception occurred whilst trying to initalize system classes (probably harmless): "
+								+ stringifiedException);
+					}
 				}
 			}
 			for (String toRemove : toRemoveList) {
