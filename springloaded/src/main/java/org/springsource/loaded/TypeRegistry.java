@@ -841,17 +841,20 @@ public class TypeRegistry {
 			}
 		}
 		else {
+			String matchName = null;
 			// There are inclusion patterns, we must match one and not be excluded
-			boolean isIncluded = false;
-			String matchName = slashedName.replace('/', '.');
-			for (TypePattern typepattern : inclusionPatterns) {
-				if (typepattern.matches(matchName)) {
-					isIncluded = true;
-					break;
+			if (slashedName != null) {
+				boolean isIncluded = false;
+				matchName = slashedName.replace('/', '.');
+				for (TypePattern typepattern : inclusionPatterns) {
+					if (typepattern.matches(matchName)) {
+						isIncluded = true;
+						break;
+					}
 				}
-			}
-			if (!isIncluded) {
-				return false;
+				if (!isIncluded) {
+					return false;
+				}
 			}
 			// Ok it matched an inclusion, but it must not match any exclusions
 			if (exclusionPatterns.isEmpty()) {
@@ -859,10 +862,12 @@ public class TypeRegistry {
 			}
 			else {
 				boolean isExcluded = false;
-				for (TypePattern typepattern : exclusionPatterns) {
-					if (typepattern.matches(matchName)) {
-						isExcluded = true;
-						break;
+				if (slashedName != null) {
+					for (TypePattern typepattern : exclusionPatterns) {
+						if (typepattern.matches(matchName)) {
+							isExcluded = true;
+							break;
+						}
 					}
 				}
 				return !isExcluded;
