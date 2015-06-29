@@ -76,7 +76,7 @@ import org.springsource.loaded.test.infra.TestClassLoader;
 
 /**
  * Abstract root test class containing helper functions.
- * 
+ *
  * @author Andy Clement
  * @since 1.0
  */
@@ -100,6 +100,9 @@ public abstract class SpringLoadedTests implements Constants {
 	// TODO [java8] replace this with project dependency when Java8 is out
 	protected String Java8CodeJar = findJar("../testdata-java8/build/libs", "testdata-java8");
 
+	protected String TestDataJava8Path = TestUtils.getPathToClasses("../testdata-java8/");
+
+
 	protected String GroovyrtJar = "../testdata-groovy/groovy-all-1.8.6.jar";
 
 	protected Result result;
@@ -111,7 +114,8 @@ public abstract class SpringLoadedTests implements Constants {
 	public void setup() throws Exception {
 		SpringLoadedPreProcessor.disabled = true;
 		NameRegistry.reset();
-		binLoader = new TestClassLoader(toURLs(TestDataPath, TestDataAspectJPath, AspectjrtJar, CodeJar, Java8CodeJar),
+		binLoader = new TestClassLoader(
+				toURLs(TestDataPath, TestDataAspectJPath, AspectjrtJar, CodeJar, Java8CodeJar, TestDataJava8Path),
 				this.getClass().getClassLoader());
 	}
 
@@ -127,7 +131,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * Convert an array of string paths to an array of URLs
-	 * 
+	 *
 	 * @param paths the string paths
 	 * @return the converted URLs
 	 */
@@ -472,7 +476,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * retargets are "from.this.thing:to.this.thing"
-	 * 
+	 *
 	 * @param newName
 	 * @param name
 	 * @param retargets of the form "this.from:this.to"
@@ -672,8 +676,8 @@ public abstract class SpringLoadedTests implements Constants {
 		//		if (attrs = !null) {
 		//			sb.append("attrs(").append(toStringAttributes(attrs)).append(") ");
 		//		}
-		sb.append("0x").append(Integer.toHexString(fieldNode.access)).append("(")
-				.append(ClassPrinter.toAccessForMember(fieldNode.access)).append(") ");
+		sb.append("0x").append(Integer.toHexString(fieldNode.access)).append("(").append(
+				ClassPrinter.toAccessForMember(fieldNode.access)).append(") ");
 		sb.append(fieldNode.name).append(" ");
 		sb.append(fieldNode.desc).append(" ");
 		if (fieldNode.signature != null) {
@@ -710,7 +714,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * From asm:
-	 * 
+	 *
 	 * The name value pairs of this annotation. Each name value pair is stored as two consecutive elements in the list.
 	 * The name is a {@link String}, and the value may be a {@link Byte}, {@link Boolean}, {@link Character},
 	 * {@link Short}, {@link Integer}, {@link Long}, {@link Float}, {@link Double}, {@link String} or
@@ -999,7 +1003,7 @@ public abstract class SpringLoadedTests implements Constants {
 
 	/**
 	 * Create a type registry, configure it with the specified reloadable type/packages and return it.
-	 * 
+	 *
 	 * @return new TypeRegistry
 	 */
 	protected TypeRegistry getTypeRegistry(String includePatterns) {

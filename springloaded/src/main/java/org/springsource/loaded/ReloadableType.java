@@ -44,15 +44,15 @@ import org.springsource.loaded.ri.JavaMethodCache;
 
 /**
  * Represents a type that has been processed such that it can be reloaded at runtime.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
 public class ReloadableType {
 
 	// TODO when a field is shadowed or renamed and the old one never accessed again, it may be holding onto something and prevent it from GC.
-	// Thinking about a solution that involves a tag in the FieldAccessor object so that we can 
-	// check whether a 'repair' is needed on a field accessor (because the type has been reloaded and 
+	// Thinking about a solution that involves a tag in the FieldAccessor object so that we can
+	// check whether a 'repair' is needed on a field accessor (because the type has been reloaded and
 	// the map in the accessor hasnt been repaired yet)
 	private static Logger log = Logger.getLogger(ReloadableType.class.getName());
 
@@ -140,13 +140,14 @@ public class ReloadableType {
 		return clazz;
 	}
 
+	@Override
 	public String toString() {
 		return dottedtypename;
 	}
 
 	/**
 	 * Construct a new ReloadableType with the specified name and the specified initial bytecode.
-	 * 
+	 *
 	 * @param dottedtypename the dotted name
 	 * @param initialBytes the bytecode for the initial version
 	 * @param id for this reloadable type, allocated by the registry
@@ -190,7 +191,7 @@ public class ReloadableType {
 	/**
 	 * Gets the 'orignal' method corresponding to given name and method descriptor. This only considers methods that
 	 * exist in the first (non-reloaded) version of the type.
-	 * 
+	 *
 	 * @param name method name
 	 * @param descriptor method descriptor (e.g (Ljava/lang/String;)I)
 	 * @return the MethodMember or an exception if not found
@@ -221,7 +222,7 @@ public class ReloadableType {
 	 * This method will attempt to apply any pre-existing transforms to the provided bytecode, if it is thought to be
 	 * necessary. Currently 'necessary' is determined by finding ourselves running under tcServer and Spring Insight
 	 * being turned on.
-	 * 
+	 *
 	 * @param bytes the new bytes to be possibly transformed.
 	 * @return either the original bytes or a transformed set of bytes
 	 */
@@ -300,7 +301,7 @@ public class ReloadableType {
 
 	/**
 	 * Load a new version of this type, using the specified suffix to tag the newly generated artifact class names.
-	 * 
+	 *
 	 * @param versionsuffix the String suffix to append to classnames being created for the reloaded class
 	 * @param newbytedata the class bytes for the new version of this class
 	 * @return true if the reload succeeded
@@ -328,16 +329,17 @@ public class ReloadableType {
 					// Not allowed to change the type
 					reload = false;
 
-					s = new StringBuilder("Spring Loaded: Cannot reload new version of ").append(this.dottedtypename).append(
-							"\n");
+					s = new StringBuilder("Spring Loaded: Cannot reload new version of ").append(
+							this.dottedtypename).append(
+									"\n");
 					if (td.hasTypeAccessChanged()) {
-						s.append(" Reason: Type modifiers changed\n");
+						s.append(" Reason: Type modifiers changed from=0x" + Integer.toHexString(td.oAccess) + " to=0x"
+								+ Integer.toHexString(td.nAccess) + "\n");
 						cantReload = true;
 					}
 					if (td.hasTypeSupertypeChanged()) {
 						s.append(" Reason: Supertype changed from ").append(td.oSuperName).append(" to ").append(
-								td.nSuperName)
-								.append("\n");
+								td.nSuperName).append("\n");
 						cantReload = true;
 					}
 					if (td.hasTypeInterfacesChanged()) {
@@ -370,8 +372,8 @@ public class ReloadableType {
 							}
 						}
 						if (!justGroovyObjectMoved) {
-							s.append(" Reason: Interfaces changed from ").append(td.oInterfaces).append(" to ")
-									.append(td.nInterfaces).append("\n");
+							s.append(" Reason: Interfaces changed from ").append(td.oInterfaces).append(" to ").append(
+									td.nInterfaces).append("\n");
 							cantReload = true;
 						}
 					}
@@ -535,17 +537,19 @@ public class ReloadableType {
 	/**
 	 * Go through proxies we know about in this registry and see if any of them are for the type we have just reloaded.
 	 * If they are, regenerate them and reload them.
-	 * 
+	 *
 	 * @param versionsuffix the suffix to use when reloading the proxies (it matches what is being used to reload the
 	 *            type)
 	 */
 	private void reloadProxiesIfNecessary(String versionsuffix) {
 		ReloadableType proxy = typeRegistry.cglibProxies.get(this.slashedtypename);
 		if (proxy != null) {
-			Object[] strategyAndGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndClassGeneratorMap.get(getClazz());
+			Object[] strategyAndGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndClassGeneratorMap.get(
+					getClazz());
 			if (strategyAndGeneratorPair == null) {
 				if (log.isLoggable(Level.SEVERE)) {
-					log.severe("Unable to find regeneration methods for cglib proxies - proxies will be out of date for this type");
+					log.severe(
+							"Unable to find regeneration methods for cglib proxies - proxies will be out of date for this type");
 				}
 				return;
 			}
@@ -572,9 +576,10 @@ public class ReloadableType {
 
 		proxy = typeRegistry.cglibProxiesFastClass.get(this.slashedtypename);
 		if (proxy != null) {
-			Object[] strategyAndFCGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndFastClassGeneratorMap
-					.get(getClazz());
-			strategyAndFCGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndFastClassGeneratorMap.get(getClazz());
+			Object[] strategyAndFCGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndFastClassGeneratorMap.get(
+					getClazz());
+			strategyAndFCGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndFastClassGeneratorMap.get(
+					getClazz());
 			//				System.out.println("need to reload fastclass " + proxy + " os=" + os);
 			if (strategyAndFCGeneratorPair != null) {
 				Object a = strategyAndFCGeneratorPair[0];
@@ -617,8 +622,8 @@ public class ReloadableType {
 			}
 		}
 		catch (Throwable t) {
-			new RuntimeException("Unexpected problem trying to reload proxy for interface " + this.dottedtypename, t)
-					.printStackTrace();
+			new RuntimeException("Unexpected problem trying to reload proxy for interface " + this.dottedtypename,
+					t).printStackTrace();
 		}
 	}
 
@@ -744,7 +749,7 @@ public class ReloadableType {
 			Class<?> class_ClassInfo = typeRegistry.getClass_ClassInfo();
 			Field field_globalClassSet = class_ClassInfo.getDeclaredField("globalClassSet");
 			field_globalClassSet.setAccessible(true);
-			Object/*ClassInfoSet*/instance_classInfoSet = field_globalClassSet.get(null);
+			Object/*ClassInfoSet*/ instance_classInfoSet = field_globalClassSet.get(null);
 			Method method_ClassInfoSetRemove = instance_classInfoSet.getClass().getMethod("remove", Object.class);
 			Object retval = method_ClassInfoSetRemove.invoke(instance_classInfoSet, this.clazz);
 
@@ -853,7 +858,7 @@ public class ReloadableType {
 	/**
 	 * Gets the method corresponding to given name and descriptor, taking into consideration changes that have happened
 	 * by reloading.
-	 * 
+	 *
 	 * @param name the member name
 	 * @param descriptor the member descriptor (e.g. (Ljava/lang/String;)I)
 	 * @return the MethodMember for that name and descriptor. Null if not found on a live version, or an exception if
@@ -870,7 +875,7 @@ public class ReloadableType {
 
 	/**
 	 * Gets the method corresponding to given name and descriptor, from the original type descriptor.
-	 * 
+	 *
 	 * @param nameAndDescriptor the method name and descriptor (e.g. foo(Ljava/lang/String;)I)
 	 * @return the MethodMember for the name and descriptor if it exists, otherwise null
 	 */
@@ -973,7 +978,7 @@ public class ReloadableType {
 				RewriteClassAdaptor rca = (RewriteClassAdaptor) cv;
 				if (rca.isEnum && rca.fieldcount > GlobalConfiguration.enumLimit) {
 					// that is too many fields, marking this as not reloadable
-					// TODO ... 
+					// TODO ...
 				}
 				TypeRewriter.RewriteClassAdaptor a = (TypeRewriter.RewriteClassAdaptor) rca.getClassVisitor();
 				return ((ClassWriter) a.getClassVisitor()).toByteArray();
@@ -1028,7 +1033,7 @@ public class ReloadableType {
 
 	/**
 	 * Check if the specified method is different to the original form from the type as loaded.
-	 * 
+	 *
 	 * @param methodId the ID of the method currently executing
 	 * @return 0 if the method cannot have changed. 1 if the method has changed. 2 if the method has been deleted in a
 	 *         new version.
@@ -1116,7 +1121,7 @@ public class ReloadableType {
 	/**
 	 * Intended to handle dynamic dispatch. This will determine the right type to handle the specified method and return
 	 * a dispatcher that can handle it.
-	 * 
+	 *
 	 * @param instance the target instance for the invocation
 	 * @param nameAndDescriptor an encoded method name and descriptor, e.g. foo(Ljava/langString;)V
 	 * @return a dispatcher that can handle the method indicated
@@ -1255,7 +1260,7 @@ public class ReloadableType {
 	 * the non-reloadable types. This method also avoids interfaces because it is looking for instance fields. This is
 	 * slightly naughty but if we assume the code we are reloading is valid code, it should never be referring to
 	 * interface fields.
-	 * 
+	 *
 	 * @param name the name of the field to locate
 	 * @return the FieldMember or null if the field is not found
 	 */
@@ -1283,7 +1288,7 @@ public class ReloadableType {
 	 * Search for a static field from this type upwards, as far as the topmost reloadable types. This is searching for a
 	 * field, it is not checking the result. It is up to the caller to check they have not ended up with an instance
 	 * field and throw the appropriate exception.
-	 * 
+	 *
 	 * @param name the name of the field to look for
 	 * @return a FieldMember for the named field or null if not found
 	 */
@@ -1320,7 +1325,7 @@ public class ReloadableType {
 
 	/**
 	 * Attempt to set the value of a field on an instance to the specified value.
-	 * 
+	 *
 	 * @param instance the object upon which to set the field (maybe null for static fields)
 	 * @param fieldname the name of the field
 	 * @param isStatic whether the field is static
@@ -1349,7 +1354,8 @@ public class ReloadableType {
 		}
 	}
 
-	private Set<WeakReference<Object>> liveInstances = Collections.synchronizedSet(new HashSet<WeakReference<Object>>());
+	private Set<WeakReference<Object>> liveInstances = Collections.synchronizedSet(
+			new HashSet<WeakReference<Object>>());
 
 	private ReferenceQueue<Object> liveInstancesRQ = new ReferenceQueue<Object>();
 
@@ -1361,7 +1367,7 @@ public class ReloadableType {
 	/**
 	 * Attempt to set the value of a field on an instance to the specified value. Simply locate the field, which returns
 	 * an object capable of reading/writing it, then use that to retrieve the value.
-	 * 
+	 *
 	 * @param instance the object upon which to set the field (maybe null for static fields)
 	 * @param fieldname the name of the field
 	 * @param isStatic whether the field is static or not
@@ -1607,7 +1613,7 @@ public class ReloadableType {
 	 * Return the ReloadableType representing the superclass of this type. If the supertype is not reloadable, this
 	 * method will return null. The ReloadableType that is returned may not be within the same type registry, if the
 	 * supertype was loaded by a different classloader.
-	 * 
+	 *
 	 * @return the ReloadableType for the supertype or null if it is not reloadable
 	 */
 	public ReloadableType getSuperRtype() {

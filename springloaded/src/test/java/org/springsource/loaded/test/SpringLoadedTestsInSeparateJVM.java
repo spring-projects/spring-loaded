@@ -77,6 +77,110 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 	}
 
 	@Test
+	public void testReferenceInstanceMethodOfObject() throws Exception {
+		JVMOutput jo = null;
+
+		jvm.copyToTestdataDirectory("basic.LambdaL");
+		jvm.copyToTestdataDirectory("basic.LambdaL$Foo");
+
+		//		jvm.newInstance("l", "basic.LambdaL", true);
+
+		jo = jvm.run("basic.LambdaL");
+
+		// Total output:
+		//		original static initializer
+		//		original instance
+		//		in first foo
+		//		fooa
+		assertStdoutContains("in first foo", jo);
+		assertStdoutContains("fooa", jo);
+
+		jvm.updateClass("basic.LambdaL", loadBytesForClass("basic.LambdaL"));
+		pause(2);
+
+		// Run the same thing as before:
+		jo = jvm.run("basic.LambdaL");
+		assertStdoutContains("in first foo", jo);
+		assertStdoutContains("fooa", jo);
+
+		// New version: Foo interface has one method argument
+		jvm.updateClass("basic.LambdaL$Foo",
+				retrieveRename("basic.LambdaL$Foo", "basic.LambdaL2$Foo"));
+		waitForReloadToOccur();
+
+		jvm.updateClass("basic.LambdaL",
+				retrieveRename("basic.LambdaL", "basic.LambdaL2", "basic.LambdaL2$Foo:basic.LambdaL$Foo"));
+		waitForReloadToOccur();
+
+		// Run the new version
+		jo = jvm.run("basic.LambdaL");
+		assertStdoutContains("in second foo", jo);
+		assertStdoutContains("fooab", jo);
+	}
+
+	@Test
+	public void testStaticMethodReference() throws Exception {
+		JVMOutput jo = null;
+
+		jvm.copyToTestdataDirectory("basic.StaticMethodReference", "basic.StaticMethodReference$Foo",
+				"basic.StaticMethodReference$Bar");
+		jo = jvm.run("basic.StaticMethodReference");
+		assertStdoutContains("in 1st static Method", jo);
+		assertStdoutContains("staticsa", jo);
+
+		// Reload itself
+		jvm.updateClass("basic.StaticMethodReference", loadBytesForClass("basic.StaticMethodReference"));
+		waitForReloadToOccur();
+
+		jo = jvm.run("basic.StaticMethodReference");
+		assertStdoutContains("in 1st static Method", jo);
+		assertStdoutContains("staticsa", jo);
+
+		jvm.updateClass("basic.StaticMethodReference$Foo",
+				retrieveRename("basic.StaticMethodReference$Foo", "basic.StaticMethodReference2$Foo"));
+		jvm.updateClass("basic.StaticMethodReference$Bar",
+				retrieveRename("basic.StaticMethodReference$Bar", "basic.StaticMethodReference2$Bar"));
+		jvm.updateClass("basic.StaticMethodReference",
+				retrieveRename("basic.StaticMethodReference", "basic.StaticMethodReference2",
+						"basic.StaticMethodReference2$Foo:basic.StaticMethodReference$Foo",
+						"basic.StaticMethodReference2$Bar:basic.StaticMethodReference$Bar"));
+		waitForReloadToOccur();
+
+		jo = jvm.run("basic.StaticMethodReference");
+		assertStdoutContains("in 2nd static Method", jo);
+		assertStdoutContains("staticsasb", jo);
+
+		//		// New version: Foo interface has one method argument
+		//		jvm.updateClass("basic.LambdaL$Foo",
+		//				retrieveRename("basic.LambdaL$Foo", "basic.LambdaL2$Foo"));
+		//		waitForReloadToOccur();
+		//
+		//		jvm.updateClass("basic.LambdaL",
+		//				retrieveRename("basic.LambdaL", "basic.LambdaL2", "basic.LambdaL2$Foo:basic.LambdaL$Foo"));
+		//		waitForReloadToOccur();
+		//
+		//		// Run the new version
+		//		jo = jvm.run("basic.LambdaL");
+		//		assertStdoutContains("in second foo", jo);
+		//		assertStdoutContains("fooab", jo);
+		//		compile("/original/", "/original/basic/StaticMethodReference.java.file");
+		//+		JVMOutput output = jvm.sendAndReceive("run basic.StaticMethodReference");
+		//+
+		//+		assertStdoutContains("in 1st static Method", output);
+		//+		assertStdoutContains("staticsa", output);
+		//+
+		//+		compile("/modified/", "/modified/basic/StaticMethodReference.java.file");
+		//+		jvm.reload("basic.StaticMethodReference");
+		//+		waitForReloadToOccur();
+		//+
+		//+		output = jvm.sendAndReceive("run basic.StaticMethodReference");
+		//+		assertStdoutContains("in 2nd static Method", output);
+		//+		assertStdoutContains("staticsasb", output);
+		//+	}
+		//
+	}
+
+	@Test
 	public void serialization() throws Exception {
 		jvm.copyToTestdataDirectory("remote.Serialize");
 		jvm.copyToTestdataDirectory("remote.Person");
@@ -146,7 +250,8 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 
 	@Test
 	public void testCreatingAndInvokingMethodsOnInstance() throws Exception {
-		assertStderrContains("creating new instance 'a' of type 'jvmtwo.Runner'", jvm.newInstance("a", "jvmtwo.Runner"));
+		assertStderrContains("creating new instance 'a' of type 'jvmtwo.Runner'",
+				jvm.newInstance("a", "jvmtwo.Runner"));
 		assertStdout("jvmtwo.Runner.run1() running", jvm.call("a", "run1"));
 	}
 

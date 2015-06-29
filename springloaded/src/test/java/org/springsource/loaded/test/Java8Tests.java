@@ -27,7 +27,7 @@ import org.springsource.loaded.test.infra.Result;
 
 /**
  * Test reloading of Java 8.
- * 
+ *
  * @author Andy Clement
  * @since 1.2
  */
@@ -292,6 +292,116 @@ public class Java8Tests extends SpringLoadedTests {
 
 		r = runUnguarded(simpleClass, "run");
 		assertEquals("fooab", r.returnValue);
+	}
+
+	// https://github.com/spring-projects/spring-loaded/issues/87
+	@Test
+	public void lambdaMethodReference() throws Exception {
+		String t = "basic.LambdaM";
+		TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+
+		byte[] sc = loadBytesForClass(t);
+		ReloadableType rtype = typeRegistry.addType(t, sc);
+
+		Class<?> simpleClass = rtype.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{5=test3}", r.returnValue);
+
+		rtype.loadNewVersion("2", retrieveRename(t, t + "2"));//, t + "2$Foo:" + t + "$Foo"));
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{10=test3}", r.returnValue);
+
+	}
+
+	// https://github.com/spring-projects/spring-loaded/issues/87
+	// This variant reloads both pieces
+	@Test
+	public void lambdaMethodReferenceInAnotherClass() throws Exception {
+		TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+
+		byte[] sc = loadBytesForClass("basic.LambdaN");
+		ReloadableType rtype = typeRegistry.addType("basic.LambdaN", sc);
+		byte[] helperBytes = loadBytesForClass("basic.HelperN");
+		ReloadableType htype = typeRegistry.addType("basic.HelperN", helperBytes);
+
+		Class<?> simpleClass = rtype.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{15=test3}", r.returnValue);
+
+		rtype.loadNewVersion(sc);
+		htype.loadNewVersion(helperBytes);
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{15=test3}", r.returnValue);
+	}
+
+	// This variant reloads only the caller
+	@Test
+	public void lambdaMethodReferenceInAnotherClass2() throws Exception {
+		TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+
+		byte[] sc = loadBytesForClass("basic.LambdaN");
+		ReloadableType rtype = typeRegistry.addType("basic.LambdaN", sc);
+		byte[] helperBytes = loadBytesForClass("basic.HelperN");
+		typeRegistry.addType("basic.HelperN", helperBytes);
+
+		Class<?> simpleClass = rtype.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{15=test3}", r.returnValue);
+
+		rtype.loadNewVersion(sc);
+		//		htype.loadNewVersion(helperBytes); // don't reload the helper
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{15=test3}", r.returnValue);
+	}
+
+	// This variant reloads only the helper (target)
+	@Test
+	public void lambdaMethodReferenceInAnotherClass3() throws Exception {
+		TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+
+		byte[] sc = loadBytesForClass("basic.LambdaN");
+		ReloadableType rtype = typeRegistry.addType("basic.LambdaN", sc);
+		byte[] helperBytes = loadBytesForClass("basic.HelperN");
+		ReloadableType htype = typeRegistry.addType("basic.HelperN", helperBytes);
+
+		Class<?> simpleClass = rtype.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{15=test3}", r.returnValue);
+
+		//		rtype.loadNewVersion(sc);
+		htype.loadNewVersion(helperBytes);
+
+		//		try {
+		r = runUnguarded(simpleClass, "run");
+		assertEquals("{15=test3}", r.returnValue);
+		//			fail("did not expect that to work");
+		//		}
+		//		catch (Exception e) {
+		//			e.printStackTrace();
+		//			//			Caused by: java.lang.NoClassDefFoundError: basic/HelperN$$E2
+		//			//			at basic.LambdaN$$Lambda$8/2085857771.apply(Unknown Source)
+		//			//			at java.util.stream.Collectors.lambda$toMap$172(Collectors.java:1320)
+		//			//			at java.util.stream.Collectors$$Lambda$5/1521118594.accept(Unknown Source)
+		//			// That happens because LambdaN, which has not been reloaded, is loaded by classloader X, the computed
+		//			// method to satisfy the lambda is in the executor for the helper, which is in a child classloader - that
+		//			// is not visible from the one that loaded LambdaN.
+		//			// However, part of the resolution process in the Java8 handling forces LambdaN to reload, so next
+		//			// time we go in, the class can be seen because LambdaN$$E2 is in the same classloader. That is
+		//			// why when we repeat what we just did, it'll work
+		//		}
+		//		r = runUnguarded(simpleClass, "run");
+		//		assertEquals("{15=test3}", r.returnValue);
 	}
 
 	@Test

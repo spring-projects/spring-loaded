@@ -113,7 +113,8 @@ public class ReloadingJVM {
 							"/bin/java -noverify -javaagent:" + agentJarLocation + " -cp " + javaclasspath + " "
 							+ AGENT_OPTION_STRING +
 							" " + OPTS + " "
-							+ ReloadingJVMCommandProcess.class.getName(), new String[] { OPTS });
+							+ ReloadingJVMCommandProcess.class.getName(),
+					new String[] { OPTS });
 			writer = new DataOutputStream(process.getOutputStream());
 			reader = new DataInputStream(process.getInputStream());
 			readerErrors = new DataInputStream(process.getErrorStream());
@@ -172,9 +173,9 @@ public class ReloadingJVM {
 
 		@Override
 		public String toString() {
-			StringBuilder s = new StringBuilder("==STDOUT==\n").append(stdout).append("\n").append("==STDERR==\n").append(
-					stderr)
-					.append("\n==========\n");
+			StringBuilder s = new StringBuilder("==STDOUT==\n").append(stdout).append("\n").append(
+					"==STDERR==\n").append(
+							stderr).append("\n==========\n");
 			return s.toString();
 		}
 	}
@@ -261,22 +262,27 @@ public class ReloadingJVM {
 		return sendAndReceive("run " + classname);
 	}
 
-	public void copyToTestdataDirectory(String classname) {
-		if (DEBUG_CLIENT_SIDE) {
-			System.out.println("(client) copying class to test data directory: " + classname);
+	public void copyToTestdataDirectory(String... classnames) {
+		for (String classname : classnames) {
+			if (DEBUG_CLIENT_SIDE) {
+				System.out.println("(client) copying class to test data directory: " + classname);
+			}
+			String classfile = classname.replaceAll("\\.", File.separator) + ".class";
+			File f = new File("../testdata/bin", classfile);
+			if (!f.exists()) {
+				f = new File("../testdata-groovy/bin", classfile);
+			}
+			if (!f.exists()) {
+				f = new File("../testdata-java8/bin", classfile);
+			}
+			byte[] data = Utils.load(f);
+			// Ensure directories exist
+			int dotPos = classname.lastIndexOf(".");
+			if (dotPos != -1) {
+				new File(testdataDirectory, classname.substring(0, dotPos).replaceAll("\\.", File.separator)).mkdirs();
+			}
+			Utils.write(new File(testdataDirectory, classfile), data);
 		}
-		String classfile = classname.replaceAll("\\.", File.separator) + ".class";
-		File f = new File("../testdata/bin", classfile);
-		if (!f.exists()) {
-			f = new File("../testdata-groovy/bin", classfile);
-		}
-		byte[] data = Utils.load(f);
-		// Ensure directories exist
-		int dotPos = classname.lastIndexOf(".");
-		if (dotPos != -1) {
-			new File(testdataDirectory, classname.substring(0, dotPos).replaceAll("\\.", File.separator)).mkdirs();
-		}
-		Utils.write(new File(testdataDirectory, classfile), data);
 	}
 
 	/**
