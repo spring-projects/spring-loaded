@@ -703,7 +703,7 @@ public class TypeRegistry {
 						if (bangSlash != -1) {
 							String pathInJar = urlstring.substring(bangSlash + 2);
 							String remainingPrefix = urlstring.substring(0, bangSlash);
-							int lastSlash = remainingPrefix.lastIndexOf("/"); // TODO windoze?
+							int lastSlash = remainingPrefix.lastIndexOf(File.separator);
 							String jarname = remainingPrefix.substring(lastSlash + 1);
 							for (String jarToWatch : GlobalConfiguration.jarsToWatch) {
 								if (jarname.equals(jarToWatch)) {
