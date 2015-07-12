@@ -47,6 +47,27 @@ public class Java8Tests extends SpringLoadedTests {
 		assertEquals(typeRegistry, rtype.getTypeRegistry());
 	}
 
+
+	@Test
+	public void issue104() throws Exception {
+		String t = "bugs.Issue104";
+		TypeRegistry typeRegistry = getTypeRegistry(t);
+		byte[] sc = loadBytesForClass(t);
+		ReloadableType rtype = typeRegistry.addType(t, sc);
+
+		Class<?> clazz = rtype.getClazz();
+		@SuppressWarnings("unused")
+		Result r = runUnguarded(clazz, "run");
+
+		r = runUnguarded(clazz, "run");
+
+		rtype.loadNewVersion("002", rtype.bytesInitial);
+
+		r = runUnguarded(clazz, "run");
+
+		// TODO should assert something but the issue is that the JVM crashes...
+	}
+
 	@Test
 	public void callBasicType() throws Exception {
 		String t = "basic.FirstClass";
