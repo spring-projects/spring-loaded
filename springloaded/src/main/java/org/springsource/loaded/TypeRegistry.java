@@ -655,7 +655,7 @@ public class TypeRegistry {
 		}
 		int lastSlashPos = slashedName.lastIndexOf('/');
 		String packageName = lastSlashPos == -1 ? null : slashedName.substring(0, lastSlashPos);
-		if (packageName != null) {
+		if (packageName != null && !GlobalConfiguration.allowSplitPackages) {
 			// is it something we already know about?
 			for (String foundPackageName : packagesFound) {
 				if (packageName.equals(foundPackageName)) {
@@ -714,7 +714,7 @@ public class TypeRegistry {
 					}
 				}
 			}
-			if (packageName != null) {
+			if (packageName != null && !GlobalConfiguration.allowSplitPackages) {
 				if (reloadable) {
 					packagesFound.add(packageName);
 				}

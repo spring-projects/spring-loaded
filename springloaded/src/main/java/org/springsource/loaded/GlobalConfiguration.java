@@ -72,6 +72,15 @@ public class GlobalConfiguration {
 	public static boolean explainMode = false;
 
 	/**
+	 * Once a type is found to be reloadable or not (based on whether it is accessible as a .class file on the disk
+	 * rather than packaged in a jar), that decision is remembered and all types from the same package are treated in
+	 * the same way without repeating the costly lookup. This option enables that behaviour to be turned OFF and then
+	 * you can have some files in a package that are in a jar and are not reloadable and some types that are in the same
+	 * package but on disk that will be reloadable.
+	 */
+	public static boolean allowSplitPackages = false;
+
+	/**
 	 * Global control for runtime logging
 	 */
 	public static boolean isRuntimeLogging = false;
@@ -105,9 +114,8 @@ public class GlobalConfiguration {
 	public final static boolean logNonInterceptedReflectiveCalls = false;
 
 	/**
-	 * Holds a list of fully qualified paths to jars that should be 'watched' for changes. Types
-	 * within these jars will be made reloadable. Set via option 'watchJars' which
-	 * takes a colon separated list of jars.
+	 * Holds a list of fully qualified paths to jars that should be 'watched' for changes. Types within these jars will
+	 * be made reloadable. Set via option 'watchJars' which takes a colon separated list of jars.
 	 */
 	public static String[] jarsToWatch = null;
 
@@ -226,6 +234,9 @@ public class GlobalConfiguration {
 						else if (key.equals("caching")) {
 							specifiedCaching = true;
 							isCaching = kv.substring(equals + 1).equalsIgnoreCase("true");
+						}
+						else if (key.equals("allowSplitPackages")) {
+							allowSplitPackages = kv.substring(equals + 1).equalsIgnoreCase("true");
 						}
 						else if (key.equals("debugplugins")) {
 							debugPlugins = true;
@@ -349,12 +360,14 @@ public class GlobalConfiguration {
 						try {
 							String userhome = System.getProperty("user.home");
 							if (userhome != null) {
-								cacheDir = new StringBuilder(userhome).append(File.separator).append(".grails").toString();
+								cacheDir = new StringBuilder(userhome).append(File.separator).append(
+										".grails").toString();
 								new File(cacheDir).mkdir();
 							}
 						}
 						catch (Throwable t) {
-							System.err.println("looks like user.home is not set, or cannot write to it: cannot create cache.");
+							System.err.println(
+									"looks like user.home is not set, or cannot write to it: cannot create cache.");
 							t.printStackTrace(System.err);
 						}
 					}
@@ -400,8 +413,9 @@ public class GlobalConfiguration {
 					}
 					else {
 						if (!cacheDirFile.isDirectory()) {
-							System.err.println("Caching deactivated: unable to use specified cache area, it is not a directory: "
-									+ cacheDirFile);
+							System.err.println(
+									"Caching deactivated: unable to use specified cache area, it is not a directory: "
+											+ cacheDirFile);
 							isCaching = false;
 						}
 					}
