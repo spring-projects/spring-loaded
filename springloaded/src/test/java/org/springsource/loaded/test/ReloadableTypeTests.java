@@ -32,15 +32,13 @@ import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.SpringLoaded;
 import org.springsource.loaded.TypeRegistry;
-import org.springsource.loaded.Utils;
 import org.springsource.loaded.Utils.ReturnType;
-import org.springsource.loaded.test.infra.ClassPrinter;
 import org.springsource.loaded.test.infra.Result;
 
 /**
  * Tests for the TypeRegistry that exercise it in the same way it will actively be used when managing ReloadableType
  * instances.
- * 
+ *
  * @author Andy Clement
  * @since 1.0
  */
@@ -136,7 +134,8 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		assertEquals("[1,2,3]",
 				toString(runOnInstance(rtype.getClazz(), instance, "getProtectedArrayOfInts").returnValue));
 
-		runOnInstance(rtype.getClazz(), instance, "setProtectedArrayOfStrings", (Object) new String[] { "a", "b", "c" });
+		runOnInstance(rtype.getClazz(), instance, "setProtectedArrayOfStrings",
+				(Object) new String[] { "a", "b", "c" });
 		assertEquals("[a,b,c]",
 				toString(runOnInstance(rtype.getClazz(), instance, "getProtectedArrayOfStrings").returnValue));
 
@@ -182,7 +181,8 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		assertEquals("[1,2,3]",
 				toString(runOnInstance(rtype.getClazz(), instance, "getProtectedArrayOfInts").returnValue));
 
-		runOnInstance(rtype.getClazz(), instance, "setProtectedArrayOfStrings", (Object) new String[] { "a", "b", "c" });
+		runOnInstance(rtype.getClazz(), instance, "setProtectedArrayOfStrings",
+				(Object) new String[] { "a", "b", "c" });
 		assertEquals("[a,b,c]",
 				toString(runOnInstance(rtype.getClazz(), instance, "getProtectedArrayOfStrings").returnValue));
 
@@ -206,13 +206,13 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		ReloadableType B = tr.addType("invokestatic.issue4.B", loadBytesForClass("invokestatic.issue4.B"));
 
 		Result r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 
 
 		B.loadNewVersion(B.bytesInitial);
 
 		r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 	}
 
 	@Test
@@ -222,12 +222,12 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		ReloadableType BB = tr.addType("invokestatic.issue4.BB", loadBytesForClass("invokestatic.issue4.BB"));
 
 		Result r = runUnguarded(BB.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 
 		BB.loadNewVersion(BB.bytesInitial);
 
 		r = runUnguarded(BB.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 	}
 
 	@Test
@@ -237,12 +237,12 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		ReloadableType BBB = tr.addType("invokestatic.issue4.BBB", loadBytesForClass("invokestatic.issue4.BBB"));
 
 		Result r = runUnguarded(BBB.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 
 		AAA.loadNewVersion(AAA.bytesInitial);
 
 		r = runUnguarded(BBB.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 	}
 
 	@Test
@@ -252,13 +252,13 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		ReloadableType B = tr.addType("invokestatic.issue4.B", loadBytesForClass("invokestatic.issue4.B"));
 
 		Result r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 
 		A.loadNewVersion(A.bytesInitial);
 		B.loadNewVersion(B.bytesInitial);
 
 		r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("String1", (String) r.returnValue);
+		assertEquals("String1", r.returnValue);
 	}
 
 	// The supertype is not reloadable,it is in a jar
@@ -268,7 +268,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		ReloadableType B = tr.addType("invokestatic.issue4.BBBB", loadBytesForClass("invokestatic.issue4.BBBB"));
 
 		Result r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("Hello", (String) r.returnValue);
+		assertEquals("Hello", r.returnValue);
 
 		ReloadableType thesuper = B.getSuperRtype();
 		assertNull(thesuper);
@@ -278,7 +278,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		B.loadNewVersion(B.bytesInitial);
 
 		r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("Hello", (String) r.returnValue);
+		assertEquals("Hello", r.returnValue);
 	}
 
 	// Basic write/read then reload then write/read again
@@ -366,7 +366,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	// There is a test that will work in the SpringLoadedTestsInSeparateJVM
 	public void serialization4() throws Exception {
 		TypeRegistry tr = getTypeRegistry("remote..*");
-		//		ReloadableType person = 
+		//		ReloadableType person =
 		tr.addType("remote.Person", loadBytesForClass("remote.Person"));
 
 		// When the Serialize class is run directly, we see: byteinfo:len=98:crc=c1047cf6
@@ -386,7 +386,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		ReloadableType B = tr.addType("invokestatic.issue4.BBBBB", loadBytesForClass("invokestatic.issue4.BBBBB"));
 
 		Result r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("Hello", (String) r.returnValue);
+		assertEquals("Hello", r.returnValue);
 
 		ReloadableType thesuper = B.getSuperRtype();
 		thesuper = tr.getReloadableType("invokestatic/issue4/subpkg/AAAA");
@@ -395,7 +395,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		B.loadNewVersion(B.bytesInitial);
 
 		r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("Hello", (String) r.returnValue);
+		assertEquals("Hello", r.returnValue);
 	}
 
 	@Test
@@ -405,7 +405,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		ReloadableType B = tr.addType("invokestatic.issue4.BBBBB", loadBytesForClass("invokestatic.issue4.BBBBB"));
 
 		Result r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("Hello", (String) r.returnValue);
+		assertEquals("Hello", r.returnValue);
 
 		ReloadableType thesuper = B.getSuperRtype();
 		thesuper = tr.getReloadableType("invokestatic/issue4/subpkg/AAAA");
@@ -414,7 +414,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		B.loadNewVersion(B.bytesInitial);
 
 		r = runUnguarded(B.getClazz(), "getMessage");
-		assertEquals("Hello", (String) r.returnValue);
+		assertEquals("Hello", r.returnValue);
 		assertAssociateSubtypes(mid, "invokestatic.issue4.BBBBB");
 
 		assertTrue(B.isAffectedByReload());
@@ -425,7 +425,7 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	/**
 	 * Verify that the reloadable type knows about the expected list of subtypes. Subtype names are dotted (e.g.
 	 * invokestatic.foo.Bar")
-	 * 
+	 *
 	 * @param rtype the reloadabletype to check
 	 * @param expectedAssociateSubtypes the subtypes it should know about
 	 */
@@ -485,12 +485,12 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 	/**
 	 * In this test a protected field has the same name as another field being referenced from the reloadable type.
 	 * Check only the right one is redirect to the accessor.
-	 * 
+	 *
 	 */
 	@Test
 	public void protectedFieldAccessors3() throws Exception {
 		TypeRegistry tr = getTypeRegistry("prot.SubThree,prot.PeerThree");
-		//		ReloadableType rtypePeer = 
+		//		ReloadableType rtypePeer =
 		tr.addType("prot.PeerThree", loadBytesForClass("prot.PeerThree"));
 		ReloadableType rtype = tr.addType("prot.SubThree", loadBytesForClass("prot.SubThree"));
 
@@ -653,4 +653,5 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		assertTrue(Modifier.isPublic((Integer) runUnguarded(simpleClass, "getModifiers").returnValue));
 		assertTrue(Modifier.isStatic((Integer) runUnguarded(simpleClass, "getModifiers").returnValue));
 	}
+
 }

@@ -17,6 +17,7 @@
 package org.springsource.loaded.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -374,6 +375,43 @@ public class SpringLoadedTestsInSeparateJVM extends SpringLoadedTests {
 		jvm.updateClass(subtype, retrieveRename(subtype, subtype + "2"));
 		waitForReloadToOccur();
 		assertStdoutContains("TopB.foo() running\nControllerB.foo() running again!\n", jvm.call("a", "foo"));
+	}
+
+	/**
+	 * GRAILS-9061.
+	 *
+	 * To build the jar see testdata/jars/grailsplugins
+	 */
+	@Test
+	public void splitPackages() throws Exception {
+		String supertypeInJar = "grails.plugins.A"; // from the grailsPlugins.jar
+		String subtypeNotInJar = "grails.plugins.B";
+
+		jvm.shutdown();
+		jvm = ReloadingJVM.launch("inclusions=grails.plugins..*");
+		String path = jvm.copyJarToTestdataDirectory("grailsplugins/grailsPlugins.jar", "grailsplugins.jar");
+		jvm.extendCp(path);
+		jvm.copyToTestdataDirectory(subtypeNotInJar);
+
+		JVMOutput jo = null;
+		// Load the one from the jar
+		jvm.newInstance("a", supertypeInJar);
+		jo = jvm.call("a", "foo");
+		assertContains("A.foo() running", jo.stdout);
+
+		// Load the one not from the jar, which extends the jar one
+		jo = jvm.newInstance("b", subtypeNotInJar);
+		jo = jvm.call("b", "foo");
+		System.out.println(jo);
+		assertContains("B.foo() running", jo.stdout);
+
+		assertTrue(jvm.isReloadableType(supertypeInJar));
+		assertTrue(jvm.isReloadableType(subtypeNotInJar));
+
+		jvm.updateClass(subtypeNotInJar, retrieveRename(subtypeNotInJar, subtypeNotInJar + "2"));
+		waitForReloadToOccur();
+		jo = jvm.call("b", "foo");
+		assertContains("B2.foo() running", jo.stdout);
 	}
 
 	// ---

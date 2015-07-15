@@ -378,6 +378,21 @@ public class ReloadingJVM {
 		}
 	}
 
+	public boolean isReloadableType(String classname) {
+		JVMOutput jo = sendAndReceive("isreloadabletype " + classname);
+		System.out.println(jo);
+		if (jo.stdout.contains(classname + " is reloadable type")) {
+			return true;
+		}
+		else if (jo.stdout.contains(classname + " is not reloadable type")) {
+			return false;
+		}
+		else {
+			System.err.println(jo);
+			throw new IllegalStateException();
+		}
+	}
+
 	public JVMOutput newInstance(String instanceName, String classname) {
 		return newInstance(instanceName, classname, true);
 	}

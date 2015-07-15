@@ -57,6 +57,7 @@ import org.objectweb.asm.tree.LocalVariableNode;
 import org.objectweb.asm.tree.MethodNode;
 import org.springsource.loaded.ClassRenamer;
 import org.springsource.loaded.Constants;
+import org.springsource.loaded.GlobalConfiguration;
 import org.springsource.loaded.ISMgr;
 import org.springsource.loaded.MethodMember;
 import org.springsource.loaded.NameRegistry;
@@ -1009,6 +1010,8 @@ public abstract class SpringLoadedTests implements Constants {
 	protected TypeRegistry getTypeRegistry(String includePatterns) {
 		TypeRegistry.reinitialize();
 		TypeRegistry tr = TypeRegistry.getTypeRegistryFor(binLoader);
+		GlobalConfiguration.InTestMode = true;
+		GlobalConfiguration.allowSplitPackages = true;
 		Properties p = new Properties();
 		if (includePatterns != null) {
 			p.setProperty(TypeRegistry.Key_Inclusions, includePatterns);

@@ -98,6 +98,9 @@ public class ReloadingJVMCommandProcess {
 					else if (commandName.equals("reload")) {
 						reloadCommand(arguments.get(0), arguments.size() == 1 ? null : arguments.get(1));
 					}
+					else if (commandName.equals("isreloadabletype")) {
+						isReloadableTypeCheck(arguments.get(0));
+					}
 					else if (commandName.equals("extendcp")) {
 						extendClasspath(arguments.get(0));
 					}
@@ -188,6 +191,22 @@ public class ReloadingJVMCommandProcess {
 		System.err.println("Extending classpath to include: " + newClasspathEntry);
 		cl.addJar(newClasspathEntry);
 		System.err.println("!!");
+	}
+
+	private static void isReloadableTypeCheck(String classname) {
+		try {
+			Class<?> clazz = Class.forName(classname);
+			TypeRegistry tr = TypeRegistry.getTypeRegistryFor(clazz.getClassLoader());
+			if (tr.getReloadableType(clazz) != null) {
+				System.out.println(classname + " is reloadable type");
+			}
+			else {
+				System.out.println(classname + " is not reloadable type");
+			}
+		}
+		catch (Exception e) {
+			e.printStackTrace(System.out);
+		}
 	}
 
 	private static void reloadCommand(String classname, String data) {

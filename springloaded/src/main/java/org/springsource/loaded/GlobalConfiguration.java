@@ -450,6 +450,8 @@ public class GlobalConfiguration {
 
 	public final static boolean isJava18orHigher;
 
+	public static boolean InTestMode = false;
+
 	static {
 		String version = System.getProperty("java.version");
 		if (version.startsWith("1.8")) {

@@ -601,6 +601,33 @@ public class TypeRegistry {
 
 	private List<String> packagesNotFound = new ArrayList<String>();
 
+
+	public static enum CouldBeReloadableDecision {
+		No_BuiltIn(false, false, "built in rejection"), //
+		No_FixedPackageList(false, false, "on hard coded list of those to reject"), //
+		Yes_CGLIB(true, false, "cglib related type"), //
+		No_JSP(false, false, "jsp"), //
+		No_GroovyScript(false, false, "groovy script"), //
+		Yes_PackageCache(true, false, "package cache"), //
+		No_PackageCache(false, false, "package cache"), //
+		Yes_FoundInJar(true, true, "in jar"), //
+		Yes_FoundOnDisk(true, true, "on disk"), //
+		No_Array(false, false, "array"), //
+		No_DiskCheck(false, true, "disk checked");
+
+		public final boolean couldBeReloadable;
+
+		public final boolean diskChecked;
+
+		public String reason;
+
+		CouldBeReloadableDecision(boolean couldBeReloadable, boolean diskChecked, String reason) {
+			this.couldBeReloadable = couldBeReloadable;
+			this.diskChecked = diskChecked;
+			this.reason = reason;
+		}
+	}
+
 	/**
 	 * Determine if the named type could be reloadable. This method is invoked if the user has not setup any inclusions.
 	 * With no inclusions specified, something is considered reloadable if it is accessible by the classloader for this
@@ -609,12 +636,12 @@ public class TypeRegistry {
 	 * @param slashedName the typename of interest (e.g. com/foo/Bar)
 	 * @return true if the type should be considered reloadable
 	 */
-	private boolean couldBeReloadable(String slashedName) {
+	private CouldBeReloadableDecision couldBeReloadable(String slashedName) {
 		if (slashedName == null) {
-			return false;
+			return CouldBeReloadableDecision.No_BuiltIn;
 		}
 		if (slashedName.startsWith("java/")) {
-			return false;
+			return CouldBeReloadableDecision.No_BuiltIn;
 		}
 		char ch = slashedName.charAt(0);
 		int index = ch - 'a';
@@ -630,27 +657,27 @@ public class TypeRegistry {
 									+ ignorablePackagePrefix
 									+ "' which is considered infrastructure and types within it are not made reloadable");
 						}
-						return false;
+						return CouldBeReloadableDecision.No_FixedPackageList;
 					}
 				}
 			}
 		}
 		if (slashedName.indexOf("$Proxy") != -1 || slashedName.indexOf("$$EnhancerBy") != -1
 				|| slashedName.indexOf("$$FastClassBy") != -1) {
-			return true;
+			return CouldBeReloadableDecision.Yes_CGLIB;
 		}
 		// TODO review all these... are these four only loaded by jasperloader?
 		int underscorePos = slashedName.indexOf("_");
 		if (underscorePos != -1) {
 			if (slashedName.endsWith("_jspx") || slashedName.endsWith("_tagx")) {
-				return false;
+				return CouldBeReloadableDecision.No_JSP;
 			}
 			if (slashedName.endsWith("_jspx$Helper") || slashedName.endsWith("_tagx$Helper")) {
-				return false;
+				return CouldBeReloadableDecision.No_JSP;
 			}
 			// skip grails scripts like "_PackagePlugins_groovy$_run_closure1_closure7"
 			if (ch == '_' && slashedName.indexOf("_groovy") != -1) {
-				return false;
+				return CouldBeReloadableDecision.No_GroovyScript;
 			}
 		}
 		int lastSlashPos = slashedName.lastIndexOf('/');
@@ -660,18 +687,18 @@ public class TypeRegistry {
 			for (String foundPackageName : packagesFound) {
 				if (packageName.equals(foundPackageName)) {
 					//					System.out.println("fast accept " + slashedName);
-					return true;
+					return CouldBeReloadableDecision.Yes_PackageCache;
 				}
 			}
 			for (String notfoundPackageName : packagesNotFound) {
 				if (packageName.equals(notfoundPackageName)) {
 					//					System.out.println("fast reject " + slashedName);
-					return false;
+					return CouldBeReloadableDecision.No_PackageCache;
 				}
 			}
 		}
 		if (ch == '[') {
-			return false;
+			return CouldBeReloadableDecision.No_Array;
 		}
 		try {
 			if (getResourceMethod == null) {
@@ -685,6 +712,7 @@ public class TypeRegistry {
 			getResourceMethod.setAccessible(true);
 			URL url = (URL) getResourceMethod.invoke(classLoader.get(), slashedName + ".class");
 			boolean reloadable = false;
+			boolean jarEntry = false;
 			if (url != null) {
 				String protocol = url.getProtocol();
 				// ignore 'jar' - what others?
@@ -708,6 +736,7 @@ public class TypeRegistry {
 							for (String jarToWatch : GlobalConfiguration.jarsToWatch) {
 								if (jarname.equals(jarToWatch)) {
 									reloadable = true;
+									jarEntry = true;
 								}
 							}
 						}
@@ -725,7 +754,17 @@ public class TypeRegistry {
 				//				System.out.println("expensive, no package name and URL checked: " + slashedName + " : " + url + " loader="
 				//						+ classLoader);
 			}
-			return reloadable;
+			if (reloadable) {
+				if (jarEntry) {
+					return CouldBeReloadableDecision.Yes_FoundInJar;
+				}
+				else {
+					return CouldBeReloadableDecision.Yes_FoundOnDisk;
+				}
+			}
+			else {
+				return CouldBeReloadableDecision.No_DiskCheck;
+			}
 		}
 		catch (Exception e) {
 			throw new ReloadException("Unexpected problem locating the bytecode for " + slashedName + ".class", e);
@@ -733,7 +772,36 @@ public class TypeRegistry {
 	}
 
 	public boolean isReloadableTypeName(String slashedName) {
-		return isReloadableTypeName(slashedName, null, null);
+		return isReloadableTypeName(slashedName, null, null).isReloadable;
+	}
+
+	public static class ReloadableTypeNameDecision {
+
+		public final boolean isReloadable;
+
+		public final boolean extraInfo;
+
+		public final CouldBeReloadableDecision cbrd;
+
+		public final String reason;
+
+		public final boolean explicitlyIncluded;
+
+		ReloadableTypeNameDecision(boolean reloadable, CouldBeReloadableDecision cbrd, String reason, boolean extraInfo,
+				boolean explicitlyIncluded) {
+			this.isReloadable = reloadable;
+			this.cbrd = cbrd;
+			this.reason = reason;
+			this.extraInfo = extraInfo;
+			this.explicitlyIncluded = explicitlyIncluded;
+		}
+
+		public static final ReloadableTypeNameDecision No = new ReloadableTypeNameDecision(false, null,
+				null, false, false);
+
+		public static final ReloadableTypeNameDecision Yes = new ReloadableTypeNameDecision(true, null,
+				null, false, false);
+
 	}
 
 	/**
@@ -745,7 +813,8 @@ public class TypeRegistry {
 	 * @param bytes the class bytes for the class being loaded
 	 * @return true if the type is reloadable, false otherwise
 	 */
-	public boolean isReloadableTypeName(String slashedName, ProtectionDomain protectionDomain, byte[] bytes) {
+	public ReloadableTypeNameDecision isReloadableTypeName(String slashedName, ProtectionDomain protectionDomain,
+			byte[] bytes) {
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINER)) {
 			log.finer("entering TypeRegistry.isReloadableTypeName(" + slashedName + ")");
 		}
@@ -758,7 +827,7 @@ public class TypeRegistry {
 					log.finer("[explanation] The type " + slashedName
 							+ " is considered part of yourkit and is not being made reloadable");
 				}
-				return false;
+				return ReloadableTypeNameDecision.No;
 			}
 		}
 		// Proxy types that implement a reloadable interface should themselves be made reloadable ... to be fleshed out
@@ -788,34 +857,35 @@ public class TypeRegistry {
 					log.finer("[explanation] The plugin " + plugin.getClass().getName() + " determined type "
 							+ slashedName + " is reloadable");
 				}
-				return true;
+				return ReloadableTypeNameDecision.Yes;
 			}
 			else if (decision == ReloadDecision.NO) {
 				if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
 					log.finer("[explanation] The plugin " + plugin.getClass().getName() + " determined type "
 							+ slashedName + " is not reloadable");
 				}
-				return false;
+				return ReloadableTypeNameDecision.No;
 			}
 		}
 
 		if (inclusionPatterns.isEmpty()) {
 			// No inclusions, so unless it matches an exclusion, it will be included
 			if (exclusionPatterns.isEmpty()) {
-				if (couldBeReloadable(slashedName)) {
+				CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName);
+				if (cbrd.couldBeReloadable) {
 					if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
 						log.finer("[explanation] The class "
 								+ slashedName
 								+ " is currently considered reloadable. It matches no exclusions, is accessible from this classloader and is not in a jar/zip.");
 					}
-					return true;
+					return new ReloadableTypeNameDecision(true, cbrd, null, true, false);
 				}
 				else {
 					if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
 						log.finer("[explanation] The class " + slashedName
 								+ " is not going to be treated as reloadable.");
 					}
-					return false;
+					return new ReloadableTypeNameDecision(false, cbrd, null, true, false);
 				}
 			}
 			else {
@@ -829,14 +899,15 @@ public class TypeRegistry {
 						}
 					}
 					if (isExcluded) {
-						return false;
+						return new ReloadableTypeNameDecision(false, null, null, false, false);
 					}
 				}
-				if (couldBeReloadable(slashedName)) {
-					return true;
+				CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName);
+				if (cbrd.couldBeReloadable) {
+					return new ReloadableTypeNameDecision(true, cbrd, null, false, false);
 				}
 				else {
-					return false;
+					return new ReloadableTypeNameDecision(false, cbrd, null, false, false);
 				}
 			}
 		}
@@ -853,12 +924,23 @@ public class TypeRegistry {
 					}
 				}
 				if (!isIncluded) {
-					return false;
+					// Not on the inclusion list
+					// In test mode there are various hierarchies of test data classes all on disk
+					// but inclusions are used to specify exactly what we want to consider reloadable. By
+					// making this check we avoid making types we discover on disk (or in the package cache)
+					// being made reloadable. In a real setup this wouldn't be what we want (hence the check)
+					if (!GlobalConfiguration.InTestMode) {
+						CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName);
+						if (cbrd.couldBeReloadable) {
+							return new ReloadableTypeNameDecision(true, cbrd, null, true, false);
+						}
+					}
+					return ReloadableTypeNameDecision.No;
 				}
 			}
 			// Ok it matched an inclusion, but it must not match any exclusions
 			if (exclusionPatterns.isEmpty()) {
-				return true;
+				return new ReloadableTypeNameDecision(true, null, null, true, true);
 			}
 			else {
 				boolean isExcluded = false;
@@ -870,7 +952,7 @@ public class TypeRegistry {
 						}
 					}
 				}
-				return !isExcluded;
+				return new ReloadableTypeNameDecision(!isExcluded, null, null, true, true);
 			}
 		}
 	}
@@ -1058,7 +1140,8 @@ public class TypeRegistry {
 			}
 		}
 		if (GlobalConfiguration.logging && log.isLoggable(Level.INFO)) {
-			log.log(Level.INFO, "ReloadableType.addType(): Type '" + dottedname + "' is now reloadable! id=" + typeId);
+			log.log(Level.INFO,
+					"ReloadableType.addType(): Type '" + dottedname + "' is now reloadable! id=" + typeId);
 		}
 		return rtype;
 	}
@@ -1207,7 +1290,8 @@ public class TypeRegistry {
 				defineClassMethod.setAccessible(true);
 				ClassLoader loaderToUse = null;
 				loaderToUse = classLoader.get();
-				clazz = (Class<?>) defineClassMethod.invoke(loaderToUse, new Object[] { name, bytes, 0, bytes.length });
+				clazz = (Class<?>) defineClassMethod.invoke(loaderToUse,
+						new Object[] { name, bytes, 0, bytes.length });
 			}
 			else {
 				clazz = ccl.defineClass(name, bytes);
@@ -1344,8 +1428,9 @@ public class TypeRegistry {
 			}
 			else if (IncrementalTypeDescriptor.hasChanged(method)) {
 				if (IncrementalTypeDescriptor.isNowNonStatic(method)) {
-					throw new IncompatibleClassChangeError("SpringLoaded: Target of static call is no longer static '"
-							+ reloadableType.getBaseName() + "." + nameAndDescriptor + "'");
+					throw new IncompatibleClassChangeError(
+							"SpringLoaded: Target of static call is no longer static '"
+									+ reloadableType.getBaseName() + "." + nameAndDescriptor + "'");
 				}
 				// TODO need a check in here for a visibility change? Something like this:
 				//				if (IncrementalTypeDescriptor.hasVisibilityChanged(method)) {
@@ -1474,7 +1559,8 @@ public class TypeRegistry {
 	 */
 	private static ReloadableType searchForReloadableType(int typeId, TypeRegistry typeRegistry) {
 		ReloadableType reloadableType;
-		reloadableType = typeRegistry.getReloadableTypeInTypeRegistryHierarchy(NameRegistry.getTypenameById(typeId));
+		reloadableType = typeRegistry.getReloadableTypeInTypeRegistryHierarchy(
+				NameRegistry.getTypenameById(typeId));
 		typeRegistry.rememberReloadableType(typeId, reloadableType);
 		return reloadableType;
 	}
@@ -1802,7 +1888,8 @@ public class TypeRegistry {
 	@UsedByGeneratedCode
 	public static ReloadableType getReloadableType(int typeRegistryId, int typeId) {
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.INFO)) {
-			log.info(">TypeRegistry.getReloadableType(typeRegistryId=" + typeRegistryId + ",typeId=" + typeId + ")");
+			log.info(
+					">TypeRegistry.getReloadableType(typeRegistryId=" + typeRegistryId + ",typeId=" + typeId + ")");
 		}
 		TypeRegistry typeRegistry = registryInstances[typeRegistryId].get();
 		if (typeRegistry == null) {
@@ -1919,14 +2006,16 @@ public class TypeRegistry {
 		// 'local' plugins
 		for (Plugin plugin : localPlugins) {
 			if (plugin instanceof ReloadEventProcessorPlugin) {
-				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(), reloadableType.getClazz(),
+				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(),
+						reloadableType.getClazz(),
 						versionsuffix);
 			}
 		}
 		// 'global' plugins
 		for (Plugin plugin : SpringLoadedPreProcessor.getGlobalPlugins()) {
 			if (plugin instanceof ReloadEventProcessorPlugin) {
-				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(), reloadableType.getClazz(),
+				((ReloadEventProcessorPlugin) plugin).reloadEvent(reloadableType.getName(),
+						reloadableType.getClazz(),
 						versionsuffix);
 			}
 		}

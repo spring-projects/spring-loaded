@@ -42,6 +42,7 @@ import org.springsource.loaded.SystemClassReflectionInvestigator;
 import org.springsource.loaded.SystemClassReflectionRewriter;
 import org.springsource.loaded.SystemClassReflectionRewriter.RewriteResult;
 import org.springsource.loaded.TypeRegistry;
+import org.springsource.loaded.TypeRegistry.ReloadableTypeNameDecision;
 import org.springsource.loaded.Utils;
 import org.springsource.loaded.ri.ReflectiveInterceptor;
 import org.springsource.loaded.support.Java8;
@@ -188,9 +189,10 @@ public class SpringLoadedPreProcessor implements Constants {
 		// 2. If NO, and nothing in this classloader might be, return the original bytes.
 		// 3. If YES, make the type reloadable (including rewriting call sites)
 
-		boolean isReloadableTypeName = typeRegistry.isReloadableTypeName(slashedClassName, protectionDomain, bytes);
+		ReloadableTypeNameDecision isReloadableTypeName = typeRegistry.isReloadableTypeName(slashedClassName,
+				protectionDomain, bytes);
 
-		if (isReloadableTypeName && GlobalConfiguration.explainMode && log.isLoggable(Level.INFO)) {
+		if (isReloadableTypeName.isReloadable && GlobalConfiguration.explainMode && log.isLoggable(Level.INFO)) {
 			log.info("[explanation] Based on the name, type " + slashedClassName + " is considered to be reloadable");
 		}
 
@@ -199,7 +201,7 @@ public class SpringLoadedPreProcessor implements Constants {
 		//		if (GlobalConfiguration.verboseMode && isReloadableTypeName) {
 		//			Log.log("Type '"+slashedClassName+"' is preliminarily being considered a reloadable type");
 		//		}
-		if (isReloadableTypeName) {
+		if (isReloadableTypeName.isReloadable) {
 			if (!firstReloadableTypeHit) {
 				firstReloadableTypeHit = true;
 				// TODO move into the ctor for ReloadableType so that it can't block loading
@@ -305,13 +307,29 @@ public class SpringLoadedPreProcessor implements Constants {
 
 					if (!makeReloadableAnyway) {
 						// can't watch it for updates (it comes from a jar perhaps) so just rewrite call sites and return
-						if (GlobalConfiguration.verboseMode) {
-							Log.log("Cannot watch " + slashedClassName + ": not making it reloadable");
+
+						// Not planning to watch this class so ordinarily do not make it reloadable. UNLESS the user
+						// is specifying that it needs to be. This may happen with split packages - some classes in a jar
+						// and some on disk. During type rewriting the top most reloadable types get fields inserted -
+						// when split across jars we get confused by split packages.  If we go by name (as the code does
+						// right now) then we think we aren't the top most reloadable type but we don't realize that the
+						// type above us comes from a jar. Hence this condition below. If the user did explicitly
+						// specify types with this kind of name should be made reloadable we even make the ones from
+						// the jar reloadable. (TODO: optimization, make a smarter isTopMostReloadableType test that
+						// allows us to keep the jar loaded types as non reloadable).
+						if (isReloadableTypeName.extraInfo && isReloadableTypeName.explicitlyIncluded
+								&& !GlobalConfiguration.InTestMode) {
+
 						}
-						if (needsClientSideRewriting(slashedClassName)) {
-							bytes = typeRegistry.methodCallRewriteUseCacheIfAvailable(slashedClassName, bytes);
+						else {
+							if (GlobalConfiguration.verboseMode) {
+								Log.log("Cannot watch " + slashedClassName + ": not making it reloadable");
+							}
+							if (needsClientSideRewriting(slashedClassName)) {
+								bytes = typeRegistry.methodCallRewriteUseCacheIfAvailable(slashedClassName, bytes);
+							}
+							return bytes;
 						}
-						return bytes;
 					}
 				}
 				ReloadableType rtype = typeRegistry.addType(dottedClassName, bytes);
