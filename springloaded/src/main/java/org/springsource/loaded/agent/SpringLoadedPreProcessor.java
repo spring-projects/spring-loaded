@@ -317,19 +317,19 @@ public class SpringLoadedPreProcessor implements Constants {
 						// specify types with this kind of name should be made reloadable we even make the ones from
 						// the jar reloadable. (TODO: optimization, make a smarter isTopMostReloadableType test that
 						// allows us to keep the jar loaded types as non reloadable).
-						if (isReloadableTypeName.extraInfo && isReloadableTypeName.explicitlyIncluded
-								&& !GlobalConfiguration.InTestMode) {
-
+						//						if (isReloadableTypeName.extraInfo && isReloadableTypeName.explicitlyIncluded
+						//								&& !GlobalConfiguration.InTestMode) {
+						//
+						//						}
+						//						else {
+						if (GlobalConfiguration.verboseMode) {
+							Log.log("Cannot watch " + slashedClassName + ": not making it reloadable");
 						}
-						else {
-							if (GlobalConfiguration.verboseMode) {
-								Log.log("Cannot watch " + slashedClassName + ": not making it reloadable");
-							}
-							if (needsClientSideRewriting(slashedClassName)) {
-								bytes = typeRegistry.methodCallRewriteUseCacheIfAvailable(slashedClassName, bytes);
-							}
-							return bytes;
+						if (needsClientSideRewriting(slashedClassName)) {
+							bytes = typeRegistry.methodCallRewriteUseCacheIfAvailable(slashedClassName, bytes);
 						}
+						return bytes;
+						//						}
 					}
 				}
 				ReloadableType rtype = typeRegistry.addType(dottedClassName, bytes);

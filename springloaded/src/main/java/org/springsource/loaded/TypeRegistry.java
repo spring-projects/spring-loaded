@@ -603,27 +603,30 @@ public class TypeRegistry {
 
 
 	public static enum CouldBeReloadableDecision {
-		No_BuiltIn(false, false, "built in rejection"), //
-		No_FixedPackageList(false, false, "on hard coded list of those to reject"), //
-		Yes_CGLIB(true, false, "cglib related type"), //
-		No_JSP(false, false, "jsp"), //
-		No_GroovyScript(false, false, "groovy script"), //
-		Yes_PackageCache(true, false, "package cache"), //
-		No_PackageCache(false, false, "package cache"), //
-		Yes_FoundInJar(true, true, "in jar"), //
-		Yes_FoundOnDisk(true, true, "on disk"), //
-		No_Array(false, false, "array"), //
-		No_DiskCheck(false, true, "disk checked");
+		No_BuiltIn(false, false, false, "built in rejection"), //
+		No_FixedPackageList(false, false, false, "on hard coded list of those to reject"), //
+		Yes_CGLIB(true, false, false, "cglib related type"), //
+		No_JSP(false, false, false, "jsp"), //
+		No_GroovyScript(false, false, false, "groovy script"), //
+		Yes_PackageCache(true, false, false, "package cache"), //
+		No_PackageCache(false, false, false, "package cache"), //
+		Yes_FoundInJar(true, true, true, "in jar"), //
+		Yes_FoundOnDisk(true, true, false, "on disk"), //
+		No_Array(false, false, false, "array"), //
+		No_DiskCheck(false, true, false, "disk checked");
 
 		public final boolean couldBeReloadable;
 
 		public final boolean diskChecked;
 
+		public final boolean inJar;
+
 		public String reason;
 
-		CouldBeReloadableDecision(boolean couldBeReloadable, boolean diskChecked, String reason) {
+		CouldBeReloadableDecision(boolean couldBeReloadable, boolean diskChecked, boolean inJar, String reason) {
 			this.couldBeReloadable = couldBeReloadable;
 			this.diskChecked = diskChecked;
+			this.inJar = inJar;
 			this.reason = reason;
 		}
 	}
@@ -634,9 +637,10 @@ public class TypeRegistry {
 	 * registry and is not in a jar
 	 *
 	 * @param slashedName the typename of interest (e.g. com/foo/Bar)
+	 * @param usePackageNameDecisionCache whether to base a decision on the contents of the name decision cache
 	 * @return true if the type should be considered reloadable
 	 */
-	private CouldBeReloadableDecision couldBeReloadable(String slashedName) {
+	public CouldBeReloadableDecision couldBeReloadable(String slashedName, boolean usePackageNameDecisionCache) {
 		if (slashedName == null) {
 			return CouldBeReloadableDecision.No_BuiltIn;
 		}
@@ -645,7 +649,7 @@ public class TypeRegistry {
 		}
 		char ch = slashedName.charAt(0);
 		int index = ch - 'a';
-		if (index > 0 && index < 26) {
+		if (usePackageNameDecisionCache && index > 0 && index < 26) {
 			String[] candidates = ignorablePackagePrefixes[index];
 			if (candidates != null) {
 				for (String ignorablePackagePrefix : candidates) {
@@ -682,7 +686,7 @@ public class TypeRegistry {
 		}
 		int lastSlashPos = slashedName.lastIndexOf('/');
 		String packageName = lastSlashPos == -1 ? null : slashedName.substring(0, lastSlashPos);
-		if (packageName != null && !GlobalConfiguration.allowSplitPackages) {
+		if (packageName != null && !GlobalConfiguration.allowSplitPackages && usePackageNameDecisionCache) {
 			// is it something we already know about?
 			for (String foundPackageName : packagesFound) {
 				if (packageName.equals(foundPackageName)) {
@@ -743,7 +747,7 @@ public class TypeRegistry {
 					}
 				}
 			}
-			if (packageName != null && !GlobalConfiguration.allowSplitPackages) {
+			if (packageName != null && !GlobalConfiguration.allowSplitPackages && usePackageNameDecisionCache) {
 				if (reloadable) {
 					packagesFound.add(packageName);
 				}
@@ -871,7 +875,7 @@ public class TypeRegistry {
 		if (inclusionPatterns.isEmpty()) {
 			// No inclusions, so unless it matches an exclusion, it will be included
 			if (exclusionPatterns.isEmpty()) {
-				CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName);
+				CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName, true);
 				if (cbrd.couldBeReloadable) {
 					if (GlobalConfiguration.explainMode && log.isLoggable(Level.FINER)) {
 						log.finer("[explanation] The class "
@@ -902,7 +906,7 @@ public class TypeRegistry {
 						return new ReloadableTypeNameDecision(false, null, null, false, false);
 					}
 				}
-				CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName);
+				CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName, true);
 				if (cbrd.couldBeReloadable) {
 					return new ReloadableTypeNameDecision(true, cbrd, null, false, false);
 				}
@@ -930,7 +934,7 @@ public class TypeRegistry {
 					// making this check we avoid making types we discover on disk (or in the package cache)
 					// being made reloadable. In a real setup this wouldn't be what we want (hence the check)
 					if (!GlobalConfiguration.InTestMode) {
-						CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName);
+						CouldBeReloadableDecision cbrd = couldBeReloadable(slashedName, true);
 						if (cbrd.couldBeReloadable) {
 							return new ReloadableTypeNameDecision(true, cbrd, null, true, false);
 						}

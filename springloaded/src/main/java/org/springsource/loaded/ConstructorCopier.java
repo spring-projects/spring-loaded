@@ -76,7 +76,8 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 
 	// TODO may need to pay attention itf==true
 	@Override
-	public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc, boolean itf) {
+	public void visitMethodInsn(final int opcode, final String owner, final String name, final String desc,
+			boolean itf) {
 		// If this is an invokespecial, first determine if it is the one of interest (the one calling our super constructor)
 		if (opcode == INVOKESPECIAL && name.charAt(0) == '<') {
 			if (unitializedObjectsCount != 0) {
@@ -92,8 +93,8 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 					else {
 						// Need to replace this INVOKESPECIAL call.
 						String supertypename = typeDescriptor.getSupertypeName();
-						ReloadableType superRtype = typeDescriptor.getReloadableType().getTypeRegistry()
-								.getReloadableSuperType(supertypename);
+						ReloadableType superRtype = typeDescriptor.getReloadableType().getTypeRegistry().getReloadableSuperType(
+								supertypename);
 						if (superRtype == null) {
 							// supertype was not reloadable.  This either means it really isn't (doesn't match what we consider reloadable)
 							// or it just hasn't been loaded yet.
@@ -101,13 +102,14 @@ class ConstructorCopier extends MethodVisitor implements Constants {
 							// because they don't actively load all their bits and pieces in a hierarchical way.  Given that on a reloadable boundary
 							// the magic ctors are setup to call a default ctor, we can assume that above the boundary the object has been initialized.
 							// this means we don't need to call a super __init__ or __execute...
-
-							if (typeDescriptor.getReloadableType().getTypeRegistry().isReloadableTypeName(supertypename)) {
-								superRtype = typeDescriptor.getReloadableType().getTypeRegistry()
-										.getReloadableSuperType(supertypename);
-								throw new IllegalStateException("The supertype " + supertypename.replace('/', '.')
-										+ " has not been loaded as a reloadabletype");
-							}
+							/*
+																	if (typeDescriptor.getReloadableType().getTypeRegistry().isReloadableTypeName(supertypename)) {
+																					superRtype = typeDescriptor.getReloadableType().getTypeRegistry()
+																								.getReloadableSuperType(supertypename);
+																						throw new IllegalStateException("The supertype " + supertypename.replace('/', '.')
+																								+ " has not been loaded as a reloadabletype");
+																					}
+																					*/
 							Utils.insertPopsForAllParameters(mv, desc);
 							mv.visitInsn(POP); // pop 'this'
 						}

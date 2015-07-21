@@ -27,6 +27,8 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.springsource.loaded.TypeRegistry.CouldBeReloadableDecision;
+import org.springsource.loaded.TypeRegistry.ReloadableTypeNameDecision;
 import org.springsource.loaded.Utils.ReturnType;
 
 
@@ -71,6 +73,8 @@ public class TypeRewriter implements Constants {
 
 		private boolean isInterface;
 
+		private int isTopmostReloadable = -1; // -1 = not computed. 0=false, 1=true
+
 		private boolean isEnum;
 
 		private boolean isGroovy;
@@ -99,7 +103,8 @@ public class TypeRewriter implements Constants {
 		}
 
 		@Override
-		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		public void visit(int version, int access, String name, String signature, String superName,
+				String[] interfaces) {
 			access = Utils.promoteDefaultOrPrivateOrProtectedToPublic(access);
 			super.visit(version, access, name, signature, superName, interfaces);
 
@@ -127,14 +132,54 @@ public class TypeRewriter implements Constants {
 			}
 		}
 
+		/**
+		 * Determine if this type is the top most reloadable type. Some state is only inserted into the top most
+		 * reloadable type in a hierarchy, rather than into every reloadable type. Typically this type will be the top
+		 * most reloadable if the supertype comes from a jar or is in a package we know is not reloadable (e.g.
+		 * java.lang).
+		 *
+		 * @return true if top most reloadable
+		 */
 		private boolean isTopmostReloadable() {
+			if (isTopmostReloadable > -1) {
+				return isTopmostReloadable == 1;
+			}
+			boolean result = false;
 			TypeRegistry typeRegistry = rtype.getTypeRegistry();
-			if (!typeRegistry.isReloadableTypeName(typeDescriptor.getSupertypeName())) {
-				return true;
+			String supertypeName = typeDescriptor.getSupertypeName();
+			ReloadableTypeNameDecision rtnd = typeRegistry.isReloadableTypeName(supertypeName, null, null);
+			if (rtnd.isReloadable) {
+				// If splitPackages option is turned ON or super type is being explicitly included via pattern,
+				// dig a bit deeper. It may still be excluded due to being in a non watched jar. (So effectively the
+				// inclusion pattern does not apply to jar contents).
+				if (GlobalConfiguration.allowSplitPackages || rtnd.explicitlyIncluded) {
+					CouldBeReloadableDecision cbrd = rtnd.cbrd;
+					if (cbrd == null) {
+						cbrd = typeRegistry.couldBeReloadable(supertypeName, false);
+					}
+					result = !cbrd.couldBeReloadable;
+				}
+				else {
+					result = false;
+				}
 			}
 			else {
-				return false;
+				result = true;
 			}
+			isTopmostReloadable = result ? 1 : 0;
+			return result;
+
+			// this would work if the supertype was always guaranteed to be dealt with before this type
+			// return typeRegistry.getReloadableType(typeDescriptor.getSupertypeName(), false) == null;
+
+			// original decision:
+			// This makes a mistake for split packages
+			//			if (!typeRegistry.isReloadableTypeName(supertypeName)) {
+			//				return true;
+			//			}
+			//			else {
+			//				return false;
+			//			}
 		}
 
 		private void createStaticInitializerForwarderMethod() {
@@ -184,7 +229,8 @@ public class TypeRewriter implements Constants {
 				mv.visitMethodInsn(INVOKEVIRTUAL, tReloadableType, "getLatestDispatcherInstance",
 						"(Z)Ljava/lang/Object;");
 				mv.visitTypeInsn(CHECKCAST, Utils.getInterfaceName(slashedname));
-				String desc2 = new StringBuffer("(L").append(slashedname).append(";").append(desc.substring(1)).toString();
+				String desc2 = new StringBuffer("(L").append(slashedname).append(";").append(
+						desc.substring(1)).toString();
 				mv.visitVarInsn(ALOAD, 0);
 				Utils.createLoadsBasedOnDescriptor(mv, desc, 1);
 				mv.visitMethodInsn(INVOKEINTERFACE, Utils.getInterfaceName(slashedname), "___init___", desc2);
@@ -265,8 +311,8 @@ public class TypeRewriter implements Constants {
 								log.log(Level.SEVERE, warningMessage);
 							}
 							// suppress for closure subtypes
-							if (!(supertypeName.equals("groovy/lang/Closure") || supertypeName
-									.startsWith("org/codehaus/groovy/runtime/callsite"))) {
+							if (!(supertypeName.equals("groovy/lang/Closure")
+									|| supertypeName.startsWith("org/codehaus/groovy/runtime/callsite"))) {
 								if (GlobalConfiguration.verboseMode) {
 									System.out.println(warningMessage);
 								}
@@ -420,7 +466,7 @@ public class TypeRewriter implements Constants {
 		}
 
 		private void createStaticStateManagerInstance() {
-			FieldVisitor f = cw.visitField(ACC_PUBLIC_STATIC /*| ACC_TRANSIENT*/| ACC_FINAL, fStaticFieldsName,
+			FieldVisitor f = cw.visitField(ACC_PUBLIC_STATIC /*| ACC_TRANSIENT*/ | ACC_FINAL, fStaticFieldsName,
 					lStaticStateManager, null, null);
 			f.visitEnd();
 		}
@@ -696,7 +742,8 @@ public class TypeRewriter implements Constants {
 				int lvarIndex = 0;
 				mv.visitVarInsn(ALOAD, lvarIndex++); // load this
 				Utils.createLoadsBasedOnDescriptor(mv, descriptor, lvarIndex);
-				String desc = new StringBuffer("(L").append(slashedname).append(";").append(descriptor.substring(1)).toString();
+				String desc = new StringBuffer("(L").append(slashedname).append(";").append(
+						descriptor.substring(1)).toString();
 				mv.visitMethodInsn(INVOKEINTERFACE, Utils.getInterfaceName(slashedname), name, desc);
 				Utils.addCorrectReturnInstruction(mv, returnType, true);
 
@@ -773,7 +820,8 @@ public class TypeRewriter implements Constants {
 			if (field.isStatic()) {
 				MethodVisitor mv = cw.visitMethod(Modifier.PUBLIC | Modifier.STATIC,
 						Utils.getProtectedFieldGetterName(name), "()"
-								+ descriptor, null, null);
+								+ descriptor,
+						null, null);
 				mv.visitFieldInsn(GETSTATIC, slashedname, name, descriptor);
 				Utils.addCorrectReturnInstruction(mv, rt, false);
 				mv.visitMaxs(rt.isDoubleSlot() ? 2 : 1, 0);
@@ -943,7 +991,8 @@ public class TypeRewriter implements Constants {
 					mv.visitInsn(ACONST_NULL);
 				}
 				Utils.createLoadsBasedOnDescriptor(mv, descriptor, lvarIndex);
-				String desc = new StringBuilder("(L").append(slashedname).append(";").append(descriptor.substring(1)).toString();
+				String desc = new StringBuilder("(L").append(slashedname).append(";").append(
+						descriptor.substring(1)).toString();
 				if (method.isStatic() && MethodMember.isClash(method)) {
 					name = "__" + name;
 				}
@@ -1065,7 +1114,8 @@ public class TypeRewriter implements Constants {
 
 				//				mv.visitMethodInsn(INVOKEVIRTUAL,"")
 
-				String desc = new StringBuilder("(L").append(slashedname).append(";").append(descriptor.substring(1)).toString();
+				String desc = new StringBuilder("(L").append(slashedname).append(";").append(
+						descriptor.substring(1)).toString();
 
 				//				mv.visitVarInsn(ALOAD, 0);
 				//				mv.visitMethodInsn(INVOKESPECIAL, "java/lang/Object", "<init>", "()V");
