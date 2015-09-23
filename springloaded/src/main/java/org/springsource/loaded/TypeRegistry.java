@@ -597,9 +597,9 @@ public class TypeRegistry {
 	 * If a type is found to come from a jar, we put the package name in here, which should save us looking for types in
 	 * the same package. This does pre-req that there are no split packages.
 	 */
-	private List<String> packagesFound = new ArrayList<String>();
+	private List<String> packagesFound = Collections.synchronizedList(new ArrayList<String>());
 
-	private List<String> packagesNotFound = new ArrayList<String>();
+	private List<String> packagesNotFound = Collections.synchronizedList(new ArrayList<String>());
 
 
 	public static enum CouldBeReloadableDecision {
