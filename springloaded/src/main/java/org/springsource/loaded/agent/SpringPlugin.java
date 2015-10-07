@@ -41,7 +41,7 @@ import org.springsource.loaded.ReloadEventProcessorPlugin;
  * to redrive detectHandlers() on the DefaultAnnotationHandlerMapping type which will rediscover the URL mappings and
  * add them into the handler list. We don't clear old ones out (yet) but the old mappings appear not to work anyway.
  * </ul>
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -101,10 +101,11 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		}
 		return slashedTypeName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter")
 				||
-				slashedTypeName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")
+				slashedTypeName.equals(
+						"org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")
 				|| // 3.1
-				(support305 && slashedTypeName
-						.equals("org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"));
+				(support305 && slashedTypeName.equals(
+						"org/springframework/web/servlet/mvc/annotation/DefaultAnnotationHandlerMapping"));
 	}
 
 
@@ -116,7 +117,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
 					"recordAnnotationMethodHandlerAdapterInstance");
 		}
-		else if (slashedClassName.equals("org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")) {
+		else if (slashedClassName.equals(
+				"org/springframework/web/servlet/mvc/method/annotation/RequestMappingHandlerMapping")) {
 			// springmvc spring 3.1 - doesnt work on 3.1 post M2 snapshots
 			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
 					"recordRequestMappingHandlerMappingInstance");
@@ -178,7 +180,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	/**
 	 * The Spring class LocalVariableTableParameterNameDiscoverer holds a cache of parameter names discovered for
 	 * members within classes and needs clearing if the class changes.
-	 * 
+	 *
 	 * @param clazz the class being reloaded, which may exist in a parameter name discoverer cache
 	 */
 	private void clearLocalVariableTableParameterNameDiscovererCache(Class<?> clazz) {
@@ -190,8 +192,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		}
 		if (parameterNamesCacheField == null) {
 			try {
-				parameterNamesCacheField = localVariableTableParameterNameDiscovererInstances
-						.get(0).getClass().getDeclaredField("parameterNamesCache");
+				parameterNamesCacheField = localVariableTableParameterNameDiscovererInstances.get(
+						0).getClass().getDeclaredField("parameterNamesCache");
 			}
 			catch (NoSuchFieldException nsfe) {
 				log.log(Level.SEVERE,
@@ -199,17 +201,22 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 			}
 		}
 		for (Object instance : localVariableTableParameterNameDiscovererInstances) {
-			parameterNamesCacheField.setAccessible(true);
 			try {
+				parameterNamesCacheField.setAccessible(true);
 				Map<?, ?> parameterNamesCache = (Map<?, ?>) parameterNamesCacheField.get(instance);
 				Object o = parameterNamesCache.remove(clazz);
 				if (debug) {
-					System.out.println("ParameterNamesCache: Removed " + clazz.getName() + " from cache?" + (o != null));
+					System.out.println(
+							"ParameterNamesCache: Removed " + clazz.getName() + " from cache?" + (o != null));
 				}
 			}
 			catch (IllegalAccessException e) {
 				log.log(Level.SEVERE,
 						"Unexpected IllegalAccessException trying to access parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
+			}
+			catch (IllegalArgumentException iae) {
+				log.log(Level.SEVERE,
+						"Unexpected IllegalArgumentException trying to access parameterNamesCache field on LocalVariableTableParameterNameDiscoverer class");
 			}
 		}
 	}
@@ -339,7 +346,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 			}
 			try {
 				Class<?> clazz_AbstractDetectingUrlHandlerMapping = o.getClass().getSuperclass();
-				Method method_detectHandlers = clazz_AbstractDetectingUrlHandlerMapping.getDeclaredMethod("detectHandlers");
+				Method method_detectHandlers = clazz_AbstractDetectingUrlHandlerMapping.getDeclaredMethod(
+						"detectHandlers");
 				method_detectHandlers.setAccessible(true);
 				method_detectHandlers.invoke(o);
 			}
@@ -374,14 +382,16 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				m = (Map) field_urlMap.get(o);
 				m.clear();
 
-				Method method_initHandlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredMethod("initHandlerMethods");
+				Method method_initHandlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredMethod(
+						"initHandlerMethods");
 				method_initHandlerMethods.setAccessible(true);
 				method_initHandlerMethods.invoke(o);
 			}
 			catch (NoSuchFieldException nsfe) {
 				if (debug) {
 					if (nsfe.getMessage().equals("handlerMethods")) {
-						System.out.println("problem resetting request mapping handlers - unable to find field 'handlerMethods' on type 'AbstractHandlerMethodMapping' - you probably are not on Spring 3.1");
+						System.out.println(
+								"problem resetting request mapping handlers - unable to find field 'handlerMethods' on type 'AbstractHandlerMethodMapping' - you probably are not on Spring 3.1");
 					}
 					else {
 						System.out.println("problem resetting request mapping handlers - NoSuchFieldException: "
@@ -404,7 +414,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	/**
 	 * Modify the supplied bytes such that constructors are intercepted and will invoke the specified class/method so
 	 * that the instances can be tracked.
-	 * 
+	 *
 	 * @return modified bytes for the class
 	 */
 	private byte[] bytesWithInstanceCreationCaptured(byte[] bytes, String classToCall, String methodToCall) {
