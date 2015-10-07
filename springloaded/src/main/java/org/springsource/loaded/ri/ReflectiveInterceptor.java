@@ -58,7 +58,7 @@ import org.springsource.loaded.jvm.JVM;
 /**
  * The reflective interceptor is called to rewrite any reflective calls that are found in the bytecode. Intercepting the
  * calls means we can delegate to the SpringLoaded infrastructure.
- * 
+ *
  * @author Andy Clement
  * @author Kris De Volder
  * @since 0.5.0
@@ -249,7 +249,7 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Called to satisfy an invocation of java.lang.Class.getDeclaredAnnotations().
-	 * 
+	 *
 	 * @param clazz the class upon which the original call was being invoked
 	 * @return array of annotations on the class
 	 */
@@ -267,7 +267,7 @@ public class ReflectiveInterceptor {
 
 	/*
 	 * Called to satisfy an invocation of java.lang.Class.getDeclaredAnnotations().
-	 * 
+	 *
 	 * @param clazz the class upon which the original call was being invoked
 	 */
 	public static Annotation[] jlClassGetAnnotations(Class<?> clazz) {
@@ -614,7 +614,7 @@ public class ReflectiveInterceptor {
 	 * for the acces operation to succeed.
 	 * <p>
 	 * If any checks fail, an appropriate exception is raised.
-	 * 
+	 *
 	 * Warning this method is sensitive to stack depth! Should expects to be called DIRECTLY from a jlr redicriction
 	 * method only!
 	 */
@@ -645,12 +645,12 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Performs all necessary checks that need to be done before a field set should be allowed.
-	 * 
+	 *
 	 * @throws IllegalAccessException
 	 */
 	private static Field asSetableField(Field field, Object target, Class<?> valueType, Object value,
 			boolean makeAccessibleCopy)
-			throws IllegalAccessException {
+					throws IllegalAccessException {
 		// Must do the checks exactly in the same order as JVM if we want identical error messages.
 
 		// JVM doesn't do this, since it cannot happen without reloading, we do it first of all.
@@ -755,7 +755,7 @@ public class ReflectiveInterceptor {
 	 * Perform a dynamic type check needed when setting a field value onto a field. Raises the appropriate exception
 	 * when the check fails and returns normally otherwise. This method should only be called for object types. For
 	 * primitive types call the three parameter variant instead.
-	 * 
+	 *
 	 * @throws IllegalAccessException
 	 */
 	private static void typeCheckFieldSet(Field field, Object value) throws IllegalAccessException {
@@ -779,7 +779,7 @@ public class ReflectiveInterceptor {
 	/**
 	 * Perform a dynamic type check needed when setting a field value onto a field. Raises the appropriate exception
 	 * when the check fails and returns normally otherwise.
-	 * 
+	 *
 	 * @throws IllegalAccessException
 	 */
 	private static void typeCheckFieldSet(Field field, Class<?> valueType, Object value) throws IllegalAccessException {
@@ -824,7 +824,7 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Retrieve modifiers for a Java class, which might or might not be reloadable or reloaded.
-	 * 
+	 *
 	 * @param clazz the class for which to discover modifiers
 	 * @return the modifiers
 	 */
@@ -899,7 +899,7 @@ public class ReflectiveInterceptor {
 	/**
 	 * If clazz is reloadable <b>and</b> has been reloaded at least once then return the ReloadableType instance for it,
 	 * otherwise return null.
-	 * 
+	 *
 	 * @param clazz the type which may or may not be reloadable
 	 * @return the reloadable type or null
 	 */
@@ -920,7 +920,7 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Access and return the ReloadableType field on a specified class.
-	 * 
+	 *
 	 * @param clazz the class for which to discover the reloadable type
 	 * @return the reloadable type for the class, or null if not reloadable
 	 */
@@ -1079,8 +1079,8 @@ public class ReflectiveInterceptor {
 			// this is the right thing to do but makes a mess of getDeclaredConstructors (and affects getDeclaredConstructor)
 			//			// TODO  should check about constructor changing
 			//			rtype.getTypeDescriptor().getConstructor("").
-			boolean ctorChanged = rtype.getLiveVersion()
-					.hasConstructorChanged(Utils.toConstructorDescriptor(c.getParameterTypes()));
+			boolean ctorChanged = rtype.getLiveVersion().hasConstructorChanged(
+					Utils.toConstructorDescriptor(c.getParameterTypes()));
 			if (!ctorChanged) {
 				// if we let the getDeclaredConstructor(s) code run as is, it may create invalid ctors, if we want to run the real one we should discover it here and use it.
 				// would it be cheaper to fix up getDeclaredConstructor to always return valid ones if we are going to use them, or should we intercept here? probably the former...
@@ -1445,11 +1445,13 @@ public class ReflectiveInterceptor {
 				//These methods are dispatched dynamically
 				ReloadableType targetType = getRType(target.getClass()); //NPE possible but is what should happen here!
 				if (targetType == null) {
-					System.out.println("GRAILS-7799: Subtype '"
-							+ target.getClass().getName()
-							+ "' of reloadable type "
-							+ method.getDeclaringClass().getName()
-							+ " is not reloadable: may not see changes reloaded in this hierarchy (please comment on that jira)");
+					if (GlobalConfiguration.verboseMode) {
+						System.out.println("UNEXPECTED: Subtype '"
+								+ target.getClass().getName()
+								+ "' of reloadable type "
+								+ method.getDeclaringClass().getName()
+								+ " is not reloadable: may not see changes reloaded in this hierarchy");
+					}
 					method = asAccessibleMethod(declaringType, method, target, true);
 					return method.invoke(target, params);
 				}
@@ -1853,7 +1855,7 @@ public class ReflectiveInterceptor {
 	/**
 	 * Although fields are not reloadable, we have to intercept this because otherwise we'll return the r$type field as
 	 * a result here.
-	 * 
+	 *
 	 * @param clazz the class for which to retrieve the fields
 	 * @return array of fields in the class
 	 */
@@ -1871,7 +1873,7 @@ public class ReflectiveInterceptor {
 
 	/**
 	 * Gather up all (public) fields in an interface and all its super interfaces recursively.
-	 * 
+	 *
 	 * @param clazz the class for which to collect up fields
 	 * @param collected a collector that has fields added to it as this method runs (recursively)
 	 * @param visited a set recording which types have already been visited
