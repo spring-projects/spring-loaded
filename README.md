@@ -36,25 +36,25 @@ of the object, the instances do not need to be discarded and recreated.
 No doubt that raises a lot of questions and hopefully a proper FAQ will appear here shortly! But in
 the meantime, here are some basic Qs and As:
 
-Q. Does it reload anything that might change in a class file?
-A. No, you can't change the hierarchy of a type. Also there are certain constructor patterns of
-usage it can't actually handle right now.
-
-Q. With objects changing shape, what happens with respect to reflection?
-A. Reflection results change over time as the objects are reloaded.  For example, modifying a class
+**Q**. *Does it reload anything that might change in a class file?*  
+**A**.No, you can't change the hierarchy of a type. Also there are certain constructor patterns of
+usage it can't actually handle right now.  
+ 
+**Q**. *With objects changing shape, what happens with respect to reflection?*  
+**A**. Reflection results change over time as the objects are reloaded.  For example, modifying a class
 with a new method and calling getDeclaredMethods() after reloading has occurred will mean you see
 the new method in the results. *But* this does mean if you have existing caches in your system
 that stash reflective information assuming it never changes, those will need to be cleared
 after a reload.
 
-Q. How do I know when a reload has occurred so I can clear my state?
-A. You can write a plugin that is called when reloads occur and you can then take the appropriate
+**Q**. *How do I know when a reload has occurred so I can clear my state?*  
+**A**.You can write a plugin that is called when reloads occur and you can then take the appropriate
 action.  Create an implementation of `ReloadEventProcessorPlugin` and then register it via
 `SpringLoadedPreProcessor.registerGlobalPlugin(plugin)`. (There are other ways to register plugins,
 which will hopefully get some documentation!)
 
-Q. What's the state of the codebase?
-A. The technology is successfully being used by Grails for reloading. It does need some performance
+**Q**. *What's the state of the codebase?*     
+**A**. The technology is successfully being used by Grails for reloading. It does need some performance
 work and a few smacks with a refactoring hammer. It needs upgrading here and there to tolerate
 the invokedynamic instruction and associated new constant pool entries that arrived in Java 7.
 
