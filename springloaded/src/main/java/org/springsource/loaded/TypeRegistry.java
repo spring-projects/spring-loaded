@@ -41,6 +41,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.WeakHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -597,9 +598,9 @@ public class TypeRegistry {
 	 * If a type is found to come from a jar, we put the package name in here, which should save us looking for types in
 	 * the same package. This does pre-req that there are no split packages.
 	 */
-	private List<String> packagesFound = Collections.synchronizedList(new ArrayList<String>());
+	private List<String> packagesFound = new CopyOnWriteArrayList<String>();
 
-	private List<String> packagesNotFound = Collections.synchronizedList(new ArrayList<String>());
+	private List<String> packagesNotFound = new CopyOnWriteArrayList<String>();
 
 
 	public static enum CouldBeReloadableDecision {
