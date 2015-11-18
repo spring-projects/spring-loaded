@@ -426,6 +426,26 @@ public class Java8Tests extends SpringLoadedTests {
 	}
 
 	@Test
+	public void lambdaWithDoubleDotConstructor() throws Exception {
+		String t = "basic.LambdaO";
+		TypeRegistry typeRegistry = getTypeRegistry(t);
+		byte[] sc = loadBytesForClass(t);
+		ReloadableType rtype = typeRegistry.addType(t, sc);
+
+		Class<?> simpleClass = rtype.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(3, r.returnValue);
+
+		byte[] renamed = retrieveRename(t, t + "2");
+		rtype.loadNewVersion("002", renamed);
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(4, r.returnValue);
+
+	}
+
+	@Test
 	public void streamWithLambda() throws Exception {
 		String t = "basic.StreamA";
 		TypeRegistry typeRegistry = getTypeRegistry("basic..*");

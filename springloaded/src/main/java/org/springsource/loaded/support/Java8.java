@@ -188,6 +188,10 @@ public class Java8 {
 					}
 				}
 				break;
+			case Opcodes.H_NEWINVOKESPECIAL:
+				Class<?> clazz = callerLoader.loadClass(owner.replace("/", "."));
+				implMethod = caller.findConstructor(clazz, implMethodType);
+				break;
 			case Opcodes.H_INVOKEINTERFACE:
 				Handle h = (Handle) bsmArgs[1];
 				String interfaceOwner = h.getOwner();
