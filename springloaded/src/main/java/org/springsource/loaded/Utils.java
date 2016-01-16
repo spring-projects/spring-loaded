@@ -960,7 +960,7 @@ public class Utils implements Opcodes, Constants {
 		private ReturnType(String descriptor, Kind kind) {
 			this.descriptor = descriptor;
 			if (GlobalConfiguration.assertsMode) {
-				if (this.kind == Kind.REFERENCE) {
+				if (kind == Kind.REFERENCE) {
 					if (descriptor.endsWith(";") && !descriptor.startsWith("[")) {
 						throw new IllegalStateException("Should already have been stripped of 'L' and ';': "
 								+ descriptor);
@@ -1615,8 +1615,9 @@ public class Utils implements Opcodes, Constants {
 		}
 		else {
 			if (expectedTypeDescriptor.charAt(0) == 'L') {
-				expectedTypeDescriptor = expectedTypeDescriptor.substring(1, expectedTypeDescriptor.length() - 1).replace(
-						'/', '.');
+				expectedTypeDescriptor = expectedTypeDescriptor.substring(1,
+						expectedTypeDescriptor.length() - 1).replace(
+								'/', '.');
 			}
 			if (!expectedTypeDescriptor.equals(actualType)) {
 				// assignability test
@@ -1856,7 +1857,8 @@ public class Utils implements Opcodes, Constants {
 		public String[] interfaces;
 
 		@Override
-		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		public void visit(int version, int access, String name, String signature, String superName,
+				String[] interfaces) {
 			this.interfaces = interfaces;
 		}
 
