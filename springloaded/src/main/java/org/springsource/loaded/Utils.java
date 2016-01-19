@@ -1906,4 +1906,33 @@ public class Utils implements Opcodes, Constants {
 	public static String getProtectedFieldSetterName(String fieldname) {
 		return "r$setProtField_" + fieldname;
 	}
+
+	private static class ClassnameDiscoveryVisitor extends ClassVisitor {
+
+		public String classname;
+
+		public ClassnameDiscoveryVisitor() {
+			super(ASM5);
+		}
+
+		@Override
+		public void visit(int version, int access, String name, String signature, String superName,
+				String[] interfaces) {
+			this.classname = name;
+		}
+
+	}
+
+	/**
+	 * Discover the classname specified in the supplied bytecode and return it.
+	 *
+	 * @param classbytes the bytecode for the class
+	 * @return the classname recovered from the bytecode
+	 */
+	public static String discoverClassname(byte[] classbytes) {
+		ClassReader cr = new ClassReader(classbytes);
+		ClassnameDiscoveryVisitor v = new ClassnameDiscoveryVisitor();
+		cr.accept(v, 0);
+		return v.classname;
+	}
 }
