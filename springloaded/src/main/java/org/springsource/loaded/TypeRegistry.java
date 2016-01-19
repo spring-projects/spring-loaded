@@ -823,6 +823,10 @@ public class TypeRegistry {
 		if (GlobalConfiguration.verboseMode && log.isLoggable(Level.FINER)) {
 			log.finer("entering TypeRegistry.isReloadableTypeName(" + slashedName + ")");
 		}
+		if (slashedName == null) {
+			return ReloadableTypeNameDecision.No;
+		}
+
 		if (GlobalConfiguration.assertsMode) {
 			Utils.assertSlashed(slashedName);
 		}

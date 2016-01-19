@@ -122,11 +122,6 @@ public class SpringLoadedPreProcessor implements Constants {
 			return bytes;
 		}
 
-		if (slashedClassName == null && bytes != null) {
-			// The lambda meta factory can spin up classes that come through here with no class name specified
-			slashedClassName = Utils.discoverClassname(bytes);
-		}
-
 		// TODO need configurable debug here, ability to dump any code before/after
 		for (Plugin plugin : getGlobalPlugins()) {
 			if (plugin instanceof LoadtimeInstrumentationPlugin) {
