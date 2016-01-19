@@ -244,6 +244,78 @@ public class Java8Tests extends SpringLoadedTests {
 		assertEquals(44, r.returnValue);
 	}
 
+	// A class implements an interface containing a default method and invokes it.
+	// That default method is reloaded and modified to do something else.
+	@Ignore
+	@Test
+	public void defaultMethods() throws Exception {
+		String t = "basic.DefaultMethodsI1A";
+		String t2 = "basic.DefaultMethodsC1A";
+		TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+
+		byte[] ia = loadBytesForClass(t);
+		ReloadableType rtypeI = typeRegistry.addType(t, ia);
+		byte[] ca = loadBytesForClass(t2);
+		ReloadableType rtypeC = typeRegistry.addType(t2, ca);
+
+		Class<?> simpleClass = rtypeC.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(42, r.returnValue);
+
+		//		byte[] renamed = retrieveRename(t, t + "2");
+		rtypeI.loadNewVersion("002", ia);
+		//		ClassPrinter.print(rtypeI.getBytesLoaded());
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(42, r.returnValue);
+
+		byte[] renamed2 = retrieveRename(t, t + "2");
+		rtypeI.loadNewVersion(renamed2);
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(42, r.returnValue);
+		assertEquals("FOO", r.stdout);
+	}
+
+
+	// A class implements an interface. A default method is added to the interface on
+	// a reload and invoked from a reloaded version of the class.
+	@Ignore
+	@Test
+	public void defaultMethods2() throws Exception {
+		String t = "basic.DefaultMethodsI2A";
+		String t2 = "basic.DefaultMethodsC2A";
+		TypeRegistry typeRegistry = getTypeRegistry("basic..*");
+
+		byte[] ia = loadBytesForClass(t);
+		ReloadableType rtypeI = typeRegistry.addType(t, ia);
+		byte[] ca = loadBytesForClass(t2);
+		ReloadableType rtypeC = typeRegistry.addType(t2, ca);
+
+		Class<?> simpleClass = rtypeC.getClazz();
+		Result r = runUnguarded(simpleClass, "run");
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(42, r.returnValue);
+
+		//		byte[] renamed = retrieveRename(t, t + "2");
+		rtypeI.loadNewVersion("002", ia);
+		//		ClassPrinter.print(rtypeI.getBytesLoaded());
+
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(42, r.returnValue);
+
+		byte[] renamed = retrieveRename(t, t + "2");
+		rtypeI.loadNewVersion(renamed);
+
+		renamed = retrieveRename(t2, t2 + "2", t + "2:" + t);
+		rtypeC.loadNewVersion(renamed);
+		r = runUnguarded(simpleClass, "run");
+		assertEquals(42, r.returnValue);
+		assertEquals("FOO", r.stdout);
+	}
+
 	@Test
 	public void multipleLambdasInOneMethod() throws Exception {
 		String t = "basic.LambdaH";
