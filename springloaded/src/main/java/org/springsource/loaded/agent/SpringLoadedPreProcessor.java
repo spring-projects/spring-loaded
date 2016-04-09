@@ -353,7 +353,11 @@ public class SpringLoadedPreProcessor implements Constants {
 		else {
 			try {
 				// TODO what happens across classloader boundaries? (for regular code and reflective calls)
-				if (needsClientSideRewriting(slashedClassName)) {
+				// Skipping the CallSiteClassLoader here because types from there will already have been dealt
+				// with due to GroovyPlugin class that intercepts define in that infrastructure
+				if (needsClientSideRewriting(slashedClassName) &&
+						(classLoader == null || !classLoader.getClass().getName().equals(
+								"org.codehaus.groovy.runtime.callsite.CallSiteClassLoader"))) {
 					bytes = typeRegistry.methodCallRewriteUseCacheIfAvailable(slashedClassName, bytes);
 				}
 			}
