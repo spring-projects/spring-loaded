@@ -565,6 +565,7 @@ public class ReloadableType {
 						break;
 					}
 				}
+				found.setAccessible(true);
 				byte[] bs = (byte[]) found.invoke(a, b);
 				proxy.loadNewVersion(versionsuffix, bs);
 				proxy.runStaticInitializer();
@@ -935,6 +936,7 @@ public class ReloadableType {
 
 		// TODO needs configurable debug that dumps loaded byte data at this point
 		// Define the permanent piece
+		// DEFAULT METHODS - remove the if
 		if (!typedescriptor.isInterface()) {
 			typeRegistry.defineClass(Utils.getInterfaceName(dottedtypename), interfaceBytes, true);
 		}
