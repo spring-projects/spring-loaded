@@ -26,7 +26,7 @@ import org.objectweb.asm.tree.MethodNode;
 
 /**
  * Captures the information about the reloaded parts of a type that vary each time a new version is loaded.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -101,6 +101,7 @@ public class CurrentLiveVersion {
 				&& GlobalConfiguration.classesToDump.contains(reloadableType.getSlashedName())) {
 			Utils.dump(Utils.getExecutorName(reloadableType.getName(), versionstamp).replace('.', '/'), this.executor);
 		}
+		// DEFAULT METHODS - REMOVE THE IF
 		if (!typeDescriptor.isInterface()) {
 			this.dispatcherName = Utils.getDispatcherName(reloadableType.getName(), versionstamp);
 			this.executorName = Utils.getExecutorName(reloadableType.getName(), versionstamp);
@@ -117,6 +118,7 @@ public class CurrentLiveVersion {
 	public void define() {
 		staticInitializer = null;
 		haveLookedForStaticInitializer = false;
+		// DEFAULT METHODS - remove the if
 		if (!typeDescriptor.isInterface()) {
 			try {
 				dispatcherClass = reloadableType.typeRegistry.defineClass(dispatcherName, dispatcher, false);
@@ -143,6 +145,7 @@ public class CurrentLiveVersion {
 				t.printStackTrace();
 			}
 		}
+		// DEFAULT METHODS - remove the if
 		if (!typeDescriptor.isInterface()) {
 			try {
 				dispatcherInstance = dispatcherClass.newInstance();

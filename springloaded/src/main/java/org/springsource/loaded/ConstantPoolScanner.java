@@ -16,28 +16,24 @@
 
 package org.springsource.loaded;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO try to recall why I created ConstantPoolChecker2, what was up with ConstantPoolChecker?
-
-// http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
 /**
  * Enables us to check things quickly in the constant pool. This version accumulates the class references and the method
  * references, for classes that start with 'j' (we want to catch: java/lang). It skips everything it can and the end
  * result is a list of class references and a list of method references. The former look like this 'a/b/C' whilst the
  * latter look like this 'java/lang/Foo.bar' (the descriptor for the method is not included). Interface methods are
  * skipped.
- * 
+ *
+ * Useful reference: http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
+ *
  * @author Andy Clement
  * @since 0.7.3
  */
-public class ConstantPoolChecker2 {
+public class ConstantPoolScanner {
 
 	private static final boolean DEBUG = false;
 
@@ -69,35 +65,37 @@ public class ConstantPoolChecker2 {
 
 	private final static byte CONSTANT_InvokeDynamic = 18;
 
-	// Test entry point just goes through all the code in the bin folder
-	public static void main(String[] args) throws Exception {
-		File[] fs = new File("./bin").listFiles();
-		//		File[] fs = new File("../testdata-groovy/bin").listFiles();
-		//		File[] fs = new File("/Users/aclement/grailsreload/foo/target/classes").listFiles();
+	private byte[] classbytes;
 
-		checkThemAll(fs);
-		System.out.println("total=" + total / 1000000d);
+	// Used during the parse step
+	private int ptr;
+
+	// Filled with strings and int[]
+	private Object[] cpdata;
+
+	private int cpsize;
+
+	private int[] type;
+
+	// Does not need to be a set as there are no dups in the ConstantPool (for a class from a decent compiler...)
+	private List<String> referencedClasses = new ArrayList<String>();
+
+	private List<String> referencedMethods = new ArrayList<String>();
+
+	private String slashedclassname;
+
+
+	public static References getReferences(byte[] classbytes) {
+		ConstantPoolScanner cpScanner = new ConstantPoolScanner(classbytes);
+		return new References(cpScanner.slashedclassname, cpScanner.referencedClasses, cpScanner.referencedMethods);
 	}
 
-	private static void checkThemAll(File[] fs) throws Exception {
-		for (File f : fs) {
-			if (f.isDirectory()) {
-				checkThemAll(f.listFiles());
-			}
-			else if (f.getName().endsWith(".class")) {
-				System.out.println(f);
-				byte[] data = Utils.loadFromStream(new FileInputStream(f));
-				long stime = System.nanoTime();
-				References refs = getReferences(data);
-				total += (System.nanoTime() - stime);
-				System.out.println(refs.referencedClasses);
-				System.out.println(refs.referencedMethods);
-			}
-		}
+	private ConstantPoolScanner(byte[] bytes) {
+		parseClass(bytes);
+		computeReferences();
 	}
 
-	static long total = 0;
-
+	// Format of a classfile:
 	//	ClassFile {
 	//    	u4 magic;
 	//    	u2 minor_version;
@@ -116,52 +114,137 @@ public class ConstantPoolChecker2 {
 	//    	u2 attributes_count;
 	//    	attribute_info attributes[attributes_count];
 	//    }
-
-	static References getReferences(byte[] bytes) {
-		ConstantPoolChecker2 cpc2 = new ConstantPoolChecker2(bytes);
-		return new References(cpc2.slashedclassname, cpc2.referencedClasses, cpc2.referencedMethods);
-	}
-
-	static class References {
-
-		String slashedClassName;
-
-		List<String> referencedClasses;
-
-		List<String> referencedMethods;
-
-		References(String slashedClassName, List<String> rc, List<String> rm) {
-			this.slashedClassName = slashedClassName;
-			this.referencedClasses = rc;
-			this.referencedMethods = rm;
+	private void parseClass(byte[] bytes) {
+		try {
+			this.classbytes = bytes;
+			this.ptr = 0;
+			int magic = readInt(); // magic 0xCAFEBABE
+			if (magic != 0xCAFEBABE) {
+				throw new IllegalStateException("not bytecode, magic was 0x" + Integer.toString(magic, 16));
+			}
+			ptr += 4; // skip minor and major versions
+			cpsize = readUnsignedShort();
+			if (DEBUG) {
+				System.out.println("Constant Pool Size =" + cpsize);
+			}
+			cpdata = new Object[cpsize];
+			type = new int[cpsize];
+			for (int cpentry = 1; cpentry < cpsize; cpentry++) {
+				boolean wasDoubleSlotItem = processConstantPoolEntry(cpentry);
+				if (wasDoubleSlotItem) {
+					cpentry++;
+				}
+			}
+			ptr += 2; // access flags
+			int thisclassname = readUnsignedShort();
+			int classindex = ((Integer) cpdata[thisclassname]);
+			slashedclassname = accessUtf8(classindex);
+		}
+		catch (Exception e) {
+			throw new IllegalStateException("Unexpected problem processing bytes for class", e);
 		}
 	}
 
-	// Filled with strings and int[]
-	private Object[] cpdata;
-
-	private int cpsize;
-
-	private int[] type;
-
-	// Does not need to be a set as there are no dups in the ConstantPool (for a class from a decent compiler...)
-	private List<String> referencedClasses = new ArrayList<String>();
-
-	private List<String> referencedMethods = new ArrayList<String>();
-
-	private String slashedclassname;
-
-	private ConstantPoolChecker2(byte[] bytes) {
-		readConstantPool(bytes);
-		computeReferences();
+	/**
+	 * Return the UTF8 at the specified index in the constant pool. The data found at the constant pool for that index
+	 * may not have been unpacked yet if this is the first access of the string. If not unpacked the constant pool entry
+	 * is a pair of ints in an array representing the offset and length within the classbytes where the UTF8 string is
+	 * encoded. Once decoded the constant pool entry is flipped from an int array to a String for future fast access.
+	 *
+	 * @param cpIndex constant pool index
+	 * @return UTF8 string at that constant pool index
+	 */
+	private String accessUtf8(int cpIndex) {
+		Object object = cpdata[cpIndex];
+		if (object instanceof String) {
+			return (String) object;
+		}
+		int[] ptrAndLen = (int[]) object;
+		String value;
+		try {
+			value = new String(classbytes, ptrAndLen[0], ptrAndLen[1], "UTF8");
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new IllegalStateException("Bad data found at constant pool position " + cpIndex + " offset="
+					+ ptrAndLen[0] + " length=" + ptrAndLen[1], e);
+		}
+		cpdata[cpIndex] = value;
+		return value;
 	}
 
-	public void computeReferences() {
+	/**
+	 * @return an int constructed from the next four bytes to be processed
+	 */
+	private final int readInt() {
+		return ((classbytes[ptr++] & 0xFF) << 24) + ((classbytes[ptr++] & 0xFF) << 16)
+				+ ((classbytes[ptr++] & 0xFF) << 8)
+				+ (classbytes[ptr++] & 0xFF);
+	}
+
+	/**
+	 * @return an unsigned short constructed from the next two bytes to be processed
+	 */
+	private final int readUnsignedShort() {
+		return ((classbytes[ptr++] & 0xff) << 8) + (classbytes[ptr++] & 0xff);
+	}
+
+	private boolean processConstantPoolEntry(int index) throws IOException {
+		byte b = classbytes[ptr++];
+		switch (b) {
+			case CONSTANT_Integer: // CONSTANT_Integer_info { u1 tag; u4 bytes; }
+			case CONSTANT_Float: // CONSTANT_Float_info { u1 tag; u4 bytes; }
+			case CONSTANT_Fieldref: // CONSTANT_Fieldref_info { u1 tag; u2 class_index; u2 name_and_type_index; }
+			case CONSTANT_InterfaceMethodref: // CONSTANT_InterfaceMethodref_info { u1 tag; u2 class_index; u2 name_and_type_index; }
+			case CONSTANT_InvokeDynamic: // CONSTANT_InvokeDynamic_info { u1 tag; u2 bootstrap_method_attr_index; u2 name_and_type_index; }
+				ptr += 4;
+				break;
+			case CONSTANT_Utf8:
+				// CONSTANT_Utf8_info { u1 tag; u2 length; u1 bytes[length]; }
+				// Cache just the index and length - do not unpack it now
+				int len = readUnsignedShort();
+				cpdata[index] = new int[] { ptr, len };
+				ptr += len;
+				break;
+			case CONSTANT_Long: // CONSTANT_Long_info { u1 tag; u4 high_bytes; u4 low_bytes; }
+			case CONSTANT_Double: // CONSTANT_Double_info { u1 tag; u4 high_bytes; u4 low_bytes; }
+				ptr += 8;
+				return true;
+			case CONSTANT_Class: // CONSTANT_Class_info { u1 tag; u2 name_index; }
+				type[index] = b;
+				cpdata[index] = readUnsignedShort();
+				break;
+			case CONSTANT_Methodref:
+				// CONSTANT_Methodref_info { u1 tag; u2 class_index; u2 name_and_type_index; }
+				type[index] = b;
+				cpdata[index] = new int[] { readUnsignedShort(), readUnsignedShort() };
+				break;
+			case CONSTANT_NameAndType:
+				// The CONSTANT_NameAndType_info structure is used to represent a field or method, without indicating which class or interface type it belongs to:
+				// CONSTANT_NameAndType_info { u1 tag; u2 name_index; u2 descriptor_index; }
+				//			type[index] = b;
+				cpdata[index] = readUnsignedShort();
+				ptr += 2; // skip the descriptor for now
+				break;
+			case CONSTANT_MethodHandle:
+				// CONSTANT_MethodHandle_info { u1 tag; u1 reference_kind; u2 reference_index; }
+				ptr += 3;
+				break;
+			case CONSTANT_String: // CONSTANT_String_info { u1 tag; u2 string_index; }
+			case CONSTANT_MethodType: // CONSTANT_MethodType_info { u1 tag; u2 descriptor_index; }
+				ptr += 2;
+				break;
+			default:
+				throw new IllegalStateException("Entry: " + index + " " + Byte.toString(b));
+		}
+		return false;
+	}
+
+	private void computeReferences() {
 		for (int i = 0; i < cpsize; i++) {
 			switch (type[i]) {
 				case CONSTANT_Class:
 					int classindex = ((Integer) cpdata[i]);
-					String classname = (String) cpdata[classindex];
+					String classname = accessUtf8(classindex);
 					if (classname == null) {
 						throw new IllegalStateException();
 					}
@@ -172,229 +255,50 @@ public class ConstantPoolChecker2 {
 					int classindex2 = indexes[0];
 					int nameAndTypeIndex = indexes[1];
 					StringBuilder s = new StringBuilder();
-					String theClassName = (String) cpdata[(Integer) cpdata[classindex2]];
+					String theClassName = accessUtf8((Integer) cpdata[classindex2]);
 					if (theClassName.charAt(0) == 'j') {
 						s.append(theClassName);
 						s.append(".");
-						s.append((String) cpdata[(Integer) cpdata[nameAndTypeIndex]]);
+						s.append(accessUtf8((Integer) cpdata[nameAndTypeIndex]));
 						referencedMethods.add(s.toString());
 					}
 					break;
-			//			private final static byte CONSTANT_Utf8 = 1;
-			//			private final static byte CONSTANT_Integer = 3;
-			//			private final static byte CONSTANT_Float = 4;
-			//			private final static byte CONSTANT_Long = 5;
-			//			private final static byte CONSTANT_Double = 6;
-			//			private final static byte CONSTANT_String = 8;
-			//			private final static byte CONSTANT_Fieldref = 9;
-			//			private final static byte CONSTANT_InterfaceMethodref = 11;
-			//			private final static byte CONSTANT_NameAndType = 12;
+				//			private final static byte CONSTANT_Utf8 = 1;
+				//			private final static byte CONSTANT_Integer = 3;
+				//			private final static byte CONSTANT_Float = 4;
+				//			private final static byte CONSTANT_Long = 5;
+				//			private final static byte CONSTANT_Double = 6;
+				//			private final static byte CONSTANT_String = 8;
+				//			private final static byte CONSTANT_Fieldref = 9;
+				//			private final static byte CONSTANT_InterfaceMethodref = 11;
+				//			private final static byte CONSTANT_NameAndType = 12;
 			}
 		}
 	}
 
-	public void readConstantPool(byte[] bytes) {
-		try {
-			ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-			DataInputStream dis = new DataInputStream(bais);
 
-			int magic = dis.readInt(); // magic 0xCAFEBABE
-			if (magic != 0xCAFEBABE) {
-				throw new IllegalStateException("not bytecode, magic was 0x" + Integer.toString(magic, 16));
-			}
-			dis.skip(4); // skip minor and major versions
-			cpsize = dis.readShort();
-			if (DEBUG) {
-				System.out.println("Constant Pool Size =" + cpsize);
-			}
-			cpdata = new Object[cpsize];
-			type = new int[cpsize];
-			for (int cpentry = 1; cpentry < cpsize; cpentry++) {
-				boolean doubleSlot = processConstantPoolEntry(cpentry, dis);
-				if (doubleSlot) {
-					cpentry++;
-				}
-			}
-			dis.skip(2); // access flags
-			int thisclassname = dis.readShort();
-			int classindex = ((Integer) cpdata[thisclassname]);
-			slashedclassname = (String) cpdata[classindex];
+	public static class References {
+
+		public final String slashedClassName;
+
+		public final List<String> referencedClasses;
+
+		public final List<String> referencedMethods;
+
+		References(String slashedClassName, List<String> rc, List<String> rm) {
+			this.slashedClassName = slashedClassName;
+			this.referencedClasses = rc;
+			this.referencedMethods = rm;
 		}
-		catch (Exception e) {
-			throw new IllegalStateException("Unexpected problem processing bytes for class", e);
+
+		@Override
+		public String toString() {
+			StringBuilder s = new StringBuilder();
+			s.append("Class=").append(slashedClassName).append("\n");
+			s.append("ReferencedClasses=#").append(referencedClasses.size()).append("\n");
+			s.append("ReferencedMethods=#").append(referencedMethods.size()).append("\n");
+			return s.toString();
 		}
 	}
 
-	private boolean processConstantPoolEntry(int index, DataInputStream dis) throws IOException {
-		byte b = dis.readByte();
-		switch (b) {
-			case CONSTANT_Utf8:
-				// CONSTANT_Utf8_info { u1 tag; u2 length; u1 bytes[length]; }
-				cpdata[index] = dis.readUTF();
-				//			type[index] = b;
-				if (DEBUG) {
-					System.out.println(index + ":UTF8[" + cpdata[index] + "]");
-				}
-				break;
-			case CONSTANT_Integer:
-				// CONSTANT_Integer_info { u1 tag; u4 bytes; }
-				if (DEBUG) {
-					int i = dis.readInt();
-					if (DEBUG) {
-						System.out.println(index + ":INTEGER[" + i + "]");
-					}
-				}
-				else {
-					dis.skip(4);
-				}
-				break;
-			case CONSTANT_Float:
-				// CONSTANT_Float_info { u1 tag; u4 bytes; }
-				if (DEBUG) {
-					float f = dis.readFloat();
-					if (DEBUG) {
-						System.out.println(index + ":FLOAT[" + f + "]");
-					}
-				}
-				else {
-					dis.skip(4);
-				}
-				break;
-			case CONSTANT_Long:
-				//		CONSTANT_Long_info {
-				//	    	u1 tag;
-				//	    	u4 high_bytes;
-				//	    	u4 low_bytes;
-				//	    }
-				if (DEBUG) {
-					long l = dis.readLong();
-					if (DEBUG) {
-						System.out.println(index + ":LONG[" + l + "]");
-					}
-				}
-				else {
-					dis.skip(8);
-				}
-				return true;
-			case CONSTANT_Double:
-				//	    CONSTANT_Double_info {
-				//	    	u1 tag;
-				//	    	u4 high_bytes;
-				//	    	u4 low_bytes;
-				//	    }
-				if (DEBUG) {
-					double d = dis.readDouble();
-					if (DEBUG) {
-						System.out.println(index + ":DOUBLE[" + d + "]");
-					}
-				}
-				else {
-					dis.skip(8);
-				}
-				return true;
-			case CONSTANT_Class:
-				// CONSTANT_Class_info { u1 tag; u2 name_index; }
-				type[index] = b;
-				cpdata[index] = (int) dis.readShort();
-				if (DEBUG) {
-					System.out.println(index + ":CLASS[name_index=" + cpdata[index] + "]");
-				}
-				break;
-			case CONSTANT_String:
-				// CONSTANT_String_info { u1 tag; u2 string_index; }
-				if (DEBUG) {
-					cpdata[index] = (int) dis.readShort();
-					if (DEBUG) {
-						System.out.println(index + ":STRING[string_index=" + cpdata[index] + "]");
-					}
-				}
-				else {
-					dis.skip(2);
-				}
-				break;
-			case CONSTANT_Fieldref:
-				// CONSTANT_Fieldref_info { u1 tag; u2 class_index; u2 name_and_type_index; }
-				if (DEBUG) {
-					cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
-					if (DEBUG) {
-						System.out.println(index + ":FIELDREF[class_index=" + ((int[]) cpdata[index])[0]
-								+ ",name_and_type_index="
-								+ ((int[]) cpdata[index])[1] + "]");
-					}
-				}
-				else {
-					dis.skip(4);
-				}
-				break;
-			case CONSTANT_Methodref:
-				// CONSTANT_Methodref_info { u1 tag; u2 class_index; u2 name_and_type_index; }	
-				type[index] = b;
-				//if (DEBUG) {
-				cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
-				if (DEBUG) {
-					System.out.println(index + ":METHODREF[class_index=" + ((int[]) cpdata[index])[0]
-							+ ",name_and_type_index="
-							+ ((int[]) cpdata[index])[1] + "]");
-				}
-				//			} else {
-				//				dis.skip(4);
-				//			}
-				break;
-			case CONSTANT_InterfaceMethodref:
-				//			 CONSTANT_InterfaceMethodref_info {
-				//			    	u1 tag;
-				//			    	u2 class_index;
-				//			    	u2 name_and_type_index;
-				//			    }
-				if (DEBUG) {
-					cpdata[index] = new int[] { dis.readShort(), dis.readShort() };
-					if (DEBUG) {
-						System.out.println(index + ":INTERFACEMETHODREF[class_index=" + ((int[]) cpdata[index])[0]
-								+ ",name_and_type_index=" + ((int[]) cpdata[index])[1] + "]");
-					}
-				}
-				else {
-					dis.skip(4);
-				}
-				break;
-			case CONSTANT_NameAndType:
-				// The CONSTANT_NameAndType_info structure is used to represent a field or method, without indicating which class or interface type it belongs to:
-				// CONSTANT_NameAndType_info { u1 tag; u2 name_index; u2 descriptor_index; }
-				//			type[index] = b;
-				cpdata[index] = (int) dis.readShort();// new int[] { dis.readShort(), dis.readShort() };
-				dis.skip(2); // skip the descriptor for now
-				if (DEBUG) {
-					System.out.println(index + ":NAMEANDTYPE[name_index=" + ((int[]) cpdata[index])[0]
-							+ ",descriptor_index="
-							+ ((int[]) cpdata[index])[1] + "]");
-				}
-				break;
-			case CONSTANT_InvokeDynamic:
-				//CONSTANT_InvokeDynamic_info {
-				//	u1 tag;
-				//	u2 bootstrap_method_attr_index;
-				//	u2 name_and_type_index;
-				//}
-				dis.skipBytes(4);
-				break;
-			case CONSTANT_MethodHandle:
-				//CONSTANT_MethodHandle_info {
-				//	u1 tag;
-				//	u1 reference_kind;
-				//	u2 reference_index;
-				//}
-				dis.skipBytes(3);
-				break;
-			case CONSTANT_MethodType:
-				//CONSTANT_MethodType_info {
-				//	u1 tag;
-				//	u2 descriptor_index;
-				//}
-				dis.skipBytes(2);
-				break;
-			default:
-				throw new IllegalStateException("Entry: " + index + " " + Byte.toString(b));
-		}
-		return false;
-	}
 }

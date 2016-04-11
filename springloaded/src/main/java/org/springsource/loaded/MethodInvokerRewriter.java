@@ -60,7 +60,7 @@ import org.springsource.loaded.ri.ReflectiveInterceptor;
  * </ul>
  * The cache is for types that are *only* getting reflection interception done, not for types touching anything
  * reloadable.
- * 
+ *
  * @author Andy Clement
  * @since 0.5.0
  */
@@ -83,7 +83,7 @@ public class MethodInvokerRewriter {
 	 * Rewrite regular operations on reloadable types and any reflective calls.
 	 * <p>
 	 * Note: no caching is done here (the cache is not read or written to)
-	 * 
+	 *
 	 * @param typeRegistry the registry for which the rewriting is being done.
 	 * @param bytes the bytes for the type to modify.
 	 * @param skipReferencesCheck do we need to do a quick check to see if there is anything worth rewriting?
@@ -126,9 +126,9 @@ public class MethodInvokerRewriter {
 			if (b != null) {
 				if (b.booleanValue()) { // the type was modified on an earlier run, there should be cached code around
 					String cacheFileName = new StringBuilder(slashedClassName.replace('/', '_')).append("_").append(
-							bytes.length)
-							.append(".bytes").toString();
-					File cacheFile = new File(GlobalConfiguration.cacheDir, ".slcache" + File.separator + cacheFileName);
+							bytes.length).append(".bytes").toString();
+					File cacheFile = new File(GlobalConfiguration.cacheDir,
+							".slcache" + File.separator + cacheFileName);
 					if (DEBUG_CACHING) {
 						System.out.println("Checking for cache file " + cacheFile);
 					}
@@ -210,7 +210,7 @@ public class MethodInvokerRewriter {
 
 	/**
 	 * Load the cache index from the file '&lt;cacheDir&gt;/.index'.
-	 * 
+	 *
 	 */
 	private static void ensureCacheIndexLoaded() {
 		if (cacheIndex == null) {
@@ -286,9 +286,10 @@ public class MethodInvokerRewriter {
 		}
 	}
 
-	private static byte[] rewrite(boolean canCache, TypeRegistry typeRegistry, byte[] bytes, boolean skipReferencesCheck) {
+	private static byte[] rewrite(boolean canCache, TypeRegistry typeRegistry, byte[] bytes,
+			boolean skipReferencesCheck) {
 
-		// v1 - just looks at classes, if it sees jlClass or a jlr type it has to be cautious and assume a 
+		// v1 - just looks at classes, if it sees jlClass or a jlr type it has to be cautious and assume a
 		// rewrite is necessary:
 		//		List<String> classes = ConstantPoolChecker.getReferencedClasses(bytes);
 		//		//		System.out.println(classes);
@@ -664,10 +665,10 @@ public class MethodInvokerRewriter {
 		 * Call this method to declare that a certain method is 'interceptable'. An interceptable method should have a
 		 * corresponding interceptor method in {@link ReflectiveInterceptor}. The name and signature of the interceptor
 		 * will be derived from the interceptable method.
-		 * 
+		 *
 		 * For example, java.lang.Class.getMethod(Class[] params) ==> ReflectiveInterceptor.jlClassGetMethod(Class thiz,
 		 * Class[] params)
-		 * 
+		 *
 		 * @param owner Slashed class name of the declaring type.
 		 * @param methodName Name of the interceptable method.
 		 */
@@ -720,7 +721,8 @@ public class MethodInvokerRewriter {
 		}
 
 		@Override
-		public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+		public void visit(int version, int access, String name, String signature, String superName,
+				String[] interfaces) {
 			super.visit(version, access, name, signature, superName, interfaces);
 			this.slashedclassname = name;
 
@@ -737,6 +739,7 @@ public class MethodInvokerRewriter {
 			}
 		}
 
+		@Override
 		public FieldVisitor visitField(final int access, final String name, final String desc, final String signature,
 				final Object value) {
 			fieldcount++;
@@ -837,7 +840,7 @@ public class MethodInvokerRewriter {
 			// TODO write up how the code looks for these in a comment
 			/**
 			 * code:
-			 * 
+			 *
 			 * <code>
 			 * <pre>
 			 * boolean b = TypeRegistry.instanceFieldInterceptionRequired(regId|classId,name)
@@ -971,14 +974,14 @@ public class MethodInvokerRewriter {
 			 * <li>whether to rewrite it
 			 * <li>what method should be called instead
 			 * </ul>
-			 * 
+			 *
 			 * @return true if the call was modified/intercepted
 			 */
 			private boolean interceptReflection(String owner, String name, String desc) {
 				if (isInterceptable(owner, name)) {
-					//TODO: [...] this is probably a lot slower than unfolding this check into 
+					//TODO: [...] this is probably a lot slower than unfolding this check into
 					//  bunch of optimised if cases, but it is also much easier to manage.
-					//  It should be possible to write something to generate the optimised 
+					//  It should be possible to write something to generate the optimised
 					//  if's from the contents of the 'interceptable' HashSet.  Measure before optimizing.
 					callReflectiveInterceptor(owner, name, desc, mv);
 					return true;
@@ -1021,7 +1024,7 @@ public class MethodInvokerRewriter {
 			/**
 			 * Generate bytecode to convert parameters on the stack into an array (based on the descriptor). If the
 			 * descriptor shows there are no parameters then null is stacked.
-			 * 
+			 *
 			 * @param descriptor MethodType descriptor showing parameters and return value
 			 */
 			private void stackParameters(String descriptor) {
@@ -1153,7 +1156,7 @@ public class MethodInvokerRewriter {
 
 			/**
 			 * Determine if a method call is a reflective call and an attempt should be made to rewrite it.
-			 * 
+			 *
 			 * @return true if the call was rewritten
 			 */
 			private boolean rewriteReflectiveCall(int opcode, String owner, String name, String desc) {
@@ -1269,7 +1272,7 @@ public class MethodInvokerRewriter {
 			 * Invokeinterface rewriting is done by calling the type registry to see if what we are about to do is OK.
 			 * The method we call returns a boolean indicating whether it can be called directly or if we must direct it
 			 * through the dynamic dispatch method.
-			 * 
+			 *
 			 */
 			private void rewriteINVOKEINTERFACE(final int opcode, final String owner, final String name,
 					final String desc,
