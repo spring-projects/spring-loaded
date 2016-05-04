@@ -13,10 +13,10 @@ used in Grails 2.
 
 # Installation
 
-1.2.5 has now been released: [springloaded-1.2.5.RELEASE.jar](http://repo.spring.io/release/org/springframework/springloaded/1.2.5.RELEASE/springloaded-1.2.5.RELEASE.jar)
+1.2.6 has now been released: [springloaded-1.2.6.RELEASE.jar](http://repo.spring.io/release/org/springframework/springloaded/1.2.6.RELEASE/springloaded-1.2.6.RELEASE.jar)
 
-1.2.6 snapshots are in this repo area (grab the most recently built .jar):
-<a href="https://repo.spring.io/webapp/#/artifacts/browse/tree/General/libs-snapshot-local/org/springframework/springloaded/1.2.6.BUILD-SNAPSHOT">repo.spring.io</a>
+1.2.7 snapshots are in this repo area (grab the most recently built .jar):
+<a href="https://repo.spring.io/webapp/#/artifacts/browse/tree/General/libs-snapshot-local/org/springframework/springloaded/1.2.7.BUILD-SNAPSHOT">repo.spring.io</a>
 
 The download is the agent jar and needs no further unpacking before use.
 
