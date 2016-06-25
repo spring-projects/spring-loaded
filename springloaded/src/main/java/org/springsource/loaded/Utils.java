@@ -44,6 +44,7 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.springsource.loaded.Utils.ReturnType.Kind;
 
+import sun.misc.ProxyGenerator;
 
 // TODO debugging tests - how is the experience?  rewriting of field accesses will really
 // affect field navigation in the debugger
@@ -1934,5 +1935,39 @@ public class Utils implements Opcodes, Constants {
 		ClassnameDiscoveryVisitor v = new ClassnameDiscoveryVisitor();
 		cr.accept(v, 0);
 		return v.classname;
+	}
+
+	private static boolean checkedForNewProxyGenerateMethod = false;
+
+	private static Method newProxyGenerateMethod;
+
+	public static byte[] generateProxyClass(String slashedName, Class<?>[] interfacesImplementedByProxy) {
+		if (!checkedForNewProxyGenerateMethod) {
+			checkedForNewProxyGenerateMethod = true;
+			try {
+				newProxyGenerateMethod = ProxyGenerator.class.getDeclaredMethod("generateProxyClass", String.class,
+						Class[].class, Integer.TYPE);
+			}
+			catch (NoSuchMethodException nsme) {
+				// That's fine, we are early Java8 or before
+			}
+		}
+		if (newProxyGenerateMethod != null) {
+			try {
+				newProxyGenerateMethod.setAccessible(true);
+				byte[] bytes = (byte[]) newProxyGenerateMethod.invoke(null, slashedName, interfacesImplementedByProxy,
+						(Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL));
+				return bytes;
+			}
+			catch (Exception e) {
+				// Unexpected
+				throw new RuntimeException("Unexpected exception calling proxy generator ", e);
+			}
+		}
+		else {
+			return sun.misc.ProxyGenerator.generateProxyClass(
+					slashedName,
+					interfacesImplementedByProxy);
+		}
 	}
 }

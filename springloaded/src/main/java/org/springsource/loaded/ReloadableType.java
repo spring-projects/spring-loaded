@@ -612,10 +612,8 @@ public class ReloadableType {
 				if (relevantProxies != null) {
 					for (ReloadableType relevantProxy : relevantProxies) {
 						Class<?>[] interfacesImplementedByProxy = relevantProxy.getClazz().getInterfaces();
-						// check slashedname correct
-						//						@SuppressWarnings("restriction")
-						byte[] newProxyBytes = sun.misc.ProxyGenerator.generateProxyClass(
-								relevantProxy.getSlashedName(),
+						// TODO confirm slashedname correct
+						byte[] newProxyBytes = Utils.generateProxyClass(relevantProxy.getSlashedName(),
 								interfacesImplementedByProxy);
 						relevantProxy.loadNewVersion(versionsuffix, newProxyBytes, true);
 					}
