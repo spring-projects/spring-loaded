@@ -296,6 +296,15 @@ public class TypeRegistry {
 		//			}
 		//		}
 
+                try {
+                    Class.forName("org.springsource.loaded.ri.ReflectiveInterceptor", false, classloader);
+                } catch (ClassNotFoundException ex) {
+                    if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+                            log.info("No TypeRegistry (can't load ReflectiveInterceptor) for loader " + classloader);
+                    }
+                    return null;
+                }
+
 		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 			log.info("TypeRegistry.getRegistryFor(): creating new TypeRegistry for loader " + classloader);
 		}
