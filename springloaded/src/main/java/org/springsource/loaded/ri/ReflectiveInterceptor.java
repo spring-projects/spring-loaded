@@ -650,7 +650,7 @@ public class ReflectiveInterceptor {
 	 */
 	private static Field asSetableField(Field field, Object target, Class<?> valueType, Object value,
 			boolean makeAccessibleCopy)
-					throws IllegalAccessException {
+			throws IllegalAccessException {
 		// Must do the checks exactly in the same order as JVM if we want identical error messages.
 
 		// JVM doesn't do this, since it cannot happen without reloading, we do it first of all.
@@ -1054,7 +1054,7 @@ public class ReflectiveInterceptor {
 			c = jlClassGetDeclaredConstructor(clazz);
 		}
 		catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			//			e.printStackTrace();
 			throw Exceptions.instantiation(clazz);
 		}
 		c = asAccessibleConstructor(c, true);
