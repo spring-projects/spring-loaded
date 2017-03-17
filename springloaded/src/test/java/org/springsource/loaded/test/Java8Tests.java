@@ -69,6 +69,26 @@ public class Java8Tests extends SpringLoadedTests {
 	}
 
 	@Test
+	public void issue173() throws Exception {
+		String t = "bugs.Issue173";
+		TypeRegistry typeRegistry = getTypeRegistry(t);
+		byte[] sc = loadBytesForClass(t);
+		ReloadableType rtype = typeRegistry.addType(t, sc);
+
+		Class<?> clazz = rtype.getClazz();
+		@SuppressWarnings("unused")
+		Result r = runUnguarded(clazz, "run");
+
+		r = runUnguarded(clazz, "run");
+
+		rtype.loadNewVersion("002", rtype.bytesInitial);
+
+		r = runUnguarded(clazz, "run");
+
+		assertEquals("https://www.redacted.com/path", r.returnValue);
+	}
+
+	@Test
 	public void callBasicType() throws Exception {
 		String t = "basic.FirstClass";
 		TypeRegistry typeRegistry = getTypeRegistry(t);

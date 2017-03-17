@@ -150,8 +150,8 @@ public class Java8 {
 				if (null == ownerRType || !ownerRType.hasBeenReloaded()) {
 					// target containing the reference/lambdaMethod has not been reloaded, no need to get over
 					// complicated.
-					Class<?> ownerClazz = ownerRType.getClazz();
-					implMethod = caller.findVirtual(ownerClazz, name, implMethodType);
+					Class<?> clazz = callerLoader.loadClass(owner.replace("/", "."));
+					implMethod = caller.findVirtual(clazz, name, implMethodType);
 				}
 				else {
 					MethodMember targetReferenceMethodMember = ownerRType.getCurrentMethod(name, descriptor);
