@@ -24,3 +24,6 @@ subprojects {
 configure(subprojects.findAll { it.name.startsWith('testdata')}) {
 	tasks.findByPath("artifactoryPublish")?.enabled = false
 }
+task wrapper(type: Wrapper) {
+        gradleVersion = '3.4.1'
+}
