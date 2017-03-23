@@ -70,6 +70,11 @@ public class TypeRegistry {
 	 */
 	private final static String[][] ignorablePackagePrefixes;
 
+	/**
+	 * Types in these packages are explicitly considered reloading by default
+	 */
+	private final static String[][] includedPackagePrefixes;
+
 	private static Logger log = Logger.getLogger(TypeRegistry.class.getName());
 
 	// The first time something gets reloaded this is flipped
@@ -86,6 +91,9 @@ public class TypeRegistry {
 		ignorablePackagePrefixes['o' - 'a'] = new String[] { "org/springsource/loaded/", "org/objectweb/asm",
 			"org/codehaus/groovy/", "org/apache/", "org/springframework/",
 			"org/hibernate/", "org/hsqldb/", "org/aspectj/", "org/xml/", "org/h2/" };
+
+		includedPackagePrefixes = new String[26][];
+		includedPackagePrefixes['g' - 'a'] = new String[] { "grails/plugin/" };
 	}
 
 	// @formatter:off
@@ -652,9 +660,20 @@ public class TypeRegistry {
 		int index = ch - 'a';
 		if (usePackageNameDecisionCache && index > 0 && index < 26) {
 			String[] candidates = ignorablePackagePrefixes[index];
+			String[] inclusions = includedPackagePrefixes[index];
 			if (candidates != null) {
+				mainLoop:
 				for (String ignorablePackagePrefix : candidates) {
 					if (slashedName.startsWith(ignorablePackagePrefix)) {
+						if(inclusions != null) {
+
+							for (String inclusion : inclusions) {
+								if(slashedName.startsWith(inclusion)) {
+									continue mainLoop	;
+								}
+							}
+						}
+
 						if (GlobalConfiguration.explainMode && log.isLoggable(Level.INFO)) {
 							log.info("WhyNotReloadable? The type "
 									+ slashedName
