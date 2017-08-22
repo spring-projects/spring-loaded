@@ -53,7 +53,7 @@ import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils;
 import org.springsource.loaded.infra.UsedByGeneratedCode;
 import org.springsource.loaded.jvm.JVM;
-
+import org.springsource.loaded.support.ConcurrentWeakIdentityHashMap;
 
 /**
  * The reflective interceptor is called to rewrite any reflective calls that are found in the bytecode. Intercepting the
@@ -84,7 +84,8 @@ public class ReflectiveInterceptor {
 			classToRType = Collections.synchronizedMap(new WeakHashMap<Class<?>, WeakReference<ReloadableType>>());
 		}
 		else {
-			classToRType = new WeakHashMap<Class<?>, WeakReference<ReloadableType>>();
+			classToRType = new ConcurrentWeakIdentityHashMap<Class<?>, WeakReference<ReloadableType>>();
+			// classToRType = new WeakHashMap<Class<?>, WeakReference<ReloadableType>>();
 		}
 	}
 
