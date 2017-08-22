@@ -1,4 +1,5 @@
 apply plugin: 'maven'
+// apply plugin: 'maven-publish'
 
 group = "org.springframework"
 jar.baseName = 'springloaded'
@@ -118,6 +119,27 @@ task agentjar(type: Jar, dependsOn: jar) {
     }
 }
 
+// publishing {
+//   publications {
+//     mavenJava(MavenPublication) {
+//       artifact agentJar
+//     }
+//   }
+//   repositories {
+//     maven {
+//       url "http://nexus.bertramlabs.com/content/repositories/snapshots"  
+//       if(project.hasProperty('labsNexusUser')) {
+//         credentials {
+//           username = labsNexusUser
+//           password = labsNexusPassword
+//         }
+//       }
+//     }
+    
+    
+//   }
+// }
+
 task javadocJar(type: Jar) {
     classifier="javadoc"
     from javadoc
@@ -129,6 +151,16 @@ artifacts {
 	archives agentjar
 	archives javadocJar
 	archives agentSourcesJar      
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "http://nexus.bertramlabs.com/content/repositories/snapshots/") {
+              authentication(userName: labsNexusUser, password: labsNexusPassword)
+            }
+        }
+    }
 }
 
 configurations.archives.artifacts.removeAll(

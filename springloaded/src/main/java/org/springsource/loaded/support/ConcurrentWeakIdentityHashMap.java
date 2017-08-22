@@ -23,9 +23,9 @@ import java.util.AbstractSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.lang.NullPointerException;
 import java.util.concurrent.ConcurrentMap;
 
 /**
@@ -137,7 +137,11 @@ public class ConcurrentWeakIdentityHashMap<K, V> extends AbstractMap<K, V>
 
         Key(T t, ReferenceQueue<T> queue) {
             super(t, queue);
-            hash = System.identityHashCode(Objects.requireNonNull(t));
+            if(t == null) {
+                throw new NullPointerException();
+            } else {
+                hash = System.identityHashCode(t);
+            }
         }
 
         @Override
