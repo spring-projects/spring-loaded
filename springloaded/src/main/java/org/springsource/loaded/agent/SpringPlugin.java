@@ -110,8 +110,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 
 
 	public byte[] modify(String slashedClassName, ClassLoader classLoader, byte[] bytes) {
-		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-			log.info("loadtime modifying " + slashedClassName);
+		if ((GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) || debug) {
+			log.info("SPRING_PLUGIN: loadtime modifying " + slashedClassName);
 		}
 		if (slashedClassName.equals("org/springframework/web/servlet/mvc/annotation/AnnotationMethodHandlerAdapter")) {
 			return bytesWithInstanceCreationCaptured(bytes, THIS_CLASS,
@@ -140,6 +140,9 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	}
 
 	public static void recordRequestMappingHandlerMappingInstance(Object obj) {
+		if (debug) {
+			System.out.println("SPRING_PLUGIN: Recording request mapping handler mapping instance..." + obj);
+		}
 		requestMappingHandlerMappingInstances.add(obj);
 	}
 
@@ -163,7 +166,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 	// called by the modified code
 	public static void recordDefaultAnnotationHandlerMappingInstance(Object obj) {
 		if (debug) {
-			System.out.println("Recording new instance of DefaultAnnotationHandlerMappingInstance");
+			System.out.println("SPRING_PLUGIN: Recording new instance of DefaultAnnotationHandlerMappingInstance");
 		}
 		defaultAnnotationHandlerMappingInstances.add(obj);
 	}
@@ -188,7 +191,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 			return;
 		}
 		if (debug) {
-			System.out.println("ParameterNamesCache: Clearing parameter name discoverer caches");
+			System.out.println("SPRING_PLUGIN: ParameterNamesCache: Clearing parameter name discoverer caches");
 		}
 		if (parameterNamesCacheField == null) {
 			try {
@@ -207,7 +210,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				Object o = parameterNamesCache.remove(clazz);
 				if (debug) {
 					System.out.println(
-							"ParameterNamesCache: Removed " + clazz.getName() + " from cache?" + (o != null));
+							"SPRING_PLUGIN: ParameterNamesCache: Removed " + clazz.getName() + " from cache?"
+									+ (o != null));
 				}
 			}
 			catch (IllegalAccessException e) {
@@ -230,7 +234,7 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 				Method removeMethod = Map.class.getDeclaredMethod("remove", Object.class);
 				Object ret = removeMethod.invoke(map, clazz);
 				if (GlobalConfiguration.debugplugins) {
-					System.err.println("SpringPlugin: clearing methodResolverCache for " + clazz.getName());
+					System.err.println("SPRING_PLUGIN: clearing methodResolverCache for " + clazz.getName());
 				}
 				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
 					log.info("cleared a cache entry? " + (ret != null));
@@ -342,7 +346,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		// protected void detectHandlers() throws BeansException {  is defined on  AbstractDetectingUrlHandlerMapping
 		for (Object o : defaultAnnotationHandlerMappingInstances) {
 			if (debug) {
-				System.out.println("Invoking detectHandlers on instance of DefaultAnnotationHandlerMappingInstance");
+				System.out.println(
+						"SPRING_PLUGIN: Invoking detectHandlers on instance of DefaultAnnotationHandlerMappingInstance");
 			}
 			try {
 				Class<?> clazz_AbstractDetectingUrlHandlerMapping = o.getClass().getSuperclass();
@@ -360,49 +365,139 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	private void reinvokeInitHandlerMethods() {
 		//		org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping (super AbstractHandlerMethodMapping) - call protected void initHandlerMethods() on it.
-
 		for (Object o : requestMappingHandlerMappingInstances) {
 			if (debug) {
-				System.out.println("Invoking initHandlerMethods on instance of RequestMappingHandlerMapping");
+				System.out.println(
+						"SPRING_PLUGIN: Invoking initHandlerMethods on instance of RequestMappingHandlerMapping");
 			}
+			Class<?> clazz_AbstractHandlerMethodMapping = null;
 			try {
-				Class<?> clazz_AbstractHandlerMethodMapping = o.getClass().getSuperclass().getSuperclass();
-
-				// private final Map<T, HandlerMethod> handlerMethods = new LinkedHashMap<T, HandlerMethod>();
-				Field field_handlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredField("handlerMethods");
-				field_handlerMethods.setAccessible(true);
-				Map m = (Map) field_handlerMethods.get(o);
-				m.clear();
-
-				Field field_urlMap = clazz_AbstractHandlerMethodMapping.getDeclaredField("urlMap");
-				field_urlMap.setAccessible(true);
-				m = (Map) field_urlMap.get(o);
-				m.clear();
-
-				Method method_initHandlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredMethod(
-						"initHandlerMethods");
-				method_initHandlerMethods.setAccessible(true);
-				method_initHandlerMethods.invoke(o);
-			}
-			catch (NoSuchFieldException nsfe) {
-				if (debug) {
-					if (nsfe.getMessage().equals("handlerMethods")) {
-						System.out.println(
-								"problem resetting request mapping handlers - unable to find field 'handlerMethods' on type 'AbstractHandlerMethodMapping' - you probably are not on Spring 3.1");
-					}
-					else {
-						System.out.println("problem resetting request mapping handlers - NoSuchFieldException: "
-								+ nsfe.getMessage());
-					}
-				}
+				clazz_AbstractHandlerMethodMapping = o.getClass().getSuperclass().getSuperclass();
 			}
 			catch (Exception e) {
+				if (debug) {
+					System.out.println("SPRING_PLUGIN: Unable to get to AbstractHandlerMethodMapping from RMHM");
+				}
 				if (GlobalConfiguration.debugplugins) {
 					e.printStackTrace();
 				}
+			}
+
+			if (clazz_AbstractHandlerMethodMapping != null) {
+				try {
+					// private final Map<T, HandlerMethod> handlerMethods = new LinkedHashMap<T, HandlerMethod>();
+					Field field_handlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredField("handlerMethods");
+					field_handlerMethods.setAccessible(true);
+					Map m = (Map) field_handlerMethods.get(o);
+					m.clear();
+				}
+				catch (NoSuchFieldException e) {
+					if (debug) {
+						System.out.println("SPRING_PLUGIN: Unable to find handlerMethods field to clear");
+					}
+				}
+				catch (Exception e) {
+					if (GlobalConfiguration.debugplugins) {
+						e.printStackTrace();
+					}
+				}
+
+				try {
+					Field field_urlMap = clazz_AbstractHandlerMethodMapping.getDeclaredField("urlMap");
+					field_urlMap.setAccessible(true);
+					Map m = (Map) field_urlMap.get(o);
+					m.clear();
+				}
+				catch (NoSuchFieldException e) {
+					if (debug) {
+						System.out.println("SPRING_PLUGIN: Unable to find urlMap field to clear");
+					}
+				}
+				catch (Exception e) {
+					if (GlobalConfiguration.debugplugins) {
+						e.printStackTrace();
+					}
+				}
+				clearMappingRegistry(o, clazz_AbstractHandlerMethodMapping);
+
+
+				try {
+
+					Method method_initHandlerMethods = clazz_AbstractHandlerMethodMapping.getDeclaredMethod(
+							"initHandlerMethods");
+					method_initHandlerMethods.setAccessible(true);
+					method_initHandlerMethods.invoke(o);
+				}
+				catch (Exception e) {
+					if (GlobalConfiguration.debugplugins || debug) {
+						e.printStackTrace();
+					}
+				}
+			}
+
+		}
+
+	}
+
+
+	// More recent Springs use a MappingRegistry - clear it out if we can get at it, otherwise on re-driving
+	// the initHandlerMethods below we will get an error about already existing mappings
+	private void clearMappingRegistry(Object o, Class<?> clazz_AbstractHandlerMethodMapping) {
+		if (debug) {
+			System.out.println("SPRING_PLUGIN: clearing out mapping registry...");
+		}
+		Object mappingRegistryInstance = null;
+		try {
+			Field field_mappingRegistry = clazz_AbstractHandlerMethodMapping.getDeclaredField("mappingRegistry");
+			field_mappingRegistry.setAccessible(true);
+			mappingRegistryInstance = field_mappingRegistry.get(o);
+		}
+		catch (NoSuchFieldException e) {
+			if (debug) {
+				System.out.println(
+						"SPRING_PLUGIN: Unable to get mappingRegistry field on AbstractHandlerMethodMapping");
+			}
+		}
+		catch (IllegalAccessException e) {
+			if (GlobalConfiguration.debugplugins || debug) {
+				System.out.println(
+						"SPRING_PLUGIN: Problem accessing mappingRegistry field on AbstractHandlerMethodMapping: ");
+				e.printStackTrace(System.out);
+			}
+		}
+
+		if (mappingRegistryInstance == null) {
+			return;
+		}
+		Class mappingRegistryClass = mappingRegistryInstance.getClass();
+
+		clearMapField(mappingRegistryClass, mappingRegistryInstance, "registry");
+		clearMapField(mappingRegistryClass, mappingRegistryInstance, "mappingLookup");
+		clearMapField(mappingRegistryClass, mappingRegistryInstance, "urlLookup");
+		clearMapField(mappingRegistryClass, mappingRegistryInstance, "nameLookup");
+		clearMapField(mappingRegistryClass, mappingRegistryInstance, "corsLookup");
+		if (debug) {
+			System.out.println("SPRING_PLUGIN: ... cleared out the mapping registry contents");
+		}
+	}
+
+	private void clearMapField(Class clazz, Object instance, String name) {
+		try {
+			Field field = clazz.getDeclaredField(name);
+			field.setAccessible(true);
+			Map m = (Map) field.get(instance);
+			m.clear();
+		}
+		catch (NoSuchFieldException e) {
+			if (debug) {
+				System.out.println("SPRING_PLUGIN: Unable to find field '" + name + "' to clear");
+			}
+		}
+		catch (Exception e) {
+			if (GlobalConfiguration.debugplugins || debug) {
+				e.printStackTrace();
 			}
 		}
 	}
