@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.Serializable;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springsource.loaded.ConstantPoolScanner;
 import org.springsource.loaded.ConstantPoolScanner.References;
@@ -55,6 +56,7 @@ public class ConstantPoolScannerTests {
 	}
 
 
+	@Ignore
 	@Test
 	public void foo() throws Exception {
 

@@ -166,8 +166,9 @@ public class ReloadableType {
 		this.typeRegistry = typeRegistry;
 		this.dottedtypename = dottedtypename;
 		this.slashedtypename = dottedtypename.replace('.', '/');
-		this.typedescriptor = (typeDescriptor != null ? typeDescriptor : typeRegistry.getExtractor().extract(
-				initialBytes, true));
+		this.typedescriptor = (typeDescriptor != null ? typeDescriptor
+				: typeRegistry.getExtractor().extract(
+						initialBytes, true));
 		this.interfaceBytes = InterfaceExtractor.extract(initialBytes, typeRegistry, this.typedescriptor);
 		this.bytesInitial = initialBytes;
 		rewriteCallSitesAndDefine();
@@ -544,12 +545,17 @@ public class ReloadableType {
 	private void reloadProxiesIfNecessary(String versionsuffix) {
 		ReloadableType proxy = typeRegistry.cglibProxies.get(this.slashedtypename);
 		if (proxy != null) {
+			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+				log.log(Level.INFO, "Attempting reload of cglib proxy for type " + this.slashedtypename);
+			}
+
 			Object[] strategyAndGeneratorPair = CglibPluginCapturing.clazzToGeneratorStrategyAndClassGeneratorMap.get(
 					getClazz());
 			if (strategyAndGeneratorPair == null) {
 				if (log.isLoggable(Level.SEVERE)) {
 					log.severe(
-							"Unable to find regeneration methods for cglib proxies - proxies will be out of date for this type");
+							"Unable to find regeneration methods for cglib proxies - proxies will be out of date for type: "
+									+ getClazz());
 				}
 				return;
 			}
@@ -567,6 +573,9 @@ public class ReloadableType {
 				}
 				found.setAccessible(true);
 				byte[] bs = (byte[]) found.invoke(a, b);
+				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+					log.log(Level.INFO, "Proxy regenerate successful for " + this.slashedtypename);
+				}
 				proxy.loadNewVersion(versionsuffix, bs);
 				proxy.runStaticInitializer();
 			}
@@ -596,6 +605,9 @@ public class ReloadableType {
 						}
 					}
 					byte[] bs = (byte[]) found.invoke(a, b);
+					if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+						log.log(Level.INFO, "Proxy (fastclass) regenerate successful for " + this.slashedtypename);
+					}
 					proxy.loadNewVersion(versionsuffix, bs);
 					proxy.runStaticInitializer();
 				}
@@ -612,10 +624,8 @@ public class ReloadableType {
 				if (relevantProxies != null) {
 					for (ReloadableType relevantProxy : relevantProxies) {
 						Class<?>[] interfacesImplementedByProxy = relevantProxy.getClazz().getInterfaces();
-						// check slashedname correct
-						//						@SuppressWarnings("restriction")
-						byte[] newProxyBytes = sun.misc.ProxyGenerator.generateProxyClass(
-								relevantProxy.getSlashedName(),
+						// TODO confirm slashedname correct
+						byte[] newProxyBytes = Utils.generateProxyClass(relevantProxy.getSlashedName(),
 								interfacesImplementedByProxy);
 						relevantProxy.loadNewVersion(versionsuffix, newProxyBytes, true);
 					}

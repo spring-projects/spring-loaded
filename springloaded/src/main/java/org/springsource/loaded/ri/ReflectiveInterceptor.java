@@ -53,7 +53,7 @@ import org.springsource.loaded.TypeRegistry;
 import org.springsource.loaded.Utils;
 import org.springsource.loaded.infra.UsedByGeneratedCode;
 import org.springsource.loaded.jvm.JVM;
-
+import org.springsource.loaded.support.ConcurrentWeakIdentityHashMap;
 
 /**
  * The reflective interceptor is called to rewrite any reflective calls that are found in the bytecode. Intercepting the
@@ -84,7 +84,8 @@ public class ReflectiveInterceptor {
 			classToRType = Collections.synchronizedMap(new WeakHashMap<Class<?>, WeakReference<ReloadableType>>());
 		}
 		else {
-			classToRType = new WeakHashMap<Class<?>, WeakReference<ReloadableType>>();
+			classToRType = new ConcurrentWeakIdentityHashMap<Class<?>, WeakReference<ReloadableType>>();
+			// classToRType = new WeakHashMap<Class<?>, WeakReference<ReloadableType>>();
 		}
 	}
 
@@ -650,7 +651,7 @@ public class ReflectiveInterceptor {
 	 */
 	private static Field asSetableField(Field field, Object target, Class<?> valueType, Object value,
 			boolean makeAccessibleCopy)
-					throws IllegalAccessException {
+			throws IllegalAccessException {
 		// Must do the checks exactly in the same order as JVM if we want identical error messages.
 
 		// JVM doesn't do this, since it cannot happen without reloading, we do it first of all.
@@ -1054,7 +1055,7 @@ public class ReflectiveInterceptor {
 			c = jlClassGetDeclaredConstructor(clazz);
 		}
 		catch (NoSuchMethodException e) {
-			e.printStackTrace();
+			//			e.printStackTrace();
 			throw Exceptions.instantiation(clazz);
 		}
 		c = asAccessibleConstructor(c, true);

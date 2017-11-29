@@ -19,22 +19,27 @@ package org.springsource.loaded.agent;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.MethodVisitor;
 import org.springsource.loaded.Constants;
+import org.springsource.loaded.GlobalConfiguration;
 
 /**
  * This bytecode rewriter intercepts calls to generate made in the CGLIB framework and allows us to record what
  * generator is called to create the proxy for some type. The same generator can then be driven again if the type is
  * reloaded.
- * 
+ *
  * @author Andy Clement
  * @since 0.8.3
  */
 public class CglibPluginCapturing extends ClassVisitor implements Constants {
+
+	private static Logger log = Logger.getLogger(CglibPluginCapturing.class.getName());
 
 	public static Map<Class<?>, Object[]> clazzToGeneratorStrategyAndClassGeneratorMap = new HashMap<Class<?>, Object[]>();
 
@@ -68,10 +73,21 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 		return ((ClassWriter) cv).toByteArray();
 	}
 
+	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		if (name.equals("create")) {
+			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+				log.info("intercepting create method");
+			}
 			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 			return new CreateMethodInterceptor(mv);
+		}
+		else if (name.equals("generate")) {
+			if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+				log.info("intercepting generate method");
+			}
+			MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+			return new GenerateMethodInterceptor(mv);
 		}
 		else {
 			return super.visitMethod(access, name, desc, signature, exceptions);
@@ -98,6 +114,9 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 				final boolean itf) {
 			super.visitMethodInsn(opcode, owner, name, desc, itf);
 			if (name.equals("generate")) {
+				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+					log.info("intercepting call to generate in create method");
+				}
 				// Code that calls generate:
 				//	ALOAD 0
 				//	GETFIELD net/sf/cglib/core/AbstractClassGenerator.strategy : Lnet/sf/cglib/core/GeneratorStrategy;
@@ -108,8 +127,28 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 						"L" + prefix + "/cglib/core/GeneratorStrategy;");
 				mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
 				mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/agent/CglibPluginCapturing", "record",
-						"(Ljava/lang/Object;Ljava/lang/Object;)V", false);//Lnet/sf/cglib/core/GeneratorStrategy;Lnet/sf/cglib/core/AbstractClassGenerator);");			
+						"(Ljava/lang/Object;Ljava/lang/Object;)V", false);//Lnet/sf/cglib/core/GeneratorStrategy;Lnet/sf/cglib/core/AbstractClassGenerator);");
 			}
+		}
+
+	}
+
+
+	class GenerateMethodInterceptor extends MethodVisitor implements Constants {
+
+		public GenerateMethodInterceptor(MethodVisitor mv) {
+			super(ASM5, mv);
+		}
+
+		@Override
+		public void visitCode() {
+			mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
+			mv.visitFieldInsn(GETFIELD, prefix + "/cglib/core/AbstractClassGenerator", "strategy",
+					"L" + prefix + "/cglib/core/GeneratorStrategy;");
+			mv.visitVarInsn(ALOAD, 0); // AbstractClassGenerator instance
+			mv.visitMethodInsn(INVOKESTATIC, "org/springsource/loaded/agent/CglibPluginCapturing", "record",
+					"(Ljava/lang/Object;Ljava/lang/Object;)V", false);//Lnet/sf/cglib/core/GeneratorStrategy;Lnet/sf/cglib/core/AbstractClassGenerator);");
+
 		}
 
 	}
@@ -119,11 +158,15 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 	 * these classes because they may be either calling something that disappears on a later reload (so need to fail
 	 * appropriately) or calling something that isnt there on the first load - in this latter case they are changed to
 	 * route the dynamic executor method.
-	 * 
+	 *
 	 * @param a the GeneratorStrategy being used
 	 * @param b the AbstractClassGenerator
 	 */
 	public static void record(Object a, Object b) {
+		//		if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+		//			log.info("recording invocation of generate with " + (a == null ? "null" : a.getClass().getName()) + " b="
+		//					+ (b == null ? "null" : b.getClass().getName()));
+		//		}
 		// a is a Lnet/sf/cglib/core/GeneratorStrategy;
 		// b is a Lnet/sf/cglib/core/AbstractClassGenerator (or specifically net/sf/cglib/reflect/FastClass$Generator)
 		// a is something like 'UndeclaredThrowableStrategy'
@@ -134,7 +177,9 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 				Field f = b.getClass().getDeclaredField("superclass");
 				f.setAccessible(true);
 				Class<?> clazz = (Class<?>) f.get(b);
-				// System.out.println("Recording pair " + clazz.getName() + " > " + b);
+				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+					log.info("recording pair " + clazz.getName() + " > " + b);
+				}
 				clazzToGeneratorStrategyAndClassGeneratorMap.put(clazz, new Object[] { a, b });
 			}
 			catch (Throwable re) {
@@ -146,7 +191,9 @@ public class CglibPluginCapturing extends ClassVisitor implements Constants {
 				Field f = b.getClass().getDeclaredField("type");
 				f.setAccessible(true);
 				Class<?> clazz = (Class<?>) f.get(b);
-				// System.out.println("Recording pair (fastclass) " + clazz.getName() + " > " + b);
+				if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
+					log.info("recording pair (fastclass) " + clazz.getName() + " > " + b);
+				}
 				clazzToGeneratorStrategyAndFastClassGeneratorMap.put(clazz, new Object[] { a, b });
 			}
 			catch (Throwable re) {

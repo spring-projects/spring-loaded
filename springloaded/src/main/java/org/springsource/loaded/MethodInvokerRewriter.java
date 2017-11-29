@@ -1045,6 +1045,11 @@ public class MethodInvokerRewriter {
 					throw new IllegalStateException("Unable to find classId for " + slashedclassname
 							+ " referenced from invokedynamic in " + this.methodname + "()");
 				}
+				if(typeRegistry.getReloadableType(classId) == null) {
+					// can't rewrite non-reloading type
+					super.visitInvokeDynamicInsn(name, desc, bsm, bsmArgs);
+					return;
+				}
 
 				// Initially only rewriting use of INVOKEDYNAMIC to support Lambda execution
 				// TODO support the more general invokedynamic usage
