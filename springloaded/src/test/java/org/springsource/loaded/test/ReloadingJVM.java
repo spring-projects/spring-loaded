@@ -268,12 +268,12 @@ public class ReloadingJVM {
 				System.out.println("(client) copying class to test data directory: " + classname);
 			}
 			String classfile = classname.replaceAll("\\.", File.separator) + ".class";
-			File f = new File("../testdata/bin", classfile);
+			File f = new File(TestUtils.getPathToClasses("../testdata"), classfile);
 			if (!f.exists()) {
-				f = new File("../testdata-groovy/bin", classfile);
+				f = new File(TestUtils.getPathToClasses("../testdata-groovy"), classfile);
 			}
 			if (!f.exists()) {
-				f = new File("../testdata-java8/bin", classfile);
+				f = new File(TestUtils.getPathToClasses("../testdata-java8"), classfile);
 			}
 			byte[] data = Utils.load(f);
 			// Ensure directories exist

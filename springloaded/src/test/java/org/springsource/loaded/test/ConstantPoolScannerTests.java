@@ -48,13 +48,14 @@ public class ConstantPoolScannerTests {
 
 	@Test
 	public void testConstantPoolScanner() throws Exception {
-		File fileToCheck = new File("bin/org/springsource/loaded/test/ConstantPoolScannerTests$Helper.class");
+		String basePath = TestUtils.getPathToClasses(".", true);
+		File fileToCheck = new File(basePath +
+			"/org/springsource/loaded/test/ConstantPoolScannerTests$Helper.class");
 		References references = ConstantPoolScanner.getReferences(load(fileToCheck));
 		System.out.println(references);
 		System.out.println(references.referencedClasses);
 		assertContains(references.referencedMethods, "java/lang/String.<init>");
 	}
-
 
 	@Ignore
 	@Test
