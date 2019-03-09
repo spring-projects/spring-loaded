@@ -6,7 +6,7 @@ allprojects {
     repositories {
         mavenCentral()
 	maven {
-		url "http://maven.springframework.org/milestone"
+		url "https://maven.springframework.org/milestone"
 	}
     }
 }
