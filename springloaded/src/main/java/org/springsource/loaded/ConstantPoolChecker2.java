@@ -26,7 +26,7 @@ import java.util.List;
 
 // TODO try to recall why I created ConstantPoolChecker2, what was up with ConstantPoolChecker?
 
-// http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
+// https://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
 /**
  * Enables us to check things quickly in the constant pool. This version accumulates the class references and the method
  * references, for classes that start with 'j' (we want to catch: java/lang). It skips everything it can and the end

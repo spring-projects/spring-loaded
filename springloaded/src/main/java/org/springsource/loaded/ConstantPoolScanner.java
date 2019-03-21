@@ -28,7 +28,7 @@ import java.util.List;
  * latter look like this 'java/lang/Foo.bar' (the descriptor for the method is not included). Interface methods are
  * skipped.
  *
- * Useful reference: http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
+ * Useful reference: https://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
  *
  * @author Andy Clement
  * @since 0.7.3

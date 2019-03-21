@@ -13,5 +13,5 @@ public class Z {
 	}
 }
 
-// see http://java.sun.com/docs/books/jvms/second_edition/html/Instructions2.doc5.html.
+// see https://java.sun.com/docs/books/jvms/second_edition/html/Instructions2.doc5.html.
 // TODO [rc1] funky field lookups only necessary for protected fields?

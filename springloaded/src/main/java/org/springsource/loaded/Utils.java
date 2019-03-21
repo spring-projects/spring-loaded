@@ -1795,7 +1795,7 @@ public class Utils implements Opcodes, Constants {
 			return true;
 		}
 		else {
-			// The 19 conversions, as per section 5.1.2 in: http://java.sun.com/docs/books/jls/third_edition/html/conversions.html
+			// The 19 conversions, as per section 5.1.2 in: https://java.sun.com/docs/books/jls/third_edition/html/conversions.html
 			if (sourceType == byte.class) {
 				if (targetType == short.class || targetType == int.class || targetType == long.class
 						|| targetType == float.class
