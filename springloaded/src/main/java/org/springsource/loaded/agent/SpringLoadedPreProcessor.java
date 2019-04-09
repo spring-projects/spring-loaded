@@ -340,7 +340,13 @@ public class SpringLoadedPreProcessor implements Constants {
 				}
 				else {
 					if (GlobalConfiguration.fileSystemMonitoring && watchPath != null) {
-						typeRegistry.monitorForUpdates(rtype, watchPath);
+                        String slashname = rtype.slashedtypename;
+                        int cglibIndex = slashname.indexOf("$$EnhancerBy");
+                        int fcIndex = slashname.indexOf("$$FastClassBy");
+                        // ( skip  the fast class for a proxy )
+                        if (fcIndex == -1 && cglibIndex == -1) {
+                            typeRegistry.monitorForUpdates(rtype, watchPath);
+                        }
 					}
 					return rtype.bytesLoaded;
 				}
