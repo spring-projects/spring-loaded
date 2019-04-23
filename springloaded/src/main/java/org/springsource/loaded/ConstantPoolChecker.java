@@ -24,7 +24,7 @@ import java.util.List;
 
 // TODO does not yet support the new constant pool entry types that come with Java 7
 
-// http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
+// https://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html
 /**
  * Quickly checks the constant pool for class references, it skips everything else as fast as it can. The class
  * references are then available for checking.

@@ -221,7 +221,7 @@ public class ReflectiveInterceptor {
 		// In jdk17u25 there is an extra frame inserted:
 		// "This also fixes a regression introduced in 7u25 in which
 		// getCallerClass(int) is now a Java method that adds an additional frame
-		// that wasn't taken into account." in http://permalink.gmane.org/gmane.comp.java.openjdk.jdk7u.devel/6573
+		// that wasn't taken into account." in https://permalink.gmane.org/gmane.comp.java.openjdk.jdk7u.devel/6573
 		Class<?> caller = sun.reflect.Reflection.getCallerClass(depth);
 		if (caller == ReflectiveInterceptor.class) {
 			// If this is true we have that extra frame on the stack

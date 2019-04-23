@@ -13,7 +13,7 @@ used in Grails 2.
 
 # Installation
 
-1.2.5 has now been released: [springloaded-1.2.5.RELEASE.jar](http://repo.spring.io/release/org/springframework/springloaded/1.2.5.RELEASE/springloaded-1.2.5.RELEASE.jar)
+1.2.5 has now been released: [springloaded-1.2.5.RELEASE.jar](https://repo.spring.io/release/org/springframework/springloaded/1.2.5.RELEASE/springloaded-1.2.5.RELEASE.jar)
 
 1.2.6 snapshots are in this repo area (grab the most recently built .jar):
 <a href="https://repo.spring.io/webapp/#/artifacts/browse/tree/General/libs-snapshot-local/org/springframework/springloaded/1.2.6.BUILD-SNAPSHOT">repo.spring.io</a>
@@ -67,8 +67,8 @@ some test projects. One of the test projects is an AspectJ project (containing b
 and AspectJ code), and one is a Groovy project. To compile these test projects
 in Eclipse you will need the relevant eclipse plugins:
 
-AJDT: update site: `http://download.eclipse.org/tools/ajdt/42/dev/update`
-Groovy-Eclipse: update site: `http://dist.springsource.org/snapshot/GRECLIPSE/e4.2/`
+AJDT: update site: `https://download.eclipse.org/tools/ajdt/42/dev/update`
+Groovy-Eclipse: update site: `https://dist.springsource.org/snapshot/GRECLIPSE/e4.2/`
 
 After importing them you can run the tests.  There are two kinds of tests, hand crafted and
 generated.  Running all the tests including the generated ones can take a while.
