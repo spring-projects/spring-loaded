@@ -1016,7 +1016,7 @@ public class Utils implements Opcodes, Constants {
 		public boolean isDoubleSlot() {
 			if (kind == Kind.PRIMITIVE) {
 				char ch = descriptor.charAt(0);
-				return ch == 'J' || ch == 'L';
+				return ch == 'J' || ch == 'D';
 			}
 			return false;
 		}
