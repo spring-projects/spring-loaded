@@ -441,6 +441,16 @@ public class ReloadableType {
 			tagAsAffectedByReload();
 			tagSupertypesAsAffectedByReload();
 			tagSubtypesAsAffectedByReload();
+			//ReflectionUtils has a cache that needs cleared
+			try {
+				Class<?> reflecutionUtil = Class.forName("org.springframework.util.ReflectionUtils");
+				// java.lang.NoSuchMethodException: org.codehaus.groovy.reflection.ClassInfo$LazyCachedClassRef.clear()
+				Method clearMethod = reflecutionUtil.getMethod("clearCache");//DeclaredMethod("clear");
+				clearMethod.invoke(null);
+			} catch(Exception e3) {
+			    //this better not blow up in my face
+			}
+			// ReflectionUtils.clearCache();
 
 			typeRegistry.fireReloadEvent(this, versionsuffix);
 
