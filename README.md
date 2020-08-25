@@ -9,16 +9,20 @@ to add/modify/delete methods/fields/constructors. The annotations on types/metho
 can also be modified and it is possible to add/remove/change values in enum types.
 
 Spring Loaded is usable on any bytecode that may run on a JVM, and is actually the reloading system
-used in Grails 2.
+used in Grails 2,3,4 (on java 8).
 
 # Installation
 
-1.2.5 has now been released: [springloaded-1.2.5.RELEASE.jar](https://repo.spring.io/release/org/springframework/springloaded/1.2.5.RELEASE/springloaded-1.2.5.RELEASE.jar)
+1.3.0 has now been released!
+
+1.3.0 Enables support for Grails 4.0.4+ Running on Java 8 (Java 11 is not yet supported and is in Development)
 
 1.2.6 snapshots are in this repo area (grab the most recently built .jar):
 <a href="https://repo.spring.io/webapp/#/artifacts/browse/tree/General/libs-snapshot-local/org/springframework/springloaded/1.2.6.BUILD-SNAPSHOT">repo.spring.io</a>
 
 The download is the agent jar and needs no further unpacking before use.
+
+
 
 
 # Running with reloading
@@ -82,13 +86,8 @@ Two launch configurations are already included if you are importing these projec
 which run with or without the generated tests.
 
 A gradle build script is included, run './gradlew build' to rebuild the agent - it will be created
-as something like: `springloaded/build/libs/springloaded-1.1.5.BUILD-SNAPSHOT.jar`
+as something like: `springloaded/build/libs/springloaded-1.3.0.BUILD-SNAPSHOT.jar`
 
 # Can I contribute?
 
-Sure! Just press *Fork* at the top of this github page and get coding. Before we accept pull
-requests we just need you to sign a simple contributor's agreement - which you can find
-[here](https://support.springsource.com/spring_committer_signup). Signing the contributor's
-agreement does not grant anyone commit rights to the main repository, but it does mean that we
-can accept your contributions, and you will get an author credit if we do. Active contributors
-might be asked to join the core team, and given the ability to merge pull requests.
+Sure! This is based on the original Spring Source Project work done by Andy Clement. As Spring was moving away from spring-loaded in favor of spring-dev-tools (a slower alternative), Community efforts were made to update spring-loaded to work in more recent builds of Grails.
