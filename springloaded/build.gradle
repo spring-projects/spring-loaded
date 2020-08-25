@@ -1,6 +1,6 @@
 apply plugin: 'maven'
 
-group = "org.springframework"
+group = "com.bertramlabs"
 jar.baseName = 'springloaded'
 
 sourceCompatibility = 1.5
