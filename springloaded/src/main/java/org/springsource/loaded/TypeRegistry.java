@@ -1125,10 +1125,13 @@ public class TypeRegistry {
 		if (typeId >= reloadableTypes.length) {
 			resizeReloadableTypeArray(typeId);
 		}
-		reloadableTypes[typeId] = rtype;
-		if ((typeId + 1) > reloadableTypesSize) {
-			reloadableTypesSize = typeId + 1;
+		synchronized(this) {
+			reloadableTypes[typeId] = rtype;
+			if ((typeId + 1) > reloadableTypesSize) {
+				reloadableTypesSize = typeId + 1;
+			}
 		}
+
 		// allocatedIds.put(slashname, rtype);
 		// allocatedButNotYetRegisteredItds.remove(slashname);
 		int cglibIndex = slashname.indexOf("$$EnhancerBy");
@@ -1196,10 +1199,13 @@ public class TypeRegistry {
 		if (typeId >= reloadableTypes.length) {
 			resizeReloadableTypeArray(typeId);
 		}
-		reloadableTypes[typeId] = rtype;
-		if ((typeId + 1) > reloadableTypesSize) {
-			reloadableTypesSize = typeId + 1;
+		synchronized(this) {
+			reloadableTypes[typeId] = rtype;
+			if ((typeId + 1) > reloadableTypesSize) {
+				reloadableTypesSize = typeId + 1;
+			}
 		}
+
 	}
 
 	/**
