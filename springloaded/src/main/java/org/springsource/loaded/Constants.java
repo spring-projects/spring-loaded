@@ -30,6 +30,10 @@ import org.objectweb.asm.Opcodes;
  */
 public interface Constants extends Opcodes {
 
+	public static final int preInvokeSpecial = 0;
+
+	public static final int postInvokeSpecial = 1;
+	
 	public static final Integer DEFAULT_INT = Integer.valueOf(0);
 
 	public static final Byte DEFAULT_BYTE = Byte.valueOf((byte) 0);

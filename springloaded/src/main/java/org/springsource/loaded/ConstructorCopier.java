@@ -25,10 +25,6 @@ import org.objectweb.asm.MethodVisitor;
  */
 class ConstructorCopier extends MethodVisitor implements Constants {
 
-	private final static int preInvokeSpecial = 0;
-
-	private final static int postInvokeSpecial = 1;
-
 	// It is important to know when an INVOKESPECIAL is hit, whether it is our actual one that delegates to the super or just
 	// one being invoked due to some early object construction prior to the real INVOKESPECIAL running.  By tracking
 	// how many unitialized objects there are (count the NEWs) and how many INVOKESPECIALs have occurred, it is possible
