@@ -564,6 +564,13 @@ public class ReloadableTypeTests extends SpringLoadedTests {
 		assertFalse(rt.isDoubleSlot());
 		assertFalse(rt.isVoid());
 
+		rt = ReturnType.getReturnType("D");
+		assertEquals(ReturnType.Kind.PRIMITIVE, rt.kind);
+		assertEquals("D", rt.descriptor);
+		assertTrue(rt.isPrimitive());
+		assertTrue(rt.isDoubleSlot());
+		assertFalse(rt.isVoid());
+
 		rt = ReturnType.getReturnType("[Ljava/lang/String;");
 		assertEquals(ReturnType.Kind.ARRAY, rt.kind);
 		assertEquals("[Ljava/lang/String;", rt.descriptor);
