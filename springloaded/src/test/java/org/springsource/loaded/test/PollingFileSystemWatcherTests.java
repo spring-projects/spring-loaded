@@ -35,7 +35,7 @@ import org.springsource.loaded.ReloadableType;
 import org.springsource.loaded.agent.FileSystemWatcher;
 
 
-public class FileSystemWatcherTests {
+public class PollingFileSystemWatcherTests {
 
 	/**
 	 * Create a folder, watch it then put a couple of files in and check they are detected
