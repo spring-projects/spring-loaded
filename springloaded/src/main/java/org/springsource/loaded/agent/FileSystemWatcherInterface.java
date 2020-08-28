@@ -2,7 +2,7 @@ package org.springsource.loaded.agent;
 
 import java.io.File;
 
-public interface AbstractFileSystemWatcher {
+public interface FileSystemWatcherInterface {
 	/**
 	 * Shutdown the thread.
 	 */
