@@ -206,7 +206,6 @@ public class ClassRenamer {
 
 			@Override
 			public void visitLdcInsn(Object obj) {
-				//				System.out.println("Possibly remapping "+obj);
 				if (obj instanceof Type) {
 					Type t = (Type) obj;
 					String s = t.getInternalName();
@@ -272,9 +271,6 @@ public class ClassRenamer {
 				String owner = oldHandle.getOwner();
 				String name = oldHandle.getName();
 				String desc = oldHandle.getDesc();
-				//				System.out.println("handle: owner: "+owner);
-				//				System.out.println("handle: name: "+name);
-				//				System.out.println("handle: desc: "+desc);
 				owner = renameRetargetIfNecessary(owner);
 				desc = renameRetargetIfNecessary(desc);
 				Handle newHandle = new Handle(tag, owner, name, desc);

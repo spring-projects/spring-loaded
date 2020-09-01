@@ -450,7 +450,6 @@ public class ReloadableType {
 			} catch(Exception e3) {
 			    //this better not blow up in my face
 			}
-			// ReflectionUtils.clearCache();
 
 			typeRegistry.fireReloadEvent(this, versionsuffix);
 
