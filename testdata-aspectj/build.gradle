@@ -14,13 +14,13 @@ dependencies {
 	compile files("code.jar")
 }
 
-compileJava.deleteAllActions()
+compileJava.setActions Arrays.asList()
 
 task aspectJ(dependsOn: JavaPlugin.PROCESS_RESOURCES_TASK_NAME)  {
 	dependsOn configurations.tools.getTaskDependencyFromProjectDependency(true, "compileJava")
 	def srcDirs = sourceSets.main.java.srcDirs
 	srcDirs.each { inputs.dir it }
-	def destDir = sourceSets.main.output.classesDir
+	def destDir = sourceSets.main.output.classesDirs.first()
 	outputs.dir destDir
 	doLast {
 		ant.taskdef(resource: "org/aspectj/tools/ant/taskdefs/aspectjTaskdefs.properties", classpath: configurations.tools.asPath)

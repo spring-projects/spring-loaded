@@ -17,13 +17,10 @@ subprojects {
     apply plugin: 'eclipse'
     apply from: "$rootDir/gradle/publish-maven.gradle"
 	
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 
 configure(subprojects.findAll { it.name.startsWith('testdata')}) {
 	tasks.findByPath("artifactoryPublish")?.enabled = false
-}
-task wrapper(type: Wrapper) {
-        gradleVersion = '3.4.1'
 }

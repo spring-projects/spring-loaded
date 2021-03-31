@@ -3,27 +3,30 @@ apply plugin: 'maven'
 group = "com.bertramlabs"
 jar.baseName = 'springloaded'
 
-sourceCompatibility = 1.5
-targetCompatibility = 1.5
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
-task writeNewPom << {
-  def pompom = pom {
-    project  {
-      inceptionYear '2013'
-      licenses {
-        license {
-          name 'The Apache Software License, Version 2.0'
-		  url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
-          distribution 'repo'
+task writeNewPom {
+  doLast {
+     def pompom = pom {
+      project  {
+        inceptionYear '2013'
+        licenses {
+          license {
+            name 'The Apache Software License, Version 2.0'
+        url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
+            distribution 'repo'
+          }
         }
       }
+    };
+    // Remove junit and asm jar references
+    pompom.whenConfigured { p ->
+      p.dependencies.clear()
     }
-  };
-  // Remove junit and asm jar references
-  pompom.whenConfigured { p ->
-    p.dependencies.clear()
+    pompom.writeTo("$buildDir/springloaded.pom");
   }
-  pompom.writeTo("$buildDir/springloaded.pom");
+ 
 }
 
 compileJava {
