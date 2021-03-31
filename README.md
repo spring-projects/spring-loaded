@@ -90,4 +90,4 @@ as something like: `springloaded/build/libs/springloaded-1.3.0.BUILD-SNAPSHOT.ja
 
 # Can I contribute?
 
-Sure! This is based on the original Spring Source Project work done by Andy Clement. As Spring was moving away from spring-loaded in favor of spring-dev-tools (a slower alternative), Community efforts were made to update spring-loaded to work in more recent builds of Grails.
+Sure! This is based on the original Spring Source Project work done by Andy Clement. As Spring was moving away from spring-loaded in favor of spring-dev-tools (a more basic alternative), Community efforts were made to update spring-loaded to work in more recent builds of Grails.
