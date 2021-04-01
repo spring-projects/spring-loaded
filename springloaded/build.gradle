@@ -3,8 +3,8 @@ apply plugin: 'maven'
 group = "org.springframework"
 jar.baseName = 'springloaded'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
 
 task writeNewPom {
   doLast {
@@ -47,16 +47,16 @@ dependencies {
 	compile 'org.ow2.asm:asm:5.2'
 	compile 'org.ow2.asm:asm-tree:5.2'
 
-	testCompile 'junit:junit:4.11'
+	testImplementation 'junit:junit:4.11'
 	
-	testCompileOnly files("../testdata-groovy/groovy-all-1.8.6.jar")
-	testCompileOnly project(':testdata')
-	testCompileOnly project(':testdata-aspectj')
-	testCompileOnly project(':testdata-groovy')
-	testCompileOnly project(':testdata-java8')
-	testCompileOnly project(':testdata-plugin')
-	testCompileOnly project(':testdata-subloader')
-	testCompileOnly project(':testdata-superloader')
+	testImplementation files("../testdata-groovy/groovy-all-1.8.6.jar")
+	testImplementation(project(':testdata'))
+	testImplementation(project(':testdata-aspectj')) 
+	testImplementation(project(':testdata-groovy')) 
+	// testImplementation(project(':testdata-java8'))
+	testImplementation(project(':testdata-plugin'))
+	testImplementation(project(':testdata-subloader'))
+	testImplementation(project(':testdata-superloader'))
 }
 
 sourceSets {  
