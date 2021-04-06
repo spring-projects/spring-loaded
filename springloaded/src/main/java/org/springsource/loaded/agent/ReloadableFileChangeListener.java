@@ -108,9 +108,10 @@ public class ReloadableFileChangeListener implements FileChangeListener {
 	public void register(ReloadableType rtype, File file) {
 		if (file.getName().endsWith(".jar")) {
 			// Compute the last mod time of the entry in the jar
+			String slashname = "";
 			try {
 				ZipFile zf = new ZipFile(file);
-				String slashname = rtype.getSlashedName() + ".class";
+				slashname = rtype.getSlashedName() + ".class";
 				ZipEntry ze = zf.getEntry(slashname);
 				long lmt = ze.getTime();//LastModifiedTime().toMillis();
 				JarEntry je = new JarEntry(rtype, slashname, lmt);
@@ -128,6 +129,10 @@ public class ReloadableFileChangeListener implements FileChangeListener {
 			}
 			catch (IOException e) {
 				e.printStackTrace();
+			}catch (NullPointerException ex)
+			{
+				log.warning("class : " +slashname + "not exist in Jar , register  watch failed  " );
+				ex.printStackTrace();
 			}
 		}
 		else {
