@@ -478,6 +478,8 @@ public class SpringPlugin implements LoadtimeInstrumentationPlugin, ReloadEventP
 		clearMapField(mappingRegistryClass, mappingRegistryInstance, "urlLookup");
 		clearMapField(mappingRegistryClass, mappingRegistryInstance, "nameLookup");
 		clearMapField(mappingRegistryClass, mappingRegistryInstance, "corsLookup");
+		//Fixed up SpringPlugin to handle Spring 5 changes
+		clearMapField(mappingRegistryClass, mappingRegistryInstance, "pathLookup");
 		if (debug) {
 			System.out.println("SPRING_PLUGIN: ... cleared out the mapping registry contents");
 		}
