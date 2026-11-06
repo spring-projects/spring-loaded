@@ -436,7 +436,7 @@ public class SpringLoadedPreProcessor implements Constants {
 					if (stringifiedException.length() > 500)
 						stringifiedException = stringifiedException.substring(0, 500);
 					if (GlobalConfiguration.isRuntimeLogging && log.isLoggable(Level.INFO)) {
-						log.info("Exception occurred whilst trying to initalize system classes (probably harmless): "
+						log.info("Exception occurred whilst trying to initialize system classes (probably harmless): "
 								+ stringifiedException);
 					}
 				}
